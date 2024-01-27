@@ -2,14 +2,16 @@
 
 ![debian-museum](./assets/img/debian-museum.jpg)
 
+- [releases](https://github.com/2cd/debian-museum/releases)
+
 ## History
 
 | version     | release           |
 | ----------- | ----------------- |
 | 0.01 ~ 0.90 | 1993-08 ~ 1993-12 |
-| 0.91        | 1994-01           |
+| [0.91](https://github.com/2cd/debian-museum/releases/tag/0.91)        | 1994-01           |
 | 0.93R5      | 1995-03           |
-| 0.93R6      | 1995-10-26        |
+| [0.93R6](https://github.com/2cd/debian-museum/releases/tag/0.93R6)      | 1995-10-26        |
 
 ---
 
