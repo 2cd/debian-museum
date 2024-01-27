@@ -1,0 +1,27 @@
+name: get Bo, Hamm, Slink & Potato rootfs
+
+# env:
+#   ZSTD_LV: 19
+
+on:
+  push:
+    # branches:
+    #   - dev
+    paths:
+      - ".github/workflows/1.3--2.2.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # ref: dev
+          fetch-depth: 1
+
+      - name: set DISK-json env
+        run: echo DISK=$(<assets/ci/base/disk.json5) >> $GITHUB_ENV
+
+      - name: get json
+        run: |
+          echo ${{ fromJSON(env.disk.codename) }}
