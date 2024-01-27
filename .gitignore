@@ -1,0 +1,11 @@
+# black list
+/*
+target
+tmp
+
+# white list
+!/assets
+!/.git*
+!/LICENSE
+!/License
+!/Readme.*
