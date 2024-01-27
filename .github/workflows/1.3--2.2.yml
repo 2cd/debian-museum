@@ -28,4 +28,4 @@ jobs:
 
       - name: get json
         run: |
-          echo ${{ fromJson(env.DISK.codename) }}
+          echo ${{ fromJson(env.DISK).codename }}
