@@ -22,10 +22,6 @@ jobs:
       - name: set DISK-json env
         run: echo DISK=$(<assets/ci/base/disk.json5) >> $GITHUB_ENV
 
-      - name: print json
-        run: |
-          env
-
       - name: get json
         run: |
           echo ${{ fromJson(env.DISK).codename }}
