@@ -1,5 +1,18 @@
 (
-    url: "https://archive.debian.org/debian/dists/",
+    mirror: [
+        /*[0]*/ (
+            name: "Official",
+            region: None,
+            global: true,
+            url: "https://archive.debian.org/debian/dists/",
+        ),
+        /*[1]*/ (
+            name: "NJU",
+            region: Some("CN"),
+            global: false,
+            url: "https://mirrors.nju.edu.cn/debian-archive/debian/dists/",
+        ),
+    ],
     os: [
         /*[0]*/ (
             codename: "Bo",

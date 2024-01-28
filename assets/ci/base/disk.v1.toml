@@ -1,4 +1,13 @@
+[[mirror]]
+name = "Official"
+global = true
 url = "https://archive.debian.org/debian/dists/"
+
+[[mirror]]
+region = "CN"
+name = "NJU"
+global = false
+url = "https://mirrors.nju.edu.cn/debian-archive/debian/dists/"
 
 # Bo
 [[os]]

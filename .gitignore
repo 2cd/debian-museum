@@ -2,6 +2,9 @@
 /*
 target
 tmp
+desktop.ini
+.DS_Store
+.directory
 
 # white list
 !/assets
