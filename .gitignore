@@ -9,3 +9,5 @@ tmp
 !/LICENSE
 !/License
 !/Readme.*
+!/crates
+!/Cargo.toml

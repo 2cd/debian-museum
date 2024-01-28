@@ -1,106 +1,54 @@
-{
-    "url": "https://archive.debian.org/debian/dists",
-    "os": [
-        /*[0]*/ {
-            "base-tgz": "/base1_3.tgz",
-            "codename": "Bo",
-            "date": "1997-10",
-            "path": "/bo/main",
-            "version": "1.3",
-            "disk": [
-                /*[0]*/ {
-                    "arch": "x86",
-                    "date": "1997-10-13",
-                    "path": "/disks-i386/1997-10-13",
-                },
+(
+    url: "https://archive.debian.org/debian/dists/",
+    os: [
+        /*[0]*/ (
+            codename: "Bo",
+            version: "1.3",
+            base_tgz: "base1_3.tgz",
+            date: "1997-10",
+            path: "bo/main/",
+            disk: [
+                /*[0]*/ (arch: "x86", date: "1997-10-13", path: "disks-i386/1997-10-13/"),
             ],
-        },
-        /*[1]*/ {
-            "base-tgz": "/base2_0.tgz",
-            "codename": "Hamm",
-            "date": "1998-07",
-            "path": "/hamm/main",
-            "version": "2.0",
-            "disk": [
-                /*[0]*/ {
-                    "arch": "x86",
-                    "date": "1998-07-21",
-                    "path": "/disks-i386/2.0.10_1998-07-21",
-                },
-                /*[1]*/ {
-                    "arch": "m68k",
-                    "date": "1998-07-23",
-                    "path": "/disks-m68k/1998-07-23/common",
-                },
+        ),
+        /*[1]*/ (
+            codename: "Hamm",
+            version: "2.0",
+            base_tgz: "base2_0.tgz",
+            date: "1998-07",
+            path: "hamm/main/",
+            disk: [
+                /*[0]*/ (arch: "x86", date: "1998-07-21", path: "disks-i386/2.0.10_1998-07-21/"),
+                /*[1]*/ (arch: "m68k", date: "1998-07-23", path: "disks-m68k/1998-07-23/common/"),
             ],
-        },
-        /*[2]*/ {
-            "base-tgz": "/base2_1.tgz",
-            "codename": "Slink",
-            "date": "1999-03",
-            "path": "/slink/main",
-            "version": "2.1",
-            "disk": [
-                /*[0]*/ {
-                    "arch": "alpha",
-                    "date": "1999-03-05",
-                    "path": "/disks-alpha/1999-03-05",
-                },
-                /*[1]*/ {
-                    "arch": "x86",
-                    "date": "1999-12-09",
-                    "path": "/disks-i386/2.1.12-1999-12-09",
-                },
-                /*[2]*/ {
-                    "arch": "m68k",
-                    "date": "2000-03-02",
-                    "path": "/disks-m68k/2.1.9.2-2000-03-02/common",
-                },
-                /*[3]*/ {
-                    "arch": "sparc",
-                    "date": "1999-03-01",
-                    "path": "/disks-sparc/2.1.8.1-1999-03-01",
-                },
+        ),
+        /*[2]*/ (
+            codename: "Slink",
+            version: "2.1",
+            base_tgz: "base2_1.tgz",
+            date: "1999-03",
+            path: "slink/main/",
+            disk: [
+                /*[0]*/ (arch: "alpha", date: "1999-03-05", path: "disks-alpha/1999-03-05/"),
+                /*[1]*/ (arch: "x86", date: "1999-12-09", path: "disks-i386/2.1.12-1999-12-09/"),
+                /*[2]*/ (arch: "m68k", date: "2000-03-02", path: "disks-m68k/2.1.9.2-2000-03-02/common/"),
+                /*[3]*/ (arch: "sparc", date: "1999-03-01", path: "disks-sparc/2.1.8.1-1999-03-01/"),
             ],
-        },
-        /*[3]*/ {
-            "base-tgz": "/base2_2.tgz",
-            "codename": "Potato",
-            "date": "2000-12",
-            "path": "/potato/main",
-            "version": "2.2",
-            "disk": [
-                /*[0]*/ {
-                    "arch": "alpha",
-                    "date": "2000-12-03",
-                    "path": "/disks-alpha/2.2.20-2000-12-03",
-                },
-                /*[1]*/ {
-                    "arch": "armel",
-                    "date": "2001-06-08",
-                    "path": "/disks-arm/current",
-                },
-                /*[2]*/ {
-                    "arch": "ppc",
-                    "date": "2001-04-15",
-                    "path": "/disks-powerpc/current",
-                },
-                /*[3]*/ {
-                    "arch": "x86",
-                    "date": "2001-06-14",
-                    "path": "/disks-i386/2.2.26-2001-06-14",
-                },
-                /*[4]*/ {
-                    "arch": "m68k",
-                    "date": "2001-12-03",
-                    "path": "/disks-m68k/2.2.19-2000-12-03",
-                },
-                /*[5]*/ {
-                    "arch": "sparc",
-                    "date": "2001-04-13",
-                    "path": "/disks-sparc/2.2.22-2001-04-13",
-                },
+        ),
+        /*[3]*/ (
+            codename: "Potato",
+            version: "2.2",
+            base_tgz: "base2_2.tgz",
+            date: "2000-12",
+            path: "potato/main/",
+            disk: [
+                /*[0]*/ (arch: "alpha", date: "2000-12-03", path: "disks-alpha/2.2.20-2000-12-03/"),
+                /*[1]*/ (arch: "armel", date: "2001-06-08", path: "disks-arm/current/"),
+                /*[2]*/ (arch: "ppc", date: "2001-04-15", path: "disks-powerpc/current/"),
+                /*[3]*/ (arch: "x86", date: "2001-06-14", path: "disks-i386/2.2.26-2001-06-14/"),
+                /*[4]*/ (arch: "m68k", date: "2001-12-03", path: "disks-m68k/2.2.19-2000-12-03/"),
+                /*[5]*/ (arch: "sparc", date: "2001-04-13", path: "disks-sparc/2.2.22-2001-04-13/"),
             ],
-        },
+        ),
     ],
-}
+)

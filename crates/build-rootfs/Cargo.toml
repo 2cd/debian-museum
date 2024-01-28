@@ -1,0 +1,26 @@
+[package]
+name = "build-rootfs"
+version = "0.0.0-alpha.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.79"
+getset = "0.1.2"
+# env_logger = { version = "0.11.1", default-features = false, features = [
+#     "color",
+#     "humantime",
+# ] }
+log = "0.4.20"
+ron = "0.8.1"
+serde = { version = "1.0.196", features = ["derive"] }
+url = { version = "2.5.0", features = ["serde"] }
+
+[dependencies.log-l10n]
+version = "0.0.0"
+default-features = false
+features = ["env-logger"]
+
+[dev-dependencies]
+toml = "0.8.8"
