@@ -1,5 +1,5 @@
 [package]
-name = "build-rootfs"
+name = "get-base-disk"
 version = "0.0.0-alpha.0"
 edition = "2021"
 

@@ -1,7 +1,9 @@
 [workspace]
 members = ["crates/*"]
 resolver = "2"
-default-members = ["crates/build-rootfs"]
+# default-members = [
+#     # "crates/build-rootfs",
+# ]
 
 # [profile.release]
 # panic = "unwind"
