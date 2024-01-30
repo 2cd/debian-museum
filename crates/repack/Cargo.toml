@@ -1,0 +1,11 @@
+[package]
+name = "repack"
+version = "0.0.0-alpha.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.79"
+flate2 = { version = "1.0.28", default-features = false, features = [
+    "zlib-ng",
+] }
+zstd = { version = "0.13.0", default-features = false, features = ["zstdmt"] }

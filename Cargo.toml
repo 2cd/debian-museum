@@ -1,9 +1,11 @@
 [workspace]
-members = ["crates/*"]
+members = [
+    # 
+    "crates/get-base-disk",
+    "crates/repack",
+]
 resolver = "2"
-# default-members = [
-#     # "crates/build-rootfs",
-# ]
+# default-members = ["crates/get-base-disk"]
 
 # [profile.release]
 # panic = "unwind"

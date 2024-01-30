@@ -1,22 +1,25 @@
-use std::str::FromStr;
-
+use crate::url::ArchiveUrl;
 use getset::Getters;
-use log::debug;
+use log::{debug, trace};
 use serde::{Deserialize, Serialize};
-use std::{env, fs, path::Path};
-use url::Url;
+use std::{fs, path::Path};
 
-use crate::DISK_RON;
 #[derive(Getters, Serialize, Deserialize, Debug, Default)]
 #[getset(get = "pub(crate) with_prefix")]
+#[serde(default)]
 pub(crate) struct Disk {
     arch: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    deb_arch: Option<String>,
     date: String,
     path: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tag: Option<String>,
 }
 
 #[derive(Getters, Serialize, Deserialize, Debug, Default)]
 #[getset(get = "pub(crate) with_prefix")]
+#[serde(default)]
 pub(crate) struct OS {
     codename: String,
     version: String,
@@ -26,26 +29,14 @@ pub(crate) struct OS {
     disk: Vec<Disk>,
 }
 
-#[derive(Getters, Serialize, Deserialize, Debug)]
+#[derive(Getters, Serialize, Deserialize, Debug, Default)]
 #[getset(get = "pub(crate) with_prefix")]
-struct Mirror {
+#[serde(default)]
+pub(crate) struct Mirror {
     name: String,
-    // #[serde(skip_serializing_if = "Option::is_none")]
     region: Option<String>,
     global: bool,
-    // #[serde(default = "debian_archive_url")]
-    url: Url,
-}
-
-impl Default for Mirror {
-    fn default() -> Self {
-        Self {
-            name: Default::default(),
-            region: None,
-            global: false,
-            url: debian_archive_url(),
-        }
-    }
+    url: ArchiveUrl,
 }
 
 #[derive(Getters, Serialize, Deserialize, Debug, Default)]
@@ -56,38 +47,17 @@ pub(crate) struct DiskV1 {
     os: Vec<OS>,
 }
 
-fn debian_archive_url() -> Url {
-    // https://mirrors.nju.edu.cn/debian-archive/debian/dists/
-    Url::from_str("https://archive.debian.org/debian/dists/").expect("Invalid url")
-}
+impl DiskV1 {
+    pub(crate) const DISK_RON: &'static str = "assets/ci/base/disk.v1.ron";
 
-pub(crate) fn parse() -> anyhow::Result<()> {
-    #[cfg(debug_assertions)]
-    crate::set_workdir()?;
+    pub(crate) fn deser() -> anyhow::Result<Self> {
+        let ron = Path::new(Self::DISK_RON);
 
-    let ron = Path::new(DISK_RON);
-    debug!("current dir: {:?}", env::current_dir());
+        debug!("deserializing the ron cfg: {:?}", ron);
+        let cfg = ron::de::from_bytes::<Self>(&fs::read(ron)?)?;
+        debug!("complete");
 
-    log::trace!("parsing the ron cfg: {:?}", ron);
-    let cfg = ron::de::from_bytes::<DiskV1>(&fs::read(ron)?)?;
-
-    let dist_url = get_dist_url(&cfg);
-
-    dbg!(dist_url);
-
-    Ok(())
-}
-
-fn get_dist_url(cfg: &DiskV1) -> &Url {
-    let is_cn = env::var("LANG").is_ok_and(|x| x.contains("CN"));
-
-    cfg.get_mirror()
-        .iter()
-        .find(|x| match x.get_region().as_deref() {
-            None if is_cn => false,
-            Some("CN") => is_cn,
-            _ => true,
-        })
-        .expect("Empty Mirror")
-        .get_url()
+        trace!("cfg: {:?}", cfg);
+        Ok(cfg)
+    }
 }

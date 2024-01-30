@@ -20,10 +20,12 @@ base_tgz = "base1_3.tgz"
 
 [[os.disk]]
 arch = "x86"
-# deb-arch = "i386"
+deb_arch = "i386"
 path = "disks-i386/1997-10-13/"
 date = "1997-10-13"
-
+# file_name = "1.3_Bo_x86_base_1997-10-13.tar.zst"
+# "os.version_os.codename_disk.arch_disk.tag_disk.date".tar.zst
+# "1.3_Bo_x86__1997-10-13.tar.zst"
 
 # Hamm
 [[os]]
@@ -36,6 +38,7 @@ base_tgz = "base2_0.tgz"
 
 [[os.disk]]
 arch = "x86"
+deb_arch = "i386"
 path = "disks-i386/2.0.10_1998-07-21/"
 date = "1998-07-21"
 
@@ -62,6 +65,7 @@ date = "1999-03-05"
 
 [[os.disk]]
 arch = "x86"
+deb_arch = "i386"
 path = "disks-i386/2.1.12-1999-12-09/"
 date = "1999-12-09"
 
@@ -83,34 +87,43 @@ version = "2.2"
 date = "2000-12"
 path = "potato/main/"
 base_tgz = "base2_2.tgz"
-# arch = ["alpha", "armel", "ppc", "x86", "m68k", "sparc"]
+# arch = ["alpha", "armv3", "ppc", "x86", "m68k", "sparc"]
 
 [[os.disk]]
 arch = "alpha"
 path = "disks-alpha/2.2.20-2000-12-03/"
 date = "2000-12-03"
+tag = "base"
 
 [[os.disk]]
-arch = "armel"
+arch = "armv3"
+deb_arch = "arm"
 path = "disks-arm/current/"
 date = "2001-06-08"
+tag = "base"
 
 [[os.disk]]
 arch = "ppc"
+deb_arch = "powerpc"
 path = "disks-powerpc/current/"
 date = "2001-04-15"
+tag = "base"
 
 [[os.disk]]
 arch = "x86"
+deb_arch = "i386"
 path = "disks-i386/2.2.26-2001-06-14/"
 date = "2001-06-14"
+tag = "base"
 
 [[os.disk]]
 arch = "m68k"
 path = "disks-m68k/2.2.19-2000-12-03/"
 date = "2001-12-03"
+tag = "base"
 
 [[os.disk]]
 arch = "sparc"
 path = "disks-sparc/2.2.22-2001-04-13/"
 date = "2001-04-13"
+tag = "base"

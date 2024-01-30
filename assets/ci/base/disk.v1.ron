@@ -21,7 +21,7 @@
             date: "1997-10",
             path: "bo/main/",
             disk: [
-                /*[0]*/ (arch: "x86", date: "1997-10-13", path: "disks-i386/1997-10-13/"),
+                /*[0]*/ (arch: "x86", deb_arch: Some("i386"), date: "1997-10-13", path: "disks-i386/1997-10-13/"),
             ],
         ),
         /*[1]*/ (
@@ -31,7 +31,7 @@
             date: "1998-07",
             path: "hamm/main/",
             disk: [
-                /*[0]*/ (arch: "x86", date: "1998-07-21", path: "disks-i386/2.0.10_1998-07-21/"),
+                /*[0]*/ (arch: "x86", deb_arch: Some("i386"), date: "1998-07-21", path: "disks-i386/2.0.10_1998-07-21/"),
                 /*[1]*/ (arch: "m68k", date: "1998-07-23", path: "disks-m68k/1998-07-23/common/"),
             ],
         ),
@@ -43,7 +43,7 @@
             path: "slink/main/",
             disk: [
                 /*[0]*/ (arch: "alpha", date: "1999-03-05", path: "disks-alpha/1999-03-05/"),
-                /*[1]*/ (arch: "x86", date: "1999-12-09", path: "disks-i386/2.1.12-1999-12-09/"),
+                /*[1]*/ (arch: "x86", deb_arch: Some("i386"), date: "1999-12-09", path: "disks-i386/2.1.12-1999-12-09/"),
                 /*[2]*/ (arch: "m68k", date: "2000-03-02", path: "disks-m68k/2.1.9.2-2000-03-02/common/"),
                 /*[3]*/ (arch: "sparc", date: "1999-03-01", path: "disks-sparc/2.1.8.1-1999-03-01/"),
             ],
@@ -55,12 +55,12 @@
             date: "2000-12",
             path: "potato/main/",
             disk: [
-                /*[0]*/ (arch: "alpha", date: "2000-12-03", path: "disks-alpha/2.2.20-2000-12-03/"),
-                /*[1]*/ (arch: "armel", date: "2001-06-08", path: "disks-arm/current/"),
-                /*[2]*/ (arch: "ppc", date: "2001-04-15", path: "disks-powerpc/current/"),
-                /*[3]*/ (arch: "x86", date: "2001-06-14", path: "disks-i386/2.2.26-2001-06-14/"),
-                /*[4]*/ (arch: "m68k", date: "2001-12-03", path: "disks-m68k/2.2.19-2000-12-03/"),
-                /*[5]*/ (arch: "sparc", date: "2001-04-13", path: "disks-sparc/2.2.22-2001-04-13/"),
+                /*[0]*/ (arch: "alpha", date: "2000-12-03", path: "disks-alpha/2.2.20-2000-12-03/", tag: Some("base")),
+                /*[1]*/ (arch: "armv3", deb_arch: Some("arm"), date: "2001-06-08", path: "disks-arm/current/", tag: Some("base")),
+                /*[2]*/ (arch: "ppc", deb_arch: Some("powerpc"), date: "2001-04-15", path: "disks-powerpc/current/", tag: Some("base")),
+                /*[3]*/ (arch: "x86", deb_arch: Some("i386"), date: "2001-06-14", path: "disks-i386/2.2.26-2001-06-14/", tag: Some("base")),
+                /*[4]*/ (arch: "m68k", date: "2001-12-03", path: "disks-m68k/2.2.19-2000-12-03/", tag: Some("base")),
+                /*[5]*/ (arch: "sparc", date: "2001-04-13", path: "disks-sparc/2.2.22-2001-04-13/", tag: Some("base")),
             ],
         ),
     ],
