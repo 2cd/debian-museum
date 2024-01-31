@@ -4,8 +4,9 @@ use std::{
     os::unix::process::ExitStatusExt,
     process::{exit, Child, Command, ExitStatus},
 };
+use url::Url;
 
-pub(crate) fn run_curl(url: &str, fname: &str) {
+pub(crate) fn run_curl(url: &Url, fname: &str) {
     info!(
         "{curl} {lo} {file} {url}",
         curl = "curl".green(),
@@ -13,7 +14,7 @@ pub(crate) fn run_curl(url: &str, fname: &str) {
         file = fname.magenta(),
         url = url.yellow()
     );
-    run("curl", &["-L", "-o", fname, url]);
+    run("curl", &["-L", "-o", fname, url.as_str()]);
 }
 
 pub(crate) fn spawn_cmd(cmd: &str, args: &[&str]) -> Child {

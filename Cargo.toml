@@ -3,6 +3,7 @@ members = [
     # 
     "crates/get-base-disk",
     "crates/repack",
+    "crates/archmap",
 ]
 resolver = "2"
 # default-members = ["crates/get-base-disk"]

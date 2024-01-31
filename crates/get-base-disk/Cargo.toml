@@ -1,9 +1,10 @@
 [package]
 name = "get-base-disk"
-version = "0.0.0-alpha.1"
+version = "0.0.0-alpha.2"
 edition = "2021"
 
 [dependencies]
+ahash = "0.8.7"
 anyhow = "1.0.79"
 derive_more = { version = "0.99.17", default-features = false, features = [
     "deref",
@@ -13,10 +14,14 @@ getset = "0.1.2"
 log = "0.4.20"
 ron = "0.8.1"
 serde = { version = "1.0.196", features = ["derive"] }
+tinyvec = { version = "1.6.0", features = ["alloc"] }
+typed-builder = "0.18.1"
 url = { version = "2.5.0", features = ["serde"] }
 
 [dependencies.repack]
 path = "../repack"
+[dependencies.archmap]
+path = "../archmap"
 
 [dependencies.log-l10n]
 version = "0.0.0"
