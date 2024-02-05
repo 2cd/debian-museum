@@ -1,37 +1,11 @@
-use crate::command::spawn_cmd;
-use log::{debug, info, trace};
-use std::{borrow::Cow, path::Path, process::Child};
+use std::borrow::Cow;
 use tinyvec::TinyVec;
 use typed_builder::TypedBuilder;
+use url::Url;
 
-pub(crate) const DOCKER_FILE: &str = "assets/ci/base/Dockerfile";
+use crate::docker::{get_oci_platform, repo_map};
 
-pub(crate) fn get_oci_platform(arch: &str) -> &str {
-    archmap::linux_oci_platform::map()
-        .get(arch)
-        // .copied()
-        .expect("linux/amd64")
-}
-/// `docker build --tag $tag0 --tag $tag1 ...`
-pub(crate) fn spawn_docker_build<'a, T: IntoIterator<Item = &'a str>>(
-    tags: T,
-    platform: &str,
-    context: &Path,
-) -> Child {
-    debug!("building the docker container ...");
-    let mut args = Vec::with_capacity(16);
-    args.push("build");
-
-    for tag in tags {
-        info!("tag:\t {}", tag);
-        args.extend(["--tag", tag])
-    }
-
-    let context_path_str = context.to_string_lossy();
-    args.extend(["--platform", platform, "--pull", &context_path_str]);
-
-    spawn_cmd("docker", &args)
-}
+// use crate::command::spawn_cmd::crate;
 
 #[derive(Debug, TypedBuilder)]
 pub(crate) struct Repository<'r> {
@@ -39,12 +13,21 @@ pub(crate) struct Repository<'r> {
     pub(crate) owner: &'r str,
     #[builder(default = "debian")]
     pub(crate) project: &'r str,
-    pub(crate) codename: &'r str,
+
+    #[builder(setter(transform = |s: &str| s.to_ascii_lowercase()))]
+    pub(crate) codename: String,
+
     pub(crate) version: &'r str,
     pub(crate) arch: &'r str,
 
-    #[builder(default = Some("latest"))]
+    #[builder(default)]
     pub(crate) tag: Option<&'r str>,
+
+    #[builder(default = "1900-01-01")]
+    pub(crate) date: &'r str,
+
+    #[builder(default, setter(strip_option))]
+    pub(crate) url: Option<Url>,
 }
 
 impl<'r> Default for Repository<'r> {
@@ -59,12 +42,38 @@ impl<'r> Default for Repository<'r> {
     }
 }
 
-type NormalRepos = TinyVec<[String; 2]>;
-type MainRepos = TinyVec<[MainRepo; 2]>;
+pub(crate) type NormalRepos = TinyVec<[String; 2]>;
+
+pub(crate) type MainRepos = TinyVec<[repo_map::MainRepo; 2]>;
 
 impl<'r> Repository<'r> {
     pub(crate) const REG_URI: &'static str = "reg.tmoe.me:2096";
     pub(crate) const GHCR_URI: &'static str = "ghcr.io";
+
+    pub(crate) fn oci_platform(&self) -> &str {
+        get_oci_platform(self.arch)
+    }
+
+    pub(crate) fn base_name(&self) -> String {
+        let opt_prefix = |opt: Option<&str>| match opt {
+            Some(d) if !d.trim().is_empty() => Cow::from(format!("_{}", d)),
+            _ => Cow::from(""),
+        };
+
+        let opt_date = match self.date.trim() {
+            "1900-01-01" | "" => Cow::from(""),
+            d => Cow::from(format!("_{}", d)),
+        };
+
+        format!(
+            "{}_{}_{}{}{}",
+            self.version,
+            self.codename,
+            self.arch,
+            opt_prefix(self.tag),
+            opt_date,
+        )
+    }
 
     pub(crate) fn opt_tag_suffix(&self) -> Cow<str> {
         match self.tag {
@@ -87,7 +96,6 @@ impl<'r> Repository<'r> {
             ..
         } = self;
 
-        // let mut v =
         [
             format!(
                 // "{}-{}{}",
@@ -150,7 +158,7 @@ impl<'r> Repository<'r> {
             // REG_URI/debian/2.2:base OR REG_URI/debain/1.3:latest
             format!("{}/{}/{}:{}", uri, project, version, tag),
         ]
-        .map(MainRepo::Reg)
+        .map(repo_map::MainRepo::Reg)
         .into()
     }
 
@@ -171,83 +179,7 @@ impl<'r> Repository<'r> {
             // ghcr.io/2cd/debian:2.2-base OR ghcr.io/2cd/debian:1.3
             format!("{}/{}/{}:{}{}", uri, owner, project, version, suffix),
         ]
-        .map(MainRepo::Ghcr)
+        .map(repo_map::MainRepo::Ghcr)
         .into()
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub(crate) enum MainRepo {
-    Reg(String),
-    Ghcr(String),
-}
-
-impl Default for MainRepo {
-    fn default() -> Self {
-        Self::Ghcr(Default::default())
-    }
-}
-
-pub(crate) type Repos = TinyVec<[String; 16]>;
-
-#[derive(Debug, Default, derive_more::Deref)]
-pub(crate) struct RepoMap(ahash::HashMap<MainRepo, Repos>);
-
-impl RepoMap {
-    /// Instead of resetting to a new value, this function pushes a new element to the value(&mut TinyVec) corresponding to the key.
-    ///
-    /// Note: If the corresponding key does not exist in the map, the Key and Value are created.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// let mut map = RepoMap::default();
-    ///
-    /// let key = MainRepo::Ghcr("ghcr.io/xx/yy:latest".into());
-    ///
-    /// map.push_to_value(key.to_owned(), "ghcr.io/xx/yy:x64".into());
-    /// map.push_to_value(key.to_owned(), "ghcr.io/xx/yy:rv64gc".into());
-    ///
-    /// let value = map
-    ///     .get(&key)
-    ///     .expect("Failed to unwrap map");
-    ///
-    /// assert_eq!(value[0], "ghcr.io/xx/yy:x64");
-    /// assert_eq!(value[1], "ghcr.io/xx/yy:rv64gc");
-    /// ```
-    pub(crate) fn push_to_value(&mut self, key: MainRepo, element: String) {
-        self.0
-            .entry(key)
-            .and_modify(|v| {
-                debug!("RepoMap.value\t is_heap: {}", v.is_heap());
-                trace!("capacity: {}, len: {}", v.capacity(), v.len(),);
-                v.push(element.clone())
-            })
-            .or_insert_with(|| {
-                trace!("init RepoMap.value");
-                let mut v = Repos::new();
-                v.push(element);
-                v
-            });
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn tag_map() {
-        let mut map = docker::RepoMap::default();
-
-        let key = docker::MainRepo::Ghcr("ghcr.io/xx/yy:latest".into());
-
-        map.push_to_value(key.clone(), "ghcr.io/xx/yy:x64".into());
-        map.push_to_value(key.clone(), "ghcr.io/xx/yy:rv64gc".into());
-
-        let value = map
-            .get(&key)
-            .expect("Failed to unwrap map");
-
-        assert_eq!(value[0], "ghcr.io/xx/yy:x64");
-        assert_eq!(value[1], "ghcr.io/xx/yy:rv64gc");
     }
 }

@@ -6,6 +6,9 @@ tmp.*
 desktop.ini
 .DS_Store
 .directory
+perf.data
+perf.data.old
+flamegraph.svg
 
 # white list
 !/assets

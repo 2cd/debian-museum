@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use url::Url;
 
-use crate::cfg::{self, DiskV1};
+use crate::cfg::{self, disk::DiskV1};
 
 #[derive(Deref, Serialize, Deserialize, From, Debug)]
 #[from(forward)]
@@ -42,8 +42,13 @@ pub(crate) fn add_slash(x: &str) -> &str {
     "/"
 }
 
-pub(crate) fn concat_url_path(url: &mut String, os: &cfg::OS, disk: &cfg::Disk) {
+pub(crate) fn concat_url_path(
+    url: &mut String,
+    os: &cfg::disk::OS,
+    disk: &cfg::disk::Disk,
+) {
     let (op, dp, tgz) = (os.get_path(), disk.get_path(), os.get_base_tgz());
+    url.clear();
     *url = format!(
         "{op}{o_sep}{dp}{d_sep}{tgz}",
         o_sep = add_slash(op),
