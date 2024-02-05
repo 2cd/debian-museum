@@ -1,13 +1,16 @@
 use super::{deser_ron, TarFile, ZstdOp};
 use crate::{
-    cfg::{
-        digest,
-        digest::{DockerMirror, FileMirror},
-    },
+    cfg::digest::{self, DockerMirror, FileMirror},
     docker::{
         get_oci_platform,
-        repo::{NormalRepos, Repository},
+        repo::Repository,
         repo_map::{MainRepo, RepoMap},
+    },
+    task::old_old_debian::{
+        docker_task::{
+            self, platforms_ron_name, repo_digests_filename, MainRepoDigests,
+        },
+        BUILD_TIME_RON,
     },
 };
 use byteunit::ByteUnit;
@@ -28,22 +31,25 @@ pub(crate) fn create_digest<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
             init_root_cfg(r, &mut digest_os_config)?;
         }
 
-        let TarFile { tar_path, .. } = r.base_tar_name();
-        let tar_size = tar_path.metadata()?.len();
-
-        let docker_dir = tar_path
-            .parent()
-            .expect("Invalid TAR path");
+        let TarFile {
+            tar_path,
+            ref docker_dir,
+            ..
+        } = r.base_tar_name()?;
         log::debug!("docker_dir: {docker_dir:?}");
 
+        let tar_size = tar_path.metadata()?.len();
         // -----------------------
         let docker = update_docker_cfg(docker_dir, r);
         let archive_file = archive_file_cfg(docker_dir, tar_size, r)?;
 
+        let build_time =
+            deser_ron::<time::OffsetDateTime, _>(docker_dir.join(BUILD_TIME_RON))?;
+
         let os_tag = digest::MainTag::builder()
             .name(get_tag_name(docker_dir)?)
             .arch(r.arch)
-            .datetime(current_utc())
+            .datetime(current_utc(build_time))
             .docker(docker)
             .file(archive_file)
             .build();
@@ -65,12 +71,13 @@ pub(crate) fn create_digest<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
 }
 
 fn get_tag_name(docker_dir: &Path) -> Result<String, ron::de::SpannedError> {
-    deser_ron::<String, &Path>(&docker_dir.join("tag.ron"))
+    deser_ron::<String, _>(&docker_dir.join("tag.ron"))
 }
 
-fn current_utc() -> digest::DateTime {
+fn current_utc(build_time: time::OffsetDateTime) -> digest::DateTime {
     digest::DateTime::builder()
-        .build_time(time::OffsetDateTime::now_utc())
+        .build_time(build_time)
+        .update_time(time::OffsetDateTime::now_utc())
         .build()
 }
 
@@ -82,7 +89,7 @@ fn archive_file_cfg(
     let ZstdOp {
         path: zstd_path,
         lv: zstd_lv,
-    } = deser_ron::<ZstdOp<PathBuf>, &Path>(&docker_dir.join("zstd.ron"))?;
+    } = deser_ron::<ZstdOp<PathBuf>, _>(&docker_dir.join("zstd.ron"))?;
 
     let zstd_digests = ["blake3", "sha256"].map(|algo| {
         digest::HashDigest::builder()
@@ -144,16 +151,15 @@ fn archive_file_cfg(
 fn update_docker_cfg(docker_dir: &Path, r: &Repository<'_>) -> digest::Docker {
     let docker_mirrors =
         [("ghcr", "ghcr.ron"), ("reg", "reg.ron")].map(|(name, ron)| {
+            let repo_digest_file = docker_dir.join(repo_digests_filename(ron));
+
             DockerMirror::builder()
-                // .repo_digest(repo_digest)
                 .name(name)
-                .repositories(
-                    deser_ron::<NormalRepos, &Path>(&docker_dir.join(ron))
-                        .unwrap_or_else(|e| {
-                            log::error!("Err: {e}");
-                            panic!("Failed to deser : {ron:?}")
-                        })
-                        .to_vec(),
+                .repositories(deser_reg_ron(docker_dir.join(ron)))
+                .repo_digests(
+                    repo_digest_file
+                        .exists()
+                        .then(|| deser_reg_ron(repo_digest_file)),
                 )
                 .build()
         });
@@ -165,28 +171,48 @@ fn update_docker_cfg(docker_dir: &Path, r: &Repository<'_>) -> digest::Docker {
     docker
 }
 
+fn deser_reg_ron<P: AsRef<Path>>(reg_ron: P) -> MainRepoDigests {
+    deser_ron::<MainRepoDigests, _>(reg_ron).unwrap_or_else(|e| {
+        log::error!("Err: {e}");
+        panic!("Failed to deser")
+    })
+}
+
 pub(crate) fn init_root_cfg(
     r: &Repository<'_>,
     digest_os_config: &mut [digest::OS; 1],
 ) -> Result<(), anyhow::Error> {
     let docker_ron = r.docker_ron_filename();
-    let mut ghcr_repos = Vec::with_capacity(4);
-    let mut reg_repos = Vec::with_capacity(4);
-    for (k, _) in deser_ron::<RepoMap, &str>(&docker_ron)?.clone() {
+    let mut ghcr_repos = MainRepoDigests::new();
+    let mut reg_repos = MainRepoDigests::new();
+
+    for k in deser_ron::<RepoMap, _>(&docker_ron)?
+        .clone()
+        .into_keys()
+    {
         match k {
             MainRepo::Ghcr(v) => ghcr_repos.push(v),
             MainRepo::Reg(v) => reg_repos.push(v),
         }
     }
+
+    let repo_digest_map = deser_ron::<docker_task::MainRepoDigestMap, _>(
+        docker_task::repo_digests_filename(&docker_ron),
+    )?;
+
     let mirrors = [("ghcr", ghcr_repos), ("reg", reg_repos)].map(|(name, repos)| {
         DockerMirror::builder()
             .name(name)
             .repositories(repos)
+            .repo_digests(
+                repo_digest_map
+                    .get(name)
+                    .cloned(),
+            )
             .build()
     });
 
-    let platforms =
-        deser_ron::<Vec<String>, &str>(docker_ron.trim_end_matches("on"))?;
+    let platforms = deser_ron::<Vec<String>, _>(platforms_ron_name(&docker_ron))?;
     let os_docker = digest::Docker::builder()
         .oci_platforms(platforms)
         .mirror(mirrors)

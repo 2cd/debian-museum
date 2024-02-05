@@ -1,25 +1,30 @@
-use std::path::PathBuf;
-
 use getset::Getters;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+use std::path::PathBuf;
 use typed_builder::TypedBuilder;
 use url::Url;
+
+use crate::task::old_old_debian::docker_task::MainRepoDigests;
 
 #[skip_serializing_none]
 #[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder)]
 #[getset(get = "pub(crate) with_prefix")]
 #[serde(default)]
-#[builder(field_defaults(default, setter(into, strip_option)))]
+#[builder(field_defaults(default, setter(into)))]
 pub(crate) struct DockerMirror {
-    #[builder(!default, setter(!strip_option))]
+    #[builder(!default)]
     name: String,
-    #[builder(!default, setter(!strip_option))]
-    repositories: Vec<String>,
+    #[builder(!default)]
+    repositories: MainRepoDigests,
 
-    #[serde(rename = "repo-digest")]
-    repo_digest: Option<String>,
+    #[serde(rename = "repo-digests")]
+    repo_digests: Option<MainRepoDigests>,
+
+    #[builder(setter(strip_option))]
     user: Option<String>,
+
+    #[builder(setter(strip_option))]
     token: Option<String>,
 }
 
@@ -128,6 +133,10 @@ pub(crate) struct DateTime {
     #[serde(rename = "build")]
     #[builder(default, setter(strip_option))]
     build_time: Option<time::OffsetDateTime>,
+
+    #[serde(rename = "update")]
+    #[builder(default, setter(strip_option))]
+    update_time: Option<time::OffsetDateTime>,
 }
 
 #[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder)]

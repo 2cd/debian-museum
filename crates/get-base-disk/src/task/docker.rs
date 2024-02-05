@@ -1,5 +1,20 @@
-use crate::{docker, docker::spawn_docker_build};
+use log_l10n::level::color::OwoColorize;
+
+use crate::{
+    command,
+    docker::{self, spawn_docker_build},
+};
 use std::{self, fs, iter, ops::Deref, path::Path};
+pub(crate) fn run_docker_push(repo: &str) {
+    log::info!(
+        "{} {} {} {}",
+        "docker".green(),
+        "push".yellow(),
+        "--all-tags".cyan(),
+        repo.blue()
+    );
+    command::run("docker", &["push", "--all-tags", repo])
+}
 
 pub(crate) fn run_docker_build(
     repo: &docker::repo::Repository<'_>,

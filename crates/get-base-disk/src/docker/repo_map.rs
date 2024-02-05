@@ -8,6 +8,15 @@ pub(crate) enum MainRepo {
     Ghcr(String),
 }
 
+impl MainRepo {
+    /// Returns `true` if the main repo is [`Ghcr`].
+    ///
+    /// [`Ghcr`]: MainRepo::Ghcr
+    pub(crate) fn is_ghcr(&self) -> bool {
+        matches!(self, Self::Ghcr(..))
+    }
+}
+
 impl Default for MainRepo {
     fn default() -> Self {
         Self::Ghcr(Default::default())

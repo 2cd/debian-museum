@@ -19,7 +19,7 @@ serde_with = "3.6.0"
 serde_yaml = "0.9.31"
 threadpool = "1.8.1"
 time = { version = "0.3.34", features = ["serde", "serde-human-readable"] }
-tinyvec = { version = "1.6.0", features = ["alloc", "serde"] }
+tinyvec = { version = "1.6.0", features = ["serde", "alloc"] }
 typed-builder = "0.18.1"
 url = { version = "2.5.0", features = ["serde"] }
 

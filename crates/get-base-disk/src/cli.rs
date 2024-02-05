@@ -15,7 +15,7 @@ pub(crate) const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Parser, Debug, Getters)]
 #[getset(get = "pub(crate) with_prefix")]
 #[command(arg_required_else_help = true)]
-/// Example: --os debian --ver 2.2 --tag base --build
+/// Example: --os debian --ver 2.2 --tag base --obtain --build
 pub(crate) struct Cli {
     /// OS Name, e.g. debian, ubuntu
     #[arg(long, id = "OS_Name")]
@@ -41,28 +41,30 @@ pub(crate) struct Cli {
     #[arg(long, help_heading = "Operation", value_parser = value_parser!(u8).range(0..=22), requires = "repack")]
     zstd_level: Option<u8>,
 
-    // /// generate repos.yml
-    // #[arg(long, group = "config", help_heading = "Save-Config")]
-    // docker_repos: bool,
-    //
-    /// generate digests.yml & digests.ron
-    #[arg(long, group = "config", help_heading = "Save-Config")]
-    digests: bool,
-
     /// build container
-    #[arg(long, group = "docker", help_heading = "Docker")]
+    #[arg(long, help_heading = "Docker")]
     build: bool,
 
     /// push to ghcr & reg
-    #[arg(long, group = "docker", help_heading = "Docker")]
+    #[arg(long, help_heading = "Docker")]
     push: bool,
 
-    /// i.e. docker:x86 + docker:arm64 -> docker:latest
-    #[arg(long, group = "docker", help_heading = "Docker")]
+    /// i.e. docker:x86 + docker:arm -> docker:latest
+    #[arg(long, help_heading = "Docker")]
     create_manifest: bool,
 
-    #[arg(long, group = "docker", help_heading = "Docker")]
-    push_manifest: bool,
+    /// repo-digest xx/yy@sha256:123456abcdef
+    #[arg(long, help_heading = "Docker")]
+    update_repo_digest: bool,
+
+    // /// push xx/yy:latest to ghcr & reg(registry)
+    // #[arg(long, help_heading = "Docker")]
+    // push_manifest: bool,
+    //
+    //
+    /// generate digests.yml & digests.ron
+    #[arg(long, help_heading = "Save-Config")]
+    digest: bool,
 
     #[arg(long, help = PKG_VERSION, help_heading = "Builtin")]
     version: bool,
@@ -130,10 +132,22 @@ impl Cli {
         }
 
         if *self.get_build() {
-            old_old_debian::docker_build(&repos)?;
+            old_old_debian::docker_task::docker_build(&repos)?;
         }
 
-        if *self.get_digests() {
+        if *self.get_push() {
+            old_old_debian::docker_task::docker_push(&repos)?;
+        }
+
+        if *self.get_create_manifest() {
+            old_old_debian::docker_task::create_manifest(&repos)?;
+        }
+
+        if *self.get_update_repo_digest() {
+            old_old_debian::docker_task::pull_image_and_create_repo_digests(&repos)?;
+        }
+
+        if *self.get_digest() {
             old_old_debian::digest_cfg::create_digest(&repos)?;
         }
 
