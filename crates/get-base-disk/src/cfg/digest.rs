@@ -67,6 +67,7 @@ impl Default for FileMirror {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder)]
 #[getset(get = "pub(crate) with_prefix")]
 #[serde(default)]
@@ -74,8 +75,10 @@ impl Default for FileMirror {
 pub(crate) struct FileSize {
     bytes: u64,
     readable: byteunit::ByteUnit,
-    #[serde(rename = "readable-kilo-binary-byte")]
-    readable_kib: byteunit::ByteUnit,
+    #[builder(default)]
+    kib: Option<byteunit::ByteUnit>,
+    #[builder(default)]
+    mib: Option<byteunit::ByteUnit>,
 
     #[serde(rename = "tar-bytes")]
     tar_bytes: u64,
@@ -159,23 +162,4 @@ pub(crate) struct OS {
 #[builder(field_defaults(setter(into)))]
 pub(crate) struct Digests {
     os: Vec<OS>,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::{fs, io, path::Path};
-
-    #[test]
-    fn deser_toml() -> anyhow::Result<()> {
-        let file =
-            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tmp.todo/v1.toml");
-        if !file.exists() {
-            return Ok(());
-        }
-
-        let toml = toml::from_str::<Digests>(&fs::read_to_string(&file)?)?;
-        dbg!(toml);
-        Ok(())
-    }
 }

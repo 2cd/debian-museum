@@ -1,15 +1,9 @@
-use byteunit::ByteUnit;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use url::Url;
+pub(crate) mod digest_cfg;
 
 use crate::{
-    cfg::digest::{self, DockerMirror, FileMirror},
     command::run_curl,
-    docker::{
-        get_oci_platform,
-        repo::{NormalRepos, Repository},
-        repo_map::{MainRepo, RepoMap},
-    },
+    docker::{repo::Repository, repo_map::RepoMap},
     task::{
         compression::{decompress_gzip, spawn_zstd_thread},
         docker::run_docker_build,
@@ -192,176 +186,6 @@ pub(crate) fn docker_build<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
     Ok(())
 }
 
-// create_digest
-pub(crate) fn create_digest<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
-    repos: I,
-) -> anyhow::Result<()> {
-    let mut root_cfg = false;
-    let mut digest_os_config = [digest::OS::default(); 1];
-    let mut digest_os_tag = Vec::with_capacity(16);
-
-    for r in repos {
-        if !root_cfg {
-            root_cfg = true;
-            let docker_ron = r.docker_ron_filename();
-
-            let mut ghcr_repos = Vec::with_capacity(4);
-            let mut reg_repos = Vec::with_capacity(4);
-
-            for (k, _) in deser_ron::<RepoMap, &str>(&docker_ron)?.clone() {
-                match k {
-                    MainRepo::Ghcr(v) => ghcr_repos.push(v),
-                    MainRepo::Reg(v) => reg_repos.push(v),
-                }
-            }
-
-            let mirrors =
-                [("ghcr", ghcr_repos), ("reg", reg_repos)].map(|(name, repos)| {
-                    DockerMirror::builder()
-                        .name(name)
-                        .repositories(repos)
-                        .build()
-                });
-
-            let platforms =
-                deser_ron::<Vec<String>, &str>(docker_ron.trim_end_matches("on"))?;
-
-            let os_docker = digest::Docker::builder()
-                .oci_platforms(platforms)
-                .mirror(mirrors)
-                .build();
-
-            digest_os_config[0] = digest::OS::builder()
-                .codename(&r.codename)
-                .name(r.project)
-                .version(r.version)
-                .docker(os_docker)
-                .build();
-        }
-
-        let TarFile { tar_path, .. } = r.base_tar_name();
-
-        let docker_dir = tar_path
-            .parent()
-            .expect("Invalid TAR path");
-        log::debug!("docker_dir: {docker_dir:?}");
-
-        // -----------------------
-        let datetime = digest::DateTime::builder()
-            .build_time(time::OffsetDateTime::now_utc())
-            .build();
-
-        let docker_mirrors =
-            [("ghcr", "ghcr.ron"), ("reg", "reg.ron")].map(|(name, ron)| {
-                DockerMirror::builder()
-                    // .repo_digest(repo_digest)
-                    .name(name)
-                    .repositories(
-                        deser_ron::<NormalRepos, &Path>(&docker_dir.join(ron))
-                            .unwrap_or_else(|e| {
-                                log::error!("Err: {e}");
-                                panic!("Failed to deser : {ron:?}")
-                            })
-                            .to_vec(),
-                    )
-                    .build()
-            });
-
-        let docker = digest::Docker::builder()
-            .platform(get_oci_platform(r.arch))
-            .mirror(docker_mirrors)
-            .build();
-
-        let ZstdOp {
-            path: zstd_path,
-            lv: zstd_lv,
-        } = deser_ron::<ZstdOp<PathBuf>, &Path>(&docker_dir.join("zstd.ron"))?;
-
-        let zstd_digests = ["blake3", "sha256"].map(|name| {
-            digest::HashDigest::builder()
-                .algorithm(name)
-                .hex(
-                    match name {
-                        "blake3" => hash_digest::blake3::get(&zstd_path),
-                        _ => hash_digest::sha256::get(&zstd_path),
-                    }
-                    .expect("Failed to get hash digest")
-                    .to_string(),
-                )
-                .build()
-        });
-
-        let zstd_meta = zstd_path.metadata()?;
-        let zstd_size = zstd_meta.len();
-        let tar_size = tar_path.metadata()?.len();
-
-        let file_size = digest::FileSize::builder()
-            .bytes(zstd_size)
-            .readable(ByteUnit::new_mib(zstd_size))
-            .readable_kib(ByteUnit::new_kib(zstd_size))
-            .tar_bytes(tar_size)
-            .tar_readable(ByteUnit::new_mib(tar_size))
-            .build();
-
-        let zstd_filename = zstd_path
-            .file_name()
-            .expect("Invalid ZSTD file");
-
-        // https://github.com/2cd/debian-museum/releases/download/1.2/1.2_Rex_i386_base_1996-12-08_XXH3-97d99e29653390c0.tar.zst
-        let zstd_mirror =
-            [("github", "github.com/2cd/debian-museum/releases/download")].map(
-                |(name, u)| {
-                    FileMirror::builder()
-                        .name(name)
-                        .url(
-                            Url::parse(&format!(
-                                "https://{u}/{}/{}",
-                                r.version,
-                                zstd_filename.to_string_lossy()
-                            ))
-                            .expect("Invalid URL"),
-                        )
-                        .build()
-                },
-            );
-
-        let archive_file = digest::ArchiveFile::builder()
-            .name(zstd_filename)
-            .digest(zstd_digests)
-            .modified_time(zstd_meta.modified()?)
-            .zstd(
-                digest::Zstd::builder()
-                    .level(zstd_lv)
-                    .build(),
-            )
-            .size(file_size)
-            .mirror(zstd_mirror)
-            .build();
-
-        let os_tag = digest::MainTag::builder()
-            .name(deser_ron::<String, &Path>(&docker_dir.join("tag.ron"))?)
-            .arch(r.arch)
-            .datetime(datetime)
-            .docker(docker)
-            .file(archive_file)
-            .build();
-        digest_os_tag.push(os_tag);
-        // -----------------------
-    }
-    digest_os_config[0].tag = digest_os_tag;
-    let digest_cfg = digest::Digests::builder()
-        .os(digest_os_config)
-        .build();
-
-    // let ron = ron::to_string(&digest_cfg)?;
-    // println!("{ron}");
-
-    let yaml = serde_yaml::to_string(&digest_cfg)?;
-    println!("{yaml}");
-
-    Ok(())
-}
-
 fn deser_ron<T, P: AsRef<Path>>(path: P) -> Result<T, ron::de::SpannedError>
 where
     T: DeserializeOwned,
@@ -401,7 +225,7 @@ mod tests {
         }
 
         let meta = file.metadata()?;
-        let ron = ron::to_string(&ByteUnit::new_mib(meta.len()))?;
+        let ron = ron::to_string(&ByteUnit::new(meta.len()))?;
         println!("{ron}");
 
         let de_ron = ron::de::from_str::<ByteUnit>(&ron)?;

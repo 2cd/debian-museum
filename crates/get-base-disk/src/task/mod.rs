@@ -30,11 +30,8 @@ mod tests {
 
     #[test]
     fn serde_datetime() -> anyhow::Result<()> {
-        // const DESC: &[format_description::FormatItem] = format_description!("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:3][offset_hour sign:mandatory]:[offset_minute]");
-
         #[derive(Serialize, Deserialize, Debug)]
         struct Time {
-            // #[serde(with = "time::serde::rfc3339")]
             datetime: time::OffsetDateTime,
         }
 

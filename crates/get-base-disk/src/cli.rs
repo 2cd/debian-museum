@@ -84,10 +84,11 @@ impl Cli {
         self.print_version();
 
         if self.is_old_old_debian() {
-            self.parse_old_old_debian()?
+            self.parse_old_old_debian()?;
+            return Ok(());
         }
-        log::debug!("Not old old debian");
 
+        log::debug!("Not old old debian");
         Ok(())
     }
 
@@ -133,7 +134,7 @@ impl Cli {
         }
 
         if *self.get_digests() {
-            old_old_debian::create_digest(&repos)?;
+            old_old_debian::digest_cfg::create_digest(&repos)?;
         }
 
         global_pool().join();
