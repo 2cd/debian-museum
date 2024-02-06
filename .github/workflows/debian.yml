@@ -70,8 +70,14 @@ jobs:
           username: ${{env.REG_USER}}
           password: ${{ secrets.REG_TOKEN }}
 
-      - name: build & push docker
-        run: ${{env.build_cmd}} --build --push --create-manifest --update-repo-digest
+      - name: build container
+        run: ${{env.build_cmd}} --build
+
+      - name: push to ghcr & reg
+        run: ${{env.build_cmd}} --push
+
+      - name: create manifest
+        run: ${{env.build_cmd}} --create-manifest --update-repo-digest
 
       - name: generate digests.{ron,yml}
         run: ${{env.build_cmd}} --digest ${{env.digests_ron}} --digest ${{env.digests_yaml}}
