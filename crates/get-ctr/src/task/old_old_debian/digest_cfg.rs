@@ -231,6 +231,7 @@ fn archive_file_cfg(
                 Some(t) => ("-", t),
                 None => ("", ""),
             };
+
             let url_str = format!(
                 "https://{u}/{}{tag_prefix}{tag}/{}",
                 r.version,
@@ -274,22 +275,23 @@ fn archive_file_cfg(
 fn update_docker_cfg(docker_dir: &Path, r: &Repository<'_>) -> digest::Docker {
     let docker_mirrors =
         [("ghcr", "ghcr.ron"), ("reg", "reg.ron")].map(|(name, ron)| {
-            let repo_digest_file = docker_dir.join(repo_digests_filename(ron));
             let repositories = deser_reg_ron(docker_dir.join(ron));
 
             DockerMirror::builder()
                 .name(name)
                 .repositories(repositories)
-                .repo_digests(
-                    repo_digest_file
-                        .exists()
-                        .then(|| deser_reg_ron(repo_digest_file)),
-                )
                 .build()
         });
+
+    let repo_digest_file = docker_dir.join(repo_digests_filename("ghcr.ron"));
     let docker = digest::Docker::builder()
         .platform(get_oci_platform(r.arch))
         .mirror(docker_mirrors)
+        .repo_digests({
+            let f = repo_digest_file;
+            f.exists()
+                .then(|| deser_reg_ron(f))
+        })
         .build();
     docker
 }

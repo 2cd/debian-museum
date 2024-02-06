@@ -40,6 +40,9 @@ pub(crate) struct Docker {
     #[serde(rename = "oci-platforms")]
     oci_platforms: Option<Vec<String>>,
 
+    #[serde(rename = "repo-digests")]
+    repo_digests: Option<MainRepoDigests>,
+
     #[builder(default, setter(strip_option))]
     cmt: Option<String>,
 

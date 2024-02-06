@@ -2,7 +2,7 @@ name: get Bo, Hamm, Slink & Potato rootfs
 
 env:
   DEBIAN_FRONTEND: noninteractive
-  GET_BASE_DISK_LOG: debug
+  GET_CTR_LOG: debug
   REG_USER: "robot$debian+bot_actions_2024"
   ZSTD_LV: 18
 
@@ -25,9 +25,9 @@ jobs:
           #   ver: "2.0"
           - os: debian
             ver: "2.1"
-          # - os: debian
-          #   ver: "2.2"
-          #   tag: base
+          - os: debian
+            ver: "2.2"
+            tag: base
     runs-on: ubuntu-latest
     # defaults:
     #   run:
