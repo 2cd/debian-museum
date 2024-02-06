@@ -73,6 +73,7 @@ jobs:
 
       - name: create digests files
         run: |
+          mkdir -p tmp
           echo 'test: true' > tmp/digests.yml
 
           echo '```yaml' > digests.md
