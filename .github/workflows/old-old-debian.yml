@@ -77,18 +77,16 @@ jobs:
           touch tmp/zstd/{a,b}.zst
           echo 'test: true' > tmp/digests.yml
 
-          echo '{ "files":[' > files.json
+          files=""
           for i in tmp/zstd/*zst; do
-              echo -e "\"$i\""\\n, >> files.json
+              files+=$i$'\n'
           done
 
           for i in tmp/digests.*; do
-              echo -e "\"$i\""\\n, >> files.json
+              files+=$i$'\n'
           done
 
-          sed '$d' -i files.json
-          echo ']}' >> files.json
-          echo RELEASE=$(< files.json) >>"$GITHUB_ENV"
+          printf "%s\n" RELEASE=$files >>"$GITHUB_ENV"
 
           echo '```yaml' > digests.md
           # cat tmp/${{matrix.yaml}} >> digests.md
@@ -98,5 +96,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{matrix.release_tag}}
-          files: ${{ fromJson(env.RELEASE).files }}
+          files: ${{ env.RELEASE }}
           body_path: digests.md
