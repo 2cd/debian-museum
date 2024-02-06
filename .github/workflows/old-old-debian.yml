@@ -28,7 +28,7 @@ jobs:
           sudo apt-get install -y zsh
 
       - name: get-base-disk.bin
-        run: docker run -it --rm -v /usr/local/bin:/host reg.tmoe.me:2096/rs/get-base-disk:x64 cp get-base-disk /host
+        run: docker run -i --rm -v /usr/local/bin:/host reg.tmoe.me:2096/rs/get-base-disk:x64 cp get-base-disk /host
 
       - name: download rootfs
         run: get-base-disk -h
