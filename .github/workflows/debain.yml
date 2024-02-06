@@ -1,0 +1,88 @@
+name: get Bo, Hamm, Slink & Potato rootfs
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  GET_BASE_DISK_LOG: debug
+
+on:
+  push:
+    # branches:
+    #   - master
+    paths:
+      - ".github/workflows/debian.yml"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - ver: 1.3
+          # - ver: 2.0
+          # - ver: 2.1
+          # - ver: 2.2
+          #   release_tag: 2.2-base
+    runs-on: ubuntu-latest
+    # defaults:
+    #   run:
+    #     shell: zsh -f -e {0}
+    env:
+      digests_ron: digests.ron
+      digests_yaml: digests.yml
+
+    steps:
+      - name: update RELEASE_TAG env
+        run: |
+          tag=${{matrix.release_tag}}
+
+          case $tag in
+          "") new_tag=${{matrix.ver}};;
+          *) new_tag=$tag ;;
+          esac
+
+          echo RELEASE_TAG=$new_tag >>$GITHUB_ENV
+
+      - name: get-base-disk.bin
+        run: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-base-disk:x64 cp get-base-disk /host
+
+      - name: download & repack rootfs
+        run: get-base-disk --os debian --ver ${{matrix.ver}} --tag base --obtain --repack --zstd-level 19
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to REG
+        uses: docker/login-action@v3
+        with:
+          registry: reg.tmoe.me:2096
+          username: "robot$debian+bot_actions_2024"
+          password: ${{ secrets.REG_TOKEN }}
+
+      - name: build & push docker
+        run: get-base-disk --os debian --ver ${{matrix.ver}} --tag base --build --push --create-manifest --update-repo-digest
+
+      - name: generate digests.{ron,yml}
+        run: get-base-disk --os debian --ver ${{matrix.ver}} --tag base --digest ${{env.digests_ron}} --digest ${{env.digests_yaml}}
+
+      - name: create digests.md
+        run: |
+          echo '```yaml' > digests.md
+          cat tmp/${{env.digests_yaml}} >> digests.md
+          echo '```' >> digests.md
+          echo TITLE=$(get-base-disk --os debian --ver 1.3 --title | tail -n1) >>$GITHUB_ENV
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          fail_on_unmatched_files: true
+          tag_name: ${{env.RELEASE_TAG}}
+          name: ${{env.TITLE}}
+          files: |
+            tmp/zstd/*.zst
+            tmp/${{env.digests_ron}}
+            tmp/${{env.digests_yaml}}
+          body_path: digests.md

@@ -26,7 +26,7 @@ pub(crate) struct Cli {
     ver: String,
 
     /// e.g. base
-    #[arg(long)]
+    #[arg(long, num_args = 0..=1, default_missing_value = " ")]
     tag: Option<String>,
 
     /// download or build rootfs
@@ -125,7 +125,10 @@ impl Cli {
                     let repo = Repository::builder()
                         .codename(os.get_codename())
                         .arch(disk.get_arch())
-                        .tag(disk.get_tag().as_deref())
+                        .tag(match disk.get_tag() {
+                            Some(x) if x.trim().is_empty() => None,
+                            x => x.as_deref(),
+                        })
                         .version(os.get_version())
                         .project("debian")
                         .url(mirror.join(&url_path)?)
