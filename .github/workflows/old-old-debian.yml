@@ -5,8 +5,8 @@ env:
 
 on:
   push:
-    branches:
-      - master
+    # branches:
+    #   - master
     paths:
       - ".github/workflows/old-old-debian.yml"
 
