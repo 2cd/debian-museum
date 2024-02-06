@@ -2,6 +2,9 @@ name: get Bo, Hamm, Slink & Potato rootfs
 
 env:
   DEBIAN_FRONTEND: noninteractive
+  GET_BASE_DISK_LOG: debug
+  YAML: digests.yml
+  RON: digests.ron
 
 on:
   push:
@@ -12,23 +15,86 @@ on:
 
 jobs:
   build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - ver: 1.3
+            sleep: 0
+            ron: ${{env.RON}}
+            yaml: ${{env.YAML}}
+          # - ver: 2.0
+          #   sleep: 20
+          #   ron: ${{env.RON}}
+          #   yaml: ${{env.YAML}}
+          # - ver: 2.1
+          #   sleep: 40
+          #   ron: ${{env.RON}}
+          #   yaml: ${{env.YAML}}
+          # - ver: 2.2
+          #   tag: base
+          #   sleep: 50
+          #   ron: digests.base.ron
+          #   yaml: digests.base.yml
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: zsh -f -e {0}
+    # defaults:
+    #   run:
+    #     shell: zsh -f -e {0}
+
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: install zsh
-        shell: bash
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y zsh
-
       - name: get-base-disk.bin
         run: docker run -i --rm -v /usr/local/bin:/host reg.tmoe.me:2096/rs/get-base-disk:x64 cp get-base-disk /host
 
       - name: download rootfs
-        run: get-base-disk -h
+        run: |
+          get-base-disk --os debian --ver $i --tag base --obtain --repack --zstd-level 6
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to REG
+        uses: docker/login-action@v3
+        with:
+          registry: reg.tmoe.me:2096
+          username: "robot$debian+bot_actions_2024"
+          password: ${{ secrets.REG_TOKEN }}
+
+      - name: build & push docker
+        run: |
+          get-base-disk --os debian --ver $i --tag base --build --push --create-manifest --update-repo-digest
+
+      - name: generate digests
+        run: |
+          get-base-disk --os debian --ver $i --tag base --digest ${{matrix.yaml}}
+          get-base-disk --os debian --ver $i --tag base --digest ${{matrix.ron}}
+
+      - name: create files.json
+        run: |
+          echo '{ "files":[' > files.json
+          for i in tmp/zstd/*zst; do
+              echo -e "\"$i\""\\n, >> files.json
+          done
+
+          for i in tmp/digests.*; do
+              echo -e "\"$i\""\\n, >> files.json
+          done
+
+          sed '$d' -i files.json
+          echo ']}' >> files.json
+          echo "RELEASE=$(< files.json)" >> "$GITHUB_ENV"
+
+          echo '```yaml' > digests.md
+          cat tmp/${{matrix.yaml}} >> digests.md
+          echo '```' >> digests.md
+          sleep ${{matrix.sleep}}
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.TAG }}
+          files: ${{ fromJson(env.RELEASE).files }}
+          body_path: digests.md
