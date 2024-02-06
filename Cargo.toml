@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "crates/get-base-disk",
+    "crates/get-ctr",
     "crates/repack",
     "crates/archmap",
     "crates/hash-digest",
