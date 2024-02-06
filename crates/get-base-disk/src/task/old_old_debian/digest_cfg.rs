@@ -14,12 +14,19 @@ use crate::{
     },
 };
 use byteunit::ByteUnit;
-use std::path::{Path, PathBuf};
+use ron::{extensions::Extensions, ser::PrettyConfig};
+use std::{
+    env,
+    ffi::OsStr,
+    fs,
+    path::{Path, PathBuf},
+};
 use url::Url;
 
 // create_digest
-pub(crate) fn create_digest<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
+pub(crate) fn create_digest_cfg<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
     repos: I,
+    dst_file: &Path,
 ) -> anyhow::Result<()> {
     let mut root_cfg = false;
     let mut digest_os_config = [digest::OS::default(); 1];
@@ -62,12 +69,49 @@ pub(crate) fn create_digest<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
         .os(digest_os_config)
         .build();
 
-    // let ron = ron::to_string(&digest_cfg)?;
-    // println!("{ron}");
+    create_digest_file(digest_cfg, dst_file)?;
 
-    let yaml = serde_yaml::to_string(&digest_cfg)?;
-    println!("{yaml}");
+    Ok(())
+}
 
+fn create_digest_file(
+    digest_cfg: digest::Digests,
+    dst_file: &Path,
+) -> Result<(), anyhow::Error> {
+    let yaml =
+        || -> anyhow::Result<String> { Ok(serde_yaml::to_string(&digest_cfg)?) };
+
+    match dst_file.parent() {
+        Some(p) if !p.exists() => {
+            log::info!("pwd: {:?}, creating the dir: {p:?}", env::current_dir()?);
+            fs::create_dir_all(p)?;
+        }
+        _ => {}
+    }
+
+    match dst_file.extension() {
+        Some(s)
+            if s.to_string_lossy()
+                .trim()
+                .is_empty() =>
+        {
+            println!("{}", yaml()?);
+        }
+        Some(ext) if ext == OsStr::new("ron") => {
+            let ron = ron::ser::to_string_pretty(
+                &digest_cfg,
+                PrettyConfig::default()
+                    .enumerate_arrays(true)
+                    .extensions(Extensions::IMPLICIT_SOME),
+            )?;
+            fs::write(dst_file, ron)?;
+        }
+        _ => {
+            let yaml = yaml()?;
+            println!("{yaml}");
+            fs::write(dst_file, yaml)?;
+        }
+    };
     Ok(())
 }
 

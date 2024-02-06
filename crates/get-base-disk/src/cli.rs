@@ -1,7 +1,7 @@
 use clap::{value_parser, Parser};
 use getset::Getters;
 use log::trace;
-use std::process::exit;
+use std::{path::PathBuf, process::exit};
 
 use crate::{
     cfg::disk::DiskV1,
@@ -57,14 +57,14 @@ pub(crate) struct Cli {
     #[arg(long, help_heading = "Docker")]
     update_repo_digest: bool,
 
-    // /// push xx/yy:latest to ghcr & reg(registry)
-    // #[arg(long, help_heading = "Docker")]
-    // push_manifest: bool,
-    //
-    //
-    /// generate digests.yml & digests.ron
-    #[arg(long, help_heading = "Save-Config")]
-    digest: bool,
+    /// generate digests (yaml or ron)
+    #[arg(
+        long,
+        group = "digests",
+        id = "/path/to/file.yml",
+        help_heading = "Save-Config"
+    )]
+    digest: Option<PathBuf>,
 
     #[arg(long, help = PKG_VERSION, help_heading = "Builtin")]
     version: bool,
@@ -147,8 +147,8 @@ impl Cli {
             old_old_debian::docker_task::pull_image_and_create_repo_digests(&repos)?;
         }
 
-        if *self.get_digest() {
-            old_old_debian::digest_cfg::create_digest(&repos)?;
+        if let Some(p) = self.get_digest() {
+            old_old_debian::digest_cfg::create_digest_cfg(&repos, p)?;
         }
 
         global_pool().join();
