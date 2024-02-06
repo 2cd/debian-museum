@@ -79,14 +79,14 @@ jobs:
 
           files=""
           for i in tmp/zstd/*zst; do
-              files+=$i$'\n'
+              files+=$i\\n
           done
 
           for i in tmp/digests.*; do
-              files+=$i$'\n'
+              files+=$i\\n
           done
 
-          printf "%s\n" RELEASE=$files >>"$GITHUB_ENV"
+          echo RELEASE=$files >>"$GITHUB_ENV"
 
           echo '```yaml' > digests.md
           # cat tmp/${{matrix.yaml}} >> digests.md
