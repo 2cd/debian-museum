@@ -57,15 +57,28 @@ pub(crate) struct Cli {
     #[arg(long, help_heading = "Docker")]
     update_repo_digest: bool,
 
-    /// generate digests (yaml or ron)
+    /// generate digests(e.g., --digest a.yml --digest a.ron)
     #[arg(
         long,
         group = "digests",
-        id = "/path/to/file.yml",
-        help_heading = "Save-Config"
+        id = "Vec</path/to/file>",
+        help_heading = "Save Config",
+        num_args = 0..=1,
+        default_missing_value = " ",
     )]
-    digest: Option<PathBuf>,
+    digest: Option<Vec<PathBuf>>,
 
+    /// generate title content for releases
+    #[arg(long, help_heading = "Save Config")]
+    title: bool,
+
+    // #[arg(
+    //     long,
+    //     help_heading = "Save Config",
+    //     num_args = 0..=1,
+    //     default_missing_value = " ",
+    // )]
+    // title: Option<PathBuf>,
     #[arg(long, help = PKG_VERSION, help_heading = "Builtin")]
     version: bool,
 }
@@ -117,6 +130,7 @@ impl Cli {
                         .project("debian")
                         .url(mirror.join(&url_path)?)
                         .date(disk.get_date())
+                        .title_date(os.get_date())
                         .build();
                     repos.push(repo)
                 }
@@ -151,8 +165,15 @@ impl Cli {
             old_old_debian::digest_cfg::create_digest_cfg(&repos, p)?;
         }
 
-        global_pool().join();
+        if *self.get_title() {
+            let first = repos
+                .iter()
+                .next()
+                .expect("Empty Repos");
+            print_title(first);
+        }
 
+        global_pool().join();
         Ok(())
     }
 
@@ -173,4 +194,25 @@ impl Cli {
         );
         exit(0)
     }
+}
+
+fn print_title(first: &Repository<'_>) {
+    let (date_prefix, date, date_suffix) = match first.title_date {
+        Some(d) => (" (", d, ")"),
+        _ => ("", "", ""),
+    };
+    let (tag, tag_suffix) = match first.tag {
+        Some(p) => (p, ", "),
+        _ => ("", ""),
+    };
+    println!(
+        "{} {}{}{}{}{}{}",
+        first.version,
+        first.codename,
+        date_prefix,
+        tag,
+        tag_suffix,
+        date,
+        date_suffix
+    );
 }

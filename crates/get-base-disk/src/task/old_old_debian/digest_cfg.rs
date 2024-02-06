@@ -18,7 +18,7 @@ use ron::{extensions::Extensions, ser::PrettyConfig};
 use std::{
     env,
     ffi::OsStr,
-    fs,
+    fs, io,
     path::{Path, PathBuf},
 };
 use url::Url;
@@ -26,7 +26,7 @@ use url::Url;
 // create_digest
 pub(crate) fn create_digest_cfg<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
     repos: I,
-    dst_file: &Path,
+    dst_files: &[PathBuf],
 ) -> anyhow::Result<()> {
     let mut root_cfg = false;
     let mut digest_os_config = [digest::OS::default(); 1];
@@ -69,25 +69,34 @@ pub(crate) fn create_digest_cfg<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
         .os(digest_os_config)
         .build();
 
-    create_digest_file(digest_cfg, dst_file)?;
+    for p in dst_files {
+        create_digest_file(&digest_cfg, p)?;
+    }
 
     Ok(())
 }
 
 fn create_digest_file(
-    digest_cfg: digest::Digests,
+    digest_cfg: &digest::Digests,
     dst_file: &Path,
 ) -> Result<(), anyhow::Error> {
     let yaml =
         || -> anyhow::Result<String> { Ok(serde_yaml::to_string(&digest_cfg)?) };
 
-    match dst_file.parent() {
-        Some(p) if !p.exists() => {
-            log::info!("pwd: {:?}, creating the dir: {p:?}", env::current_dir()?);
-            fs::create_dir_all(p)?;
+    let create_parent = || -> io::Result<()> {
+        match dst_file.parent() {
+            Some(p) if p.as_os_str().is_empty() => Ok(()),
+            Some(p) if !p.exists() => {
+                dbg!(p);
+                log::info!(
+                    "pwd: {:?}, creating the dir: {p:?}",
+                    env::current_dir()?
+                );
+                fs::create_dir_all(p)
+            }
+            _ => Ok(()),
         }
-        _ => {}
-    }
+    };
 
     match dst_file.extension() {
         Some(s)
@@ -95,9 +104,17 @@ fn create_digest_file(
                 .trim()
                 .is_empty() =>
         {
+            log::info!("Empty extension");
             println!("{}", yaml()?);
         }
+        None => {
+            log::warn!(
+                "Since there is no file extension, the file({dst_file:?}) will not be saved."
+            );
+            println!("{}", yaml()?)
+        }
         Some(ext) if ext == OsStr::new("ron") => {
+            create_parent()?;
             let ron = ron::ser::to_string_pretty(
                 &digest_cfg,
                 PrettyConfig::default()
@@ -107,9 +124,8 @@ fn create_digest_file(
             fs::write(dst_file, ron)?;
         }
         _ => {
-            let yaml = yaml()?;
-            println!("{yaml}");
-            fs::write(dst_file, yaml)?;
+            create_parent()?;
+            fs::write(dst_file, yaml()?)?;
         }
     };
     Ok(())
@@ -335,3 +351,10 @@ pub(crate) fn init_root_cfg(
         .build();
     Ok(())
 }
+
+// pub(crate) fn generate_title<'a, I>(repos: I, path: &Path) -> anyhow::Result<()>
+// where
+//     I: IntoIterator<Item = &'a Repository<'a>>,
+// {
+//     Ok(())
+// }

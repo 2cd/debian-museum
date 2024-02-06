@@ -28,6 +28,9 @@ pub(crate) struct Repository<'r> {
 
     #[builder(default, setter(strip_option))]
     pub(crate) url: Option<Url>,
+
+    #[builder(default, setter(strip_option))]
+    pub(crate) title_date: Option<&'r str>,
 }
 
 impl<'r> Default for Repository<'r> {

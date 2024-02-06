@@ -6,8 +6,8 @@ env:
 
 on:
   push:
-    # branches:
-    #   - master
+    branches:
+      - master
     paths:
       - ".github/workflows/old-old-debian.yml"
 
@@ -41,8 +41,8 @@ jobs:
     #     shell: zsh -f -e {0}
 
     steps:
-      # - name: get-base-disk.bin
-      #   run: docker run -i --rm -v /usr/local/bin:/host reg.tmoe.me:2096/rs/get-base-disk:x64 cp get-base-disk /host
+      - name: get-base-disk.bin
+        run: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-base-disk:x64 cp get-base-disk /host
 
       # - name: download rootfs
       #   run: |
@@ -71,24 +71,22 @@ jobs:
       #     get-base-disk --os debian --ver ${{matrix.ver}} --tag base --digest ${{matrix.yaml}}
       #     get-base-disk --os debian --ver ${{matrix.ver}} --tag base --digest ${{matrix.ron}}
 
-      - name: create zst files
+      - name: create digests files
         run: |
-          mkdir -p tmp/zstd
-          echo "test.a" > tmp/zstd/a.zst
-          echo "test.b" > tmp/zstd/b.zst
           echo 'test: true' > tmp/digests.yml
 
           echo '```yaml' > digests.md
-          # cat tmp/${{matrix.yaml}} >> digests.md
+          cat tmp/${{matrix.yaml}} >> digests.md
           echo '```' >> digests.md
+          echo TITLE=$(get-base-disk --os debian --ver 1.3 --title) >>$GITHUB_ENV
 
       - name: release
         uses: softprops/action-gh-release@v1
         with:
           fail_on_unmatched_files: true
           tag_name: ${{matrix.release_tag}}
-          # name:
+          name: ${{env.TITLE}}
           files: |
-            tmp/zstd/*.zst
+            # tmp/zstd/*.zst
             tmp/digests.*
           body_path: digests.md
