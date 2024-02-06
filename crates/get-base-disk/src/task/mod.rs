@@ -1,6 +1,5 @@
 mod compression;
 mod docker;
-mod file;
 pub(crate) mod old_old_debian;
 pub(crate) mod pool;
 

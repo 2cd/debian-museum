@@ -3,10 +3,10 @@ use crate::{
     docker::{
         repo::Repository,
         repo_map::{MainRepo, RepoMap},
+        DOCKER_FILE_CONTENT,
     },
     task::{
         docker::{run_docker_build, run_docker_push},
-        file::create_docker_file,
         old_old_debian::{self, deser_ron, TarFile},
         pool::wait_process,
     },
@@ -194,11 +194,14 @@ where
             docker_ron_name = r.docker_ron_filename();
         }
 
-        let tar = r.base_tar_name()?;
-        let docker_file = create_docker_file(&tar)?;
-        let docker_dir = docker_file
-            .parent()
-            .expect("Invalid docker dir");
+        let TarFile {
+            ref tar_fname,
+            ref docker_dir,
+            ..
+        } = r.base_tar_name()?;
+
+        create_docker_file(docker_dir, tar_fname)?;
+
         run_docker_build(r, &mut children, docker_dir, &mut tag_map)?;
         treeset.insert(r.oci_platform());
     }
@@ -216,6 +219,22 @@ where
     log::debug!("map: {tag_map:?}");
     wait_process(children);
 
+    Ok(())
+}
+
+/// Replaces "base.tar" in the default DOCKER_FILE_CONTENT with tar_fname(e.g., 2.2_potato_x86_base_2001-06-14.tar), and finally write.
+fn create_docker_file(
+    docker_dir: &Path,
+    tar_fname: &str,
+) -> Result<(), anyhow::Error> {
+    let docker_file = docker_dir.join("Dockerfile");
+    log::debug!("docker_file: {:?}", docker_file);
+
+    log::debug!("creating the Dockerfile");
+    fs::write(
+        &docker_file,
+        DOCKER_FILE_CONTENT.replace("base.tar", tar_fname),
+    )?;
     Ok(())
 }
 
@@ -254,10 +273,10 @@ where
                 .stdout(Stdio::piped())
                 .stderr(Stdio::inherit())
                 .output()?;
+
             let json_arr = String::from_utf8_lossy(&cmd.stdout);
             log::debug!("cmd.output: {json_arr}");
 
-            log::trace!("json_arr: {json_arr}");
             let cfg = serde_yaml::from_str::<MainRepoDigests>(json_arr.trim())?;
 
             let new_fname = repo_digests_filename(fname);

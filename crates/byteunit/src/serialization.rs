@@ -19,12 +19,6 @@ impl Serialize for ByteUnit {
     where
         S: serde::Serializer,
     {
-        use ByteUnit::*;
-        match self {
-            KiB(v) => serializer.serialize_str(&format!("{v} KiB")),
-            MiB(v) => serializer.serialize_str(&format!("{v} MiB")),
-            GiB(v) => serializer.serialize_str(&format!("{v} GiB")),
-            TiB(v) => serializer.serialize_str(&format!("{v} TiB")),
-        }
+        serializer.serialize_str(&self.to_string())
     }
 }

@@ -2,7 +2,10 @@ pub mod error;
 pub mod serialization;
 
 use crate::error::ParseByteUnitError;
-use core::str::FromStr;
+use core::{
+    fmt::{Display, Formatter},
+    str::FromStr,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ByteUnit {
@@ -10,6 +13,18 @@ pub enum ByteUnit {
     MiB(f32),
     GiB(f32),
     TiB(f32),
+}
+
+impl Display for ByteUnit {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        use ByteUnit::*;
+        match self {
+            KiB(val) => write!(f, "{val} KiB"),
+            MiB(val) => write!(f, "{val} MiB"),
+            GiB(val) => write!(f, "{val} GiB"),
+            TiB(val) => write!(f, "{val} TiB"),
+        }
+    }
 }
 
 impl Default for ByteUnit {

@@ -35,13 +35,13 @@ pub(crate) struct DockerMirror {
 #[builder(field_defaults(default, setter(into)))]
 pub(crate) struct Docker {
     #[builder(default, setter(strip_option))]
-    cmt: Option<String>,
-
-    #[builder(default, setter(strip_option))]
     platform: Option<String>,
 
     #[serde(rename = "oci-platforms")]
     oci_platforms: Option<Vec<String>>,
+
+    #[builder(default, setter(strip_option))]
+    cmt: Option<String>,
 
     mirror: Vec<DockerMirror>,
 }
@@ -53,6 +53,9 @@ pub(crate) struct Docker {
 pub(crate) struct HashDigest {
     algorithm: String,
     hex: String,
+
+    #[builder(default, setter(strip_option))]
+    cmt: Option<String>,
 }
 
 #[derive(Getters, Serialize, Deserialize, Debug, TypedBuilder)]
@@ -62,8 +65,12 @@ pub(crate) struct HashDigest {
 pub(crate) struct FileMirror {
     #[builder(default)]
     name: String,
+
     #[builder(default = Url::parse("file:///").expect("Invalid URL") )]
     url: Url,
+
+    #[builder(default, setter(strip_option))]
+    cmt: Option<String>,
 }
 
 impl Default for FileMirror {
@@ -89,6 +96,9 @@ pub(crate) struct FileSize {
     tar_bytes: u64,
     #[serde(rename = "tar-readable")]
     tar_readable: byteunit::ByteUnit,
+
+    #[builder(default, setter(strip_option))]
+    cmt: Option<String>,
 }
 
 #[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder)]

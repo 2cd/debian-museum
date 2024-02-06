@@ -32,7 +32,7 @@ pub(crate) fn create_digest<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
         }
 
         let TarFile {
-            tar_path,
+            ref tar_path,
             ref docker_dir,
             ..
         } = r.base_tar_name()?;
@@ -41,13 +41,14 @@ pub(crate) fn create_digest<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
         let tar_size = tar_path.metadata()?.len();
         // -----------------------
         let docker = update_docker_cfg(docker_dir, r);
-        let archive_file = archive_file_cfg(docker_dir, tar_size, r)?;
+        let tag_name = get_tag_name(docker_dir)?;
+        let archive_file = archive_file_cfg(r, docker_dir, tar_size, &tag_name)?;
 
         let build_time =
             deser_ron::<time::OffsetDateTime, _>(docker_dir.join(BUILD_TIME_RON))?;
 
         let os_tag = digest::MainTag::builder()
-            .name(get_tag_name(docker_dir)?)
+            .name(tag_name)
             .arch(r.arch)
             .datetime(current_utc(build_time))
             .docker(docker)
@@ -82,55 +83,113 @@ fn current_utc(build_time: time::OffsetDateTime) -> digest::DateTime {
 }
 
 fn archive_file_cfg(
+    r: &Repository<'_>,
     docker_dir: &Path,
     tar_size: u64,
-    r: &Repository<'_>,
+    tag_name: &str,
 ) -> Result<digest::ArchiveFile, anyhow::Error> {
     let ZstdOp {
         path: zstd_path,
         lv: zstd_lv,
     } = deser_ron::<ZstdOp<PathBuf>, _>(&docker_dir.join("zstd.ron"))?;
 
+    let zstd_filename = zstd_path
+        .file_name()
+        .expect("Invalid ZSTD file");
+    let lossy_filename = zstd_filename.to_string_lossy();
+
     let zstd_digests = ["blake3", "sha256"].map(|algo| {
+        log::info!("Getting {algo} checksum ..., zstd_path: {zstd_path:?}");
+        let hex = match algo {
+            "blake3" => hash_digest::blake3::get(&zstd_path),
+            _ => hash_digest::sha256::get(&zstd_path),
+        }
+        .expect("Failed to get hash digest");
+
+        let cmt = match algo {
+            "blake3" => {
+                format!(
+                    r##"Usage:
+    # run apt as root (i.e., +sudo/+doas)
+    apt install b3sum
+
+    # check blake3 hash
+    echo '{hex}  {lossy_filename}' > blake3.txt
+    b3sum --check blake3.txt
+
+"##
+                )
+            }
+            _ => {
+                format!(
+                    r##"Usage:
+    # check sha256 hash
+    echo '{hex}  {lossy_filename}' > sha256.txt
+    sha256sum --check sha256.txt
+
+"##
+                )
+            }
+        };
+
         digest::HashDigest::builder()
             .algorithm(algo)
-            .hex({
-                log::info!("Getting {algo} checksum ..., zstd_path: {zstd_path:?}");
-                match algo {
-                    "blake3" => hash_digest::blake3::get(&zstd_path),
-                    _ => hash_digest::sha256::get(&zstd_path),
-                }
-                .expect("Failed to get hash digest")
-                .to_string()
-            })
+            .cmt(cmt)
+            .hex(hex.to_string())
             .build()
     });
     let zstd_meta = zstd_path.metadata()?;
     let zstd_size = zstd_meta.len();
     let readable_size = ByteUnit::new(zstd_size);
+
+    let tar_and_zstd_size = ByteUnit::new(tar_size + zstd_size);
+    let tar_readable = ByteUnit::new(tar_size);
+
+    let file_size_cmt = format!(
+        r#"Ideally:
+    zstd size => download size (i.e. Consumes {readable_size} of traffic)
+    tar size => uncompressed size (Actually, the extracted content is >= {tar_readable})
+    zstd + tar size ~= space occupation for initial installation
+        (i.e., Requires at least {tar_and_zstd_size} of disk storage space, but actually needs more)
+
+"#
+    );
+
     let file_size = digest::FileSize::builder()
         .bytes(zstd_size)
+        .cmt(file_size_cmt)
         .readable(readable_size)
         .kib((!readable_size.is_kib()).then(|| ByteUnit::new_kib(zstd_size)))
         .mib((!readable_size.is_mib()).then(|| ByteUnit::new_mib(zstd_size)))
         .tar_bytes(tar_size)
-        .tar_readable(ByteUnit::new(tar_size))
+        .tar_readable(tar_readable)
         .build();
-    let zstd_filename = zstd_path
-        .file_name()
-        .expect("Invalid ZSTD file");
+
     let zstd_mirror = [("github", "github.com/2cd/debian-museum/releases/download")]
         .map(|(name, u)| {
+            let url_str = format!(
+                "https://{u}/{}/{}",
+                r.version,
+                zstd_filename.to_string_lossy()
+            );
+            let cmt = format!(
+                r##"Usage:
+    mkdir -p ./tmp/{tag_name}
+    cd tmp
+    curl -LO '{url_str}'
+
+    # run gnutar or bsdtar as root (e.g., doas tar -xvf file.tar.zst)
+    tar -C {tag_name} -xf {zstd_filename:?}
+
+    # run nspawn as root (i.e., +sudo/+doas)
+    systemd-nspawn -D {tag_name} -E TERM=xterm -E LANG=en_US.UTF-8
+
+"##,
+            );
             FileMirror::builder()
                 .name(name)
-                .url(
-                    Url::parse(&format!(
-                        "https://{u}/{}/{}",
-                        r.version,
-                        zstd_filename.to_string_lossy()
-                    ))
-                    .expect("Invalid URL"),
-                )
+                .cmt(cmt)
+                .url(Url::parse(&url_str).expect("Invalid URL"))
                 .build()
         });
     let archive_file = digest::ArchiveFile::builder()
@@ -152,10 +211,11 @@ fn update_docker_cfg(docker_dir: &Path, r: &Repository<'_>) -> digest::Docker {
     let docker_mirrors =
         [("ghcr", "ghcr.ron"), ("reg", "reg.ron")].map(|(name, ron)| {
             let repo_digest_file = docker_dir.join(repo_digests_filename(ron));
+            let repositories = deser_reg_ron(docker_dir.join(ron));
 
             DockerMirror::builder()
                 .name(name)
-                .repositories(deser_reg_ron(docker_dir.join(ron)))
+                .repositories(repositories)
                 .repo_digests(
                     repo_digest_file
                         .exists()
@@ -163,7 +223,6 @@ fn update_docker_cfg(docker_dir: &Path, r: &Repository<'_>) -> digest::Docker {
                 )
                 .build()
         });
-
     let docker = digest::Docker::builder()
         .platform(get_oci_platform(r.arch))
         .mirror(docker_mirrors)
@@ -200,6 +259,12 @@ pub(crate) fn init_root_cfg(
         docker_task::repo_digests_filename(&docker_ron),
     )?;
 
+    let cmt = format!(
+        r##"Usage:
+    docker run -it --rm {}"##,
+        ghcr_repos[0]
+    );
+
     let mirrors = [("ghcr", ghcr_repos), ("reg", reg_repos)].map(|(name, repos)| {
         DockerMirror::builder()
             .name(name)
@@ -216,6 +281,7 @@ pub(crate) fn init_root_cfg(
     let os_docker = digest::Docker::builder()
         .oci_platforms(platforms)
         .mirror(mirrors)
+        .cmt(cmt)
         .build();
     digest_os_config[0] = digest::OS::builder()
         .codename(&r.codename)
