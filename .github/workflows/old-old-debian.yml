@@ -45,7 +45,7 @@ jobs:
 
       - name: download rootfs
         run: |
-          get-base-disk --os debian --ver $i --tag base --obtain --repack --zstd-level 6
+          get-base-disk --os debian --ver ${{matrix.ver}} --tag base --obtain --repack --zstd-level 6
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -63,12 +63,12 @@ jobs:
 
       - name: build & push docker
         run: |
-          get-base-disk --os debian --ver $i --tag base --build --push --create-manifest --update-repo-digest
+          get-base-disk --os debian --ver ${{matrix.ver}} --tag base --build --push --create-manifest --update-repo-digest
 
       - name: generate digests
         run: |
-          get-base-disk --os debian --ver $i --tag base --digest ${{matrix.yaml}}
-          get-base-disk --os debian --ver $i --tag base --digest ${{matrix.ron}}
+          get-base-disk --os debian --ver ${{matrix.ver}} --tag base --digest ${{matrix.yaml}}
+          get-base-disk --os debian --ver ${{matrix.ver}} --tag base --digest ${{matrix.ron}}
 
       - name: create files.json
         run: |
