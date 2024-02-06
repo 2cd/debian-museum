@@ -2,6 +2,13 @@
 /*
 target
 tmp
+tmp.*
+desktop.ini
+.DS_Store
+.directory
+perf.data
+perf.data.old
+flamegraph.svg
 
 # white list
 !/assets
@@ -9,3 +16,5 @@ tmp
 !/LICENSE
 !/License
 !/Readme.*
+!/crates
+!/Cargo.toml
