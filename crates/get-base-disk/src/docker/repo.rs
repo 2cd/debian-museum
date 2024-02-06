@@ -102,13 +102,13 @@ impl<'r> Repository<'r> {
         [
             format!(
                 // "{}-{}{}",
-                // ghcr.io/2cd/debian:potato-x86-base OR 2cd/debain:bo-x86
+                // ghcr.io/2cd/debian:potato-x86-base OR 2cd/debian:bo-x86
                 "{}/{}/{}:{}-{}{}",
                 uri, owner, project, codename, arch, suffix
             ),
             format!(
                 // ghcr: "{}-{}{}",
-                // ghcr.io/2cd/debian:potato-x86-base OR ghcr.io/2cd/debain:bo-x86
+                // ghcr.io/2cd/debian:potato-x86-base OR ghcr.io/2cd/debian:bo-x86
                 "{}/{}/{}:{}-{}{}",
                 uri, owner, project, version, arch, suffix
             ),
@@ -131,12 +131,12 @@ impl<'r> Repository<'r> {
 
         [
             format!(
-                // REG_URI/debian/potato:x86-base OR REG_URI/debain/bo-x86
+                // REG_URI/debian/potato:x86-base OR REG_URI/debian/bo-x86
                 "{}/{}/{}:{}{}",
                 uri, project, codename, arch, suffix
             ),
             format!(
-                // REG_URI/debian/2.2:x86-base OR REG_URI/debain/1.3:x86
+                // REG_URI/debian/2.2:x86-base OR REG_URI/debian/1.3:x86
                 "{}/{}/{}:{}{}",
                 uri, project, version, arch, suffix
             ),
@@ -144,7 +144,7 @@ impl<'r> Repository<'r> {
         .into()
     }
 
-    /// e.g. -> `[MainRepo::Reg(REG_URI/debain/bo:latest), MainRepo::Reg(REG_URI/debain/1.3:latest)]`
+    /// e.g. -> `[MainRepo::Reg(REG_URI/debian/bo:latest), MainRepo::Reg(REG_URI/debian/1.3:latest)]`
     pub(crate) fn reg_main_repos(&self) -> MainRepos {
         let uri = Self::REG_URI;
         let tag = self.tag.unwrap_or("latest");
@@ -156,9 +156,9 @@ impl<'r> Repository<'r> {
         } = self;
 
         [
-            // REG_URI/debian/potato:base OR REG_URI/debain/bo:latest
+            // REG_URI/debian/potato:base OR REG_URI/debian/bo:latest
             format!("{}/{}/{}:{}", uri, project, codename, tag),
-            // REG_URI/debian/2.2:base OR REG_URI/debain/1.3:latest
+            // REG_URI/debian/2.2:base OR REG_URI/debian/1.3:latest
             format!("{}/{}/{}:{}", uri, project, version, tag),
         ]
         .map(repo_map::MainRepo::Reg)

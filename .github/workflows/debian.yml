@@ -4,7 +4,7 @@ env:
   DEBIAN_FRONTEND: noninteractive
   GET_BASE_DISK_LOG: debug
   REG_USER: "robot$debian+bot_actions_2024"
-  ZSTD_LV: 22
+  ZSTD_LV: 18
 
 on:
   push:
@@ -19,16 +19,16 @@ jobs:
       fail-fast: true
       matrix:
         include:
+          # - os: debian
+          #   ver: "1.3"
+          # - os: debian
+          #   ver: "2.0"
+          # - os: debian
+          #   ver: "2.1"
           - os: debian
-            ver: 1.3
-          # - os: debian
-          #   ver: 2.0
-          # - os: debian
-          #   ver: 2.1
-          # - os: debain
-          #   ver: 2.2
-          #   release_tag: 2.2-base
-          #   tag: base
+            ver: "2.2"
+            release_tag: "2.2-base"
+            tag: base
     runs-on: ubuntu-latest
     # defaults:
     #   run:
@@ -70,8 +70,14 @@ jobs:
           username: ${{env.REG_USER}}
           password: ${{ secrets.REG_TOKEN }}
 
-      - name: build & push docker
-        run: ${{env.build_cmd}} --build --push --create-manifest --update-repo-digest
+      - name: build container
+        run: ${{env.build_cmd}} --build
+
+      - name: push to ghcr & reg
+        run: ${{env.build_cmd}} --push
+
+      - name: create manifest
+        run: ${{env.build_cmd}} --create-manifest --update-repo-digest
 
       - name: generate digests.{ron,yml}
         run: ${{env.build_cmd}} --digest ${{env.digests_ron}} --digest ${{env.digests_yaml}}
