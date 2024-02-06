@@ -3,8 +3,6 @@ name: get Bo, Hamm, Slink & Potato rootfs
 env:
   DEBIAN_FRONTEND: noninteractive
   GET_BASE_DISK_LOG: debug
-  YAML: digests.yml
-  RON: digests.ron
 
 on:
   push:
@@ -21,16 +19,16 @@ jobs:
         include:
           - ver: 1.3
             sleep: 0
-            ron: ${{env.RON}}
-            yaml: ${{env.YAML}}
+            ron: digests.ron
+            yaml: digests.yml
           # - ver: 2.0
           #   sleep: 20
-          #   ron: ${{env.RON}}
-          #   yaml: ${{env.YAML}}
+          #   ron: digests.ron
+          #   yaml: digests.yml
           # - ver: 2.1
           #   sleep: 40
-          #   ron: ${{env.RON}}
-          #   yaml: ${{env.YAML}}
+          #   ron: digests.ron
+          #   yaml: digests.yml
           # - ver: 2.2
           #   tag: base
           #   sleep: 50
