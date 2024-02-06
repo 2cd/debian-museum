@@ -18,15 +18,15 @@ pub(crate) const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Example: --os debian --ver 2.2 --tag base --obtain --build
 pub(crate) struct Cli {
     /// OS Name, e.g. debian, ubuntu
-    #[arg(long, id = "OS_Name")]
+    #[arg(long, id = "OS_Name", default_value = "debian")]
     os: String,
 
     /// Version, e.g. 1.3, 2.0, 22.04
-    #[arg(long)]
+    #[arg(long, default_value = "2.1")]
     ver: String,
 
     /// e.g. base
-    #[arg(long)]
+    #[arg(long, num_args = 0..=1, default_missing_value = " ")]
     tag: Option<String>,
 
     /// download or build rootfs
@@ -125,7 +125,10 @@ impl Cli {
                     let repo = Repository::builder()
                         .codename(os.get_codename())
                         .arch(disk.get_arch())
-                        .tag(disk.get_tag().as_deref())
+                        .tag(match disk.get_tag() {
+                            Some(x) if x.trim().is_empty() => None,
+                            x => x.as_deref(),
+                        })
                         .version(os.get_version())
                         .project("debian")
                         .url(mirror.join(&url_path)?)

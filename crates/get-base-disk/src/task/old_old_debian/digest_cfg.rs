@@ -329,11 +329,18 @@ pub(crate) fn init_root_cfg(
         DockerMirror::builder()
             .name(name)
             .repositories(repos)
-            .repo_digests(
-                repo_digest_map
+            .repo_digests({
+                let v = repo_digest_map
                     .get(name)
-                    .cloned(),
-            )
+                    // .cloned()
+                    .map(|x| {
+                        let mut vec = x.to_vec();
+                        vec.sort_unstable();
+                        vec.dedup();
+                        MainRepoDigests::from_iter(vec)
+                    });
+                v
+            })
             .build()
     });
 
