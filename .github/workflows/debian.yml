@@ -8,8 +8,8 @@ env:
 
 on:
   push:
-    # branches:
-    #   - master
+    branches:
+      - master
     paths:
       - ".github/workflows/debian.yml"
 
@@ -36,7 +36,7 @@ jobs:
     env:
       digests_ron: digests.ron
       digests_yaml: digests.yml
-      build_cmd: get-base-disk --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
+      build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
 
     steps:
       - name: update RELEASE_TAG env
@@ -50,8 +50,8 @@ jobs:
 
           echo RELEASE_TAG=$new_tag >>$GITHUB_ENV
 
-      - name: get-base-disk.bin
-        run: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-base-disk:x64 cp get-base-disk /host
+      - name: get `get-ctr` bin from docker
+        run: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-ctr:x64 cp get-ctr /host
 
       - name: download & repack rootfs
         run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}}
