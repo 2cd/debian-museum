@@ -227,8 +227,12 @@ fn archive_file_cfg(
 
     let zstd_mirror = [("github", "github.com/2cd/debian-museum/releases/download")]
         .map(|(name, u)| {
+            let (tag_prefix, tag) = match r.tag {
+                Some(t) => ("-", t),
+                None => ("", ""),
+            };
             let url_str = format!(
-                "https://{u}/{}/{}",
+                "https://{u}/{}{tag_prefix}{tag}/{}",
                 r.version,
                 zstd_filename.to_string_lossy()
             );

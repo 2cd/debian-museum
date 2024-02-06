@@ -72,6 +72,9 @@ pub(crate) struct Cli {
     #[arg(long, help_heading = "Save Config")]
     title: bool,
 
+    #[arg(long, help_heading = "Save Config")]
+    release_tag: bool,
+
     // #[arg(
     //     long,
     //     help_heading = "Save Config",
@@ -168,12 +171,20 @@ impl Cli {
             old_old_debian::digest_cfg::create_digest_cfg(&repos, p)?;
         }
 
-        if *self.get_title() {
-            let first = repos
+        let first = || {
+            repos
                 .iter()
                 .next()
-                .expect("Empty Repos");
-            print_title(first);
+                .expect("Empty Repos")
+        };
+
+        if *self.get_title() {
+            print_title(first());
+        }
+
+        if *self.get_release_tag() {
+            let first = first();
+            println!("{}{}", first.version, first.opt_tag_suffix());
         }
 
         global_pool().join();

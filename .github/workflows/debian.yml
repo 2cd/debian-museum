@@ -27,7 +27,6 @@ jobs:
           #   ver: "2.1"
           - os: debian
             ver: "2.2"
-            release_tag: "2.2-base"
             tag: base
     runs-on: ubuntu-latest
     # defaults:
@@ -39,19 +38,11 @@ jobs:
       build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
 
     steps:
-      - name: update RELEASE_TAG env
-        run: |
-          tag=${{matrix.release_tag}}
-
-          case $tag in
-          "") new_tag=${{matrix.ver}};;
-          *) new_tag=$tag ;;
-          esac
-
-          echo RELEASE_TAG=$new_tag >>$GITHUB_ENV
-
       - name: get `get-ctr` bin from docker
         run: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-ctr:x64 cp get-ctr /host
+
+      - name: +RELEASE_TAG env
+        run: echo RELEASE_TAG=$(${{env.build_cmd}} --release-tag) >>$GITHUB_ENV
 
       - name: download & repack rootfs
         run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}}
@@ -87,7 +78,7 @@ jobs:
           echo '```yaml' > digests.md
           cat tmp/${{env.digests_yaml}} >> digests.md
           echo '```' >> digests.md
-          echo TITLE=$(${{env.build_cmd}} --title | tail -n1) >>$GITHUB_ENV
+          echo TITLE=$(${{env.build_cmd}} --title) >>$GITHUB_ENV
 
       - name: release
         uses: softprops/action-gh-release@v1
