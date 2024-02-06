@@ -90,6 +90,5 @@ jobs:
           # name:
           files: |
             tmp/zstd/*.zst
-            tmp/digests.*ron
-            tmp/digests.*yml
+            tmp/digests.*
           body_path: digests.md
