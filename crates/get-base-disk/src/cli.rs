@@ -18,11 +18,11 @@ pub(crate) const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Example: --os debian --ver 2.2 --tag base --obtain --build
 pub(crate) struct Cli {
     /// OS Name, e.g. debian, ubuntu
-    #[arg(long, id = "OS_Name")]
+    #[arg(long, id = "OS_Name", default_value = "debian")]
     os: String,
 
     /// Version, e.g. 1.3, 2.0, 22.04
-    #[arg(long)]
+    #[arg(long, default_value = "2.1")]
     ver: String,
 
     /// e.g. base
