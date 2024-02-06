@@ -71,22 +71,12 @@ jobs:
       #     get-base-disk --os debian --ver ${{matrix.ver}} --tag base --digest ${{matrix.yaml}}
       #     get-base-disk --os debian --ver ${{matrix.ver}} --tag base --digest ${{matrix.ron}}
 
-      - name: create files.json
+      - name: create zst files
         run: |
           mkdir -p tmp/zstd
-          touch tmp/zstd/{a,b}.zst
+          echo "test.a" > tmp/zstd/a.zst
+          echo "test.b" > tmp/zstd/b.zst
           echo 'test: true' > tmp/digests.yml
-
-          files=""
-          for i in tmp/zstd/*zst; do
-              files+=$i\\n
-          done
-
-          for i in tmp/digests.*; do
-              files+=$i\\n
-          done
-
-          echo RELEASE=$files >>"$GITHUB_ENV"
 
           echo '```yaml' > digests.md
           # cat tmp/${{matrix.yaml}} >> digests.md
@@ -95,6 +85,11 @@ jobs:
       - name: release
         uses: softprops/action-gh-release@v1
         with:
+          fail_on_unmatched_files: true
           tag_name: ${{matrix.release_tag}}
-          files: ${{ env.RELEASE }}
+          # name:
+          files: |
+            tmp/zstd/*.zst
+            tmp/digests.*ron
+            tmp/digests.*yml
           body_path: digests.md
