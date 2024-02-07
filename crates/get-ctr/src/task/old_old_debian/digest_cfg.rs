@@ -56,7 +56,7 @@ pub(crate) fn create_digest_cfg<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
 
         let os_tag = digest::MainTag::builder()
             .name(tag_name)
-            .arch(r.arch)
+            .arch(r.get_arch().to_owned())
             .datetime(current_utc(build_time))
             .docker(docker)
             .file(archive_file)
@@ -227,14 +227,14 @@ fn archive_file_cfg(
 
     let zstd_mirror = [("github", "github.com/2cd/debian-museum/releases/download")]
         .map(|(name, u)| {
-            let (tag_prefix, tag) = match r.tag {
-                Some(t) => ("-", t),
+            let (tag_prefix, tag) = match r.get_tag() {
+                Some(t) => ("-", *t),
                 None => ("", ""),
             };
 
             let url_str = format!(
                 "https://{u}/{}{tag_prefix}{tag}/{}",
-                r.version,
+                r.get_version(),
                 zstd_filename.to_string_lossy()
             );
             let cmt = format!(
@@ -285,7 +285,7 @@ fn update_docker_cfg(docker_dir: &Path, r: &Repository<'_>) -> digest::Docker {
 
     let repo_digest_file = docker_dir.join(repo_digests_filename("ghcr.ron"));
     let docker = digest::Docker::builder()
-        .platform(get_oci_platform(r.arch))
+        .platform(get_oci_platform(r.get_arch()))
         .mirror(docker_mirrors)
         .repo_digests({
             let f = repo_digest_file;
@@ -357,9 +357,9 @@ pub(crate) fn init_root_cfg(
         .cmt(cmt)
         .build();
     digest_os_config[0] = digest::OS::builder()
-        .codename(&r.codename)
-        .name(r.project)
-        .version(r.version)
+        .codename(r.get_codename())
+        .name(r.get_project().to_owned())
+        .version(r.get_version().to_owned())
         .docker(os_docker)
         .build();
     Ok(())

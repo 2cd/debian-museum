@@ -1,3 +1,5 @@
+#![cfg(unix)]
+
 mod cfg;
 mod cli;
 mod command;
@@ -27,7 +29,7 @@ mod tests {
 
         let ron_file = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/assets/ci/old_old_debian/disk.v1.ron"
+            "/assets/old_old_debian/disk.v1.ron"
         );
 
         // logger::init();

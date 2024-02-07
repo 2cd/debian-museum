@@ -1,14 +1,16 @@
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
 pub(crate) mod digest_cfg;
 pub(crate) mod docker_task;
 
 use crate::{
-    command::run_curl,
+    cfg::{components::OLD_DEBIAN, mirror::static_debian_archive_mirrors},
+    command::{run_as_root, run_curl},
     docker::repo::Repository,
-    task::compression::{decompress_gzip, spawn_zstd_thread},
+    task::compression::{decompress_gzip, extract_tar, pack_tar, spawn_zstd_thread},
 };
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{
     env,
+    ffi::OsStr,
     fs::{self, File},
     io,
     path::{Path, PathBuf},
@@ -30,7 +32,12 @@ impl<'r> Repository<'r> {
 
     fn docker_ron_filename(&self) -> String {
         let suffix = self.opt_tag_suffix();
-        format!("{}-{}{}.ron", self.version, self.codename, suffix)
+        format!(
+            "{}-{}{}.ron",
+            self.get_version(),
+            self.get_codename(),
+            suffix
+        )
     }
 
     fn base_tar_name(&self) -> io::Result<TarFile> {
@@ -63,7 +70,7 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
 
         let TarFile {
             tar_fname,
-            tar_path,
+            ref tar_path,
             ref docker_dir,
             ..
         } = r.base_tar_name()?;
@@ -74,18 +81,138 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
         let gz_fname = tar_fname.replace("tar", "tgz");
 
         // curl
+
+        // #[cfg(debug_assertions)]
+        // log::info!("skip running curl");
+        // #[cfg(not(debug_assertions))]
         {
             log::debug!("running curl ...");
             run_curl(
-                r.url
+                r.get_url()
                     .as_ref()
                     .expect("Empty URL"),
                 &gz_fname,
             );
         }
         // gz
-        decompress_gzip(&gz_fname, &tar_path)?;
+        decompress_gzip(&gz_fname, tar_path)?;
+
+        // patch
+        if let Some(patch) = r.get_patch() {
+            log::debug!("patches exist!");
+
+            let now = time::OffsetDateTime::now_utc();
+            let extracted_dir =
+                docker_dir.join(format!("tar_{}_{}", now.date(), now.hour()));
+
+            extract_tar(tar_path, &extracted_dir)?;
+
+            if *patch.get_add_src_mirrors() {
+                add_src_mirrors(
+                    r.get_codename(),
+                    OLD_DEBIAN,
+                    docker_dir,
+                    &extracted_dir,
+                )?;
+            }
+
+            // debian 2.1 (slink) => false
+            // _ => true
+            let exclude_dev = !matches!(r.get_codename().as_ref(), "slink");
+            pack_tar(&extracted_dir, tar_path, exclude_dev)?;
+        }
     }
+    Ok(())
+}
+
+fn add_src_mirrors(
+    codename: &str,
+    components: &str,
+    docker_dir: &Path,
+    extracted_dir: &Path,
+) -> anyhow::Result<()> {
+    let mirrors_dir = docker_dir.join("mirrors");
+    if !mirrors_dir.exists() {
+        fs::create_dir_all(&mirrors_dir)?;
+    }
+
+    for m in static_debian_archive_mirrors() {
+        let (region_prefix, region) = match m.get_region() {
+            Some(region) => (".", *region),
+            _ => ("", ""),
+        };
+        let fname = format!("{}{}{}.list", m.get_name(), region_prefix, region);
+        log::debug!("src list file name: {fname}");
+
+        let content = format!(
+            "deb {} {codename} {components}\n",
+            m.get_url()
+                .replacen("https:", "http:", 1),
+        );
+        log::debug!("content: {content}");
+
+        let list_path = mirrors_dir.join(fname);
+        log::info!("Writing mirror content to {list_path:?}");
+        fs::write(list_path, content)?;
+    }
+
+    #[allow(unused_variables)]
+    let osstr = OsStr::new;
+
+    let iter = extracted_dir.iter();
+
+    let local_mirrors_arr = ["usr", "local", "etc", "apt", "mirrors"];
+
+    let local_mirrors_dir = PathBuf::from_iter(
+        iter.clone()
+            .chain(local_mirrors_arr.map(osstr)),
+    );
+
+    // doas mkdir -p $local_mirrors_dir
+    run_as_root("mkdir", &[osstr("-p"), local_mirrors_dir.as_ref()]);
+
+    // doas rm -rv $local_mirrors_dir
+    run_as_root("rm", &[osstr("-rv"), local_mirrors_dir.as_ref()]);
+
+    // doas mv -v $mirrors_dir $local_mirrors_dir
+    run_as_root(
+        "mv",
+        &[
+            osstr("-v"),
+            mirrors_dir.as_ref(),
+            local_mirrors_dir.as_ref(),
+        ],
+    );
+
+    let src_list = PathBuf::from_iter(
+        iter.chain(["etc", "apt", "sources.list"].map(OsStr::new)),
+    );
+
+    // if exists: doas mv -vf $dir/etc/apt/sources.list $dir/etc/apt/sources.list.bak
+    if src_list.exists() {
+        run_as_root(
+            osstr("mv"),
+            &[
+                osstr("-vf"),
+                src_list.as_ref(),
+                src_list
+                    .with_extension("list.bak")
+                    .as_ref(),
+            ],
+        )
+    }
+
+    // doas ln -sv ../../usr/local/etc/apt/mirrors/Official.list $src_list
+    let local_mirrors_link_src =
+        format!("../../{}/Official.list", local_mirrors_arr.join("/"));
+    run_as_root(
+        "ln",
+        &[
+            osstr("-sv"),
+            osstr(&local_mirrors_link_src),
+            src_list.as_ref(),
+        ],
+    );
     Ok(())
 }
 

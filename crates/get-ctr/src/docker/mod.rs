@@ -7,8 +7,11 @@ pub(crate) mod repo_map;
 // pub(crate) mod
 pub(crate) const DOCKER_FILE_CONTENT: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/assets/ci/old_old_debian/Dockerfile"
+    "/assets/old_old_debian/Dockerfile"
 ));
+
+pub(crate) const DOCKER_IGNORE_CONTENT: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/.dockerignore"));
 
 pub(crate) fn get_oci_platform(arch: &str) -> &str {
     archmap::linux_oci_platform::map()

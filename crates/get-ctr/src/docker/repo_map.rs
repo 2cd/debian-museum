@@ -12,7 +12,7 @@ impl MainRepo {
     /// Returns `true` if the main repo is [`Ghcr`].
     ///
     /// [`Ghcr`]: MainRepo::Ghcr
-    #[cfg(debug_assertions)]
+    #[allow(unused)]
     pub(crate) fn is_ghcr(&self) -> bool {
         matches!(self, Self::Ghcr(..))
     }

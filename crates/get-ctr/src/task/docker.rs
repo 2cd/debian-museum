@@ -50,7 +50,7 @@ pub(crate) fn run_docker_build(
         "docker-build-task",
         spawn_docker_build(
             tags_iter,
-            docker::get_oci_platform(repo.arch),
+            docker::get_oci_platform(repo.get_arch()),
             docker_dir,
         ),
     ));

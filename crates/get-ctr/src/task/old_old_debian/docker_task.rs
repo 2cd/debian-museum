@@ -3,7 +3,7 @@ use crate::{
     docker::{
         repo::Repository,
         repo_map::{MainRepo, RepoMap},
-        DOCKER_FILE_CONTENT,
+        DOCKER_FILE_CONTENT, DOCKER_IGNORE_CONTENT,
     },
     task::{
         docker::{run_docker_build, run_docker_push},
@@ -11,12 +11,12 @@ use crate::{
         pool::wait_process,
     },
 };
-use ahash::HashMapExt;
+use ahash::{HashMapExt, HashSetExt};
 use anyhow::bail;
 use log_l10n::level::color::OwoColorize;
 use std::{
     collections::BTreeSet,
-    fs,
+    fs, io,
     path::Path,
     process::{Command, Stdio},
 };
@@ -30,6 +30,7 @@ where
     I: IntoIterator<Item = &'a Repository<'a>>,
 {
     let (map, ..) = get_repo_map_from_ron(repos.into_iter().next())?;
+    let mut repo_set = ahash::HashSet::with_capacity(4);
 
     let mut arr = [""; 2];
     for k in map.keys() {
@@ -38,22 +39,18 @@ where
             continue;
         }
 
-        {
-            use MainRepo::*;
-            match k {
-                Reg(s) => {
-                    let repo = rsplit_colon(s, &mut arr);
-                    log::trace!("arr: {arr:?}");
-                    log::debug!("push repo: {repo}");
-                    run_docker_push(repo)
-                }
-                Ghcr(s) => {
-                    run_docker_push(rsplit_colon(s, &mut arr));
-                    break;
-                }
-            }
-        }
+        use MainRepo::*;
+        let repo = match k {
+            Reg(s) => s,
+            Ghcr(s) => s,
+        };
+        repo_set.insert(rsplit_colon(repo, &mut arr));
     }
+
+    for i in repo_set {
+        run_docker_push(i)
+    }
+
     Ok(())
 }
 
@@ -223,10 +220,7 @@ where
 }
 
 /// Replaces "base.tar" in the default DOCKER_FILE_CONTENT with tar_fname(e.g., 2.2_potato_x86_base_2001-06-14.tar), and finally write.
-fn create_docker_file(
-    docker_dir: &Path,
-    tar_fname: &str,
-) -> Result<(), anyhow::Error> {
+fn create_docker_file(docker_dir: &Path, tar_fname: &str) -> Result<(), io::Error> {
     let docker_file = docker_dir.join("Dockerfile");
     log::debug!("docker_file: {:?}", docker_file);
 
@@ -235,6 +229,11 @@ fn create_docker_file(
         &docker_file,
         DOCKER_FILE_CONTENT.replace("base.tar", tar_fname),
     )?;
+
+    let docker_ignore = docker_dir.join(".dockerignore");
+    log::debug!("creating the .dockerignore");
+    fs::write(docker_ignore, DOCKER_IGNORE_CONTENT)?;
+
     Ok(())
 }
 

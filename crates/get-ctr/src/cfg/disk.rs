@@ -1,4 +1,4 @@
-use crate::url::ArchiveUrl;
+// use crate::cfg::mirror::Mirror;
 use getset::Getters;
 use log::{debug, trace};
 use serde::{Deserialize, Serialize};
@@ -7,49 +7,48 @@ use serde::{Deserialize, Serialize};
 #[getset(get = "pub(crate) with_prefix")]
 #[serde(default)]
 pub(crate) struct Disk {
-    pub(crate) arch: String,
+    arch: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) deb_arch: Option<String>,
-    pub(crate) date: String,
-    pub(crate) path: String,
+    deb_arch: Option<String>,
+    date: String,
+    path: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) tag: Option<String>,
+    tag: Option<String>,
 }
 
 #[derive(Getters, Serialize, Deserialize, Debug, Default)]
 #[getset(get = "pub(crate) with_prefix")]
 #[serde(default)]
 pub(crate) struct OS {
-    pub(crate) codename: String,
-    pub(crate) version: String,
-    pub(crate) base_tgz: String,
-    pub(crate) date: String,
-    pub(crate) path: String,
-    pub(crate) disk: Vec<Disk>,
+    codename: String,
+    version: String,
+    base_tgz: String,
+    date: String,
+    path: String,
+    patch: Option<OsPatch>,
+    disk: Vec<Disk>,
 }
 
 #[derive(Getters, Serialize, Deserialize, Debug, Default)]
 #[getset(get = "pub(crate) with_prefix")]
 #[serde(default)]
-pub(crate) struct Mirror {
-    pub(crate) name: String,
-    pub(crate) region: Option<String>,
-    pub(crate) global: bool,
-    pub(crate) url: ArchiveUrl,
+pub(crate) struct OsPatch {
+    #[serde(rename = "add-src-mirrors")]
+    add_src_mirrors: bool,
 }
 
-#[derive(Getters, Serialize, Deserialize, Debug, Default)]
+#[derive(Getters, Serialize, Deserialize, Debug, Default, derive_more::Deref)]
 #[getset(get = "pub(crate) with_prefix")]
 #[serde(default)]
 pub(crate) struct DiskV1 {
-    pub(crate) mirror: Vec<Mirror>,
-    pub(crate) os: Vec<OS>,
+    #[deref]
+    os: Vec<OS>,
 }
 
 impl DiskV1 {
     pub(crate) const DISK_RON: &'static str = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/assets/ci/old_old_debian/disk.v1.ron"
+        "/assets/old_old_debian/disk.v1.ron"
     ));
 
     pub(crate) fn deser() -> anyhow::Result<Self> {

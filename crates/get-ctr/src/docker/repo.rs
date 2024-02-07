@@ -1,36 +1,44 @@
+use getset::Getters;
 use std::borrow::Cow;
 use tinyvec::TinyVec;
 use typed_builder::TypedBuilder;
 use url::Url;
 
-use crate::docker::{get_oci_platform, repo_map};
+use crate::{
+    cfg::disk::OsPatch,
+    docker::{get_oci_platform, repo_map},
+};
 
-// use crate::command::spawn_cmd::crate;
-
-#[derive(Debug, TypedBuilder)]
+#[derive(Getters, TypedBuilder, Debug)]
+#[getset(get = "pub(crate) with_prefix")]
+#[builder(field_defaults(default))]
 pub(crate) struct Repository<'r> {
     #[builder(default = "2cd")]
-    pub(crate) owner: &'r str,
+    owner: &'r str,
     #[builder(default = "debian")]
-    pub(crate) project: &'r str,
+    project: &'r str,
 
-    #[builder(setter(transform = |s: &str| s.to_ascii_lowercase()))]
-    pub(crate) codename: String,
+    #[builder(!default, setter(transform = |s: &str| s.to_ascii_lowercase()))]
+    codename: String,
 
-    pub(crate) version: &'r str,
-    pub(crate) arch: &'r str,
+    #[builder(!default)]
+    version: &'r str,
+    #[builder(!default)]
+    arch: &'r str,
 
-    #[builder(default)]
-    pub(crate) tag: Option<&'r str>,
+    tag: Option<&'r str>,
 
     #[builder(default = "1900-01-01")]
-    pub(crate) date: &'r str,
+    date: &'r str,
 
-    #[builder(default, setter(strip_option))]
-    pub(crate) url: Option<Url>,
+    #[builder(setter(strip_option))]
+    url: Option<Url>,
 
-    #[builder(default, setter(strip_option))]
-    pub(crate) title_date: Option<&'r str>,
+    #[builder(setter(strip_option))]
+    title_date: Option<&'r str>,
+
+    #[builder(setter(into))]
+    patch: Option<&'r OsPatch>,
 }
 
 impl<'r> Default for Repository<'r> {

@@ -1,6 +1,6 @@
 [package]
 name = "get-ctr"
-version = "0.0.0-alpha.4"
+version = "0.0.0-alpha.5"
 edition = "2021"
 
 [dependencies]
@@ -10,8 +10,10 @@ clap = { version = "4.4.18", features = ["derive"] }
 derive_more = { version = "0.99.17", default-features = false, features = [
     "deref",
     "from",
+    "display",
 ] }
 getset = "0.1.2"
+libc = { version = "0.2.153", default-features = false }
 log = "0.4.20"
 ron = "0.8.1"
 serde = { version = "1.0.196", features = ["derive"] }

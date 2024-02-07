@@ -114,11 +114,11 @@ impl Cli {
         let cfg = DiskV1::deser()?;
         let mut repos = tinyvec::TinyVec::<[Repository; 16]>::new();
         {
-            let mirror = cfg.find_mirror_url();
+            let mirror = crate::url::debian_archive()?;
             let mut url_path = String::with_capacity(64);
 
             for os in cfg
-                .get_os()
+                // .get_os()
                 .iter()
                 .filter(|o| o.get_version() == self.get_ver())
             {
@@ -137,6 +137,7 @@ impl Cli {
                         .url(mirror.join(&url_path)?)
                         .date(disk.get_date())
                         .title_date(os.get_date())
+                        .patch(os.get_patch())
                         .build();
                     repos.push(repo)
                 }
@@ -184,7 +185,7 @@ impl Cli {
 
         if *self.get_release_tag() {
             let first = first();
-            println!("{}{}", first.version, first.opt_tag_suffix());
+            println!("{}{}", first.get_version(), first.opt_tag_suffix());
         }
 
         global_pool().join();
@@ -211,18 +212,18 @@ impl Cli {
 }
 
 fn print_title(first: &Repository<'_>) {
-    let (date_prefix, date, date_suffix) = match first.title_date {
-        Some(d) => (" (", d, ")"),
+    let (date_prefix, date, date_suffix) = match first.get_title_date() {
+        Some(d) => (" (", *d, ")"),
         _ => ("", "", ""),
     };
-    let (tag, tag_suffix) = match first.tag {
-        Some(p) => (p, ", "),
+    let (tag, tag_suffix) = match first.get_tag() {
+        Some(p) => (*p, ", "),
         _ => ("", ""),
     };
     println!(
         "{} {}{}{}{}{}{}",
-        first.version,
-        first.codename,
+        first.get_version(),
+        first.get_codename(),
         date_prefix,
         tag,
         tag_suffix,

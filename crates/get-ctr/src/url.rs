@@ -1,38 +1,42 @@
-use derive_more::{Deref, From};
-use serde::{Deserialize, Serialize};
-use std::env;
-use url::Url;
+use crate::cfg::{
+    self,
+    mirror::{static_debian_archive_mirrors, Mirror, MirrorVariant},
+};
+use std::{env, sync::OnceLock};
+use url::{ParseError, Url};
 
-use crate::cfg::{self, disk::DiskV1};
+type UrlResult = Result<Url, ParseError>;
 
-#[derive(Deref, Serialize, Deserialize, From, Debug)]
-#[from(forward)]
-#[serde(transparent)]
-pub(crate) struct ArchiveUrl(Url);
-
-impl Default for ArchiveUrl {
-    fn default() -> Self {
-        // https://mirrors.nju.edu.cn/debian-archive/debian/dists/
-        Url::parse("https://archive.debian.org/debian/dists/")
-            .expect("Invalid url")
-            .into()
-    }
+fn is_cn() -> bool {
+    static B: OnceLock<bool> = OnceLock::new();
+    *B.get_or_init(|| env::var("LANG").is_ok_and(|x| x.contains("CN")))
 }
 
-impl DiskV1 {
-    pub(crate) fn find_mirror_url(&self) -> &Url {
-        let is_cn = env::var("LANG").is_ok_and(|x| x.contains("CN"));
+pub(crate) fn find_mirror_url(
+    mirrors: &[Mirror],
+    variant: MirrorVariant,
+) -> UrlResult {
+    let m = mirrors
+        .iter()
+        .filter(|x| x.get_variant() == &variant)
+        .find(|x| match x.get_region() {
+            None if is_cn() => false,
+            Some("CN") => is_cn(),
+            _ => true,
+        })
+        .ok_or(ParseError::EmptyHost)?;
 
-        self.get_mirror()
-            .iter()
-            .find(|x| match x.get_region().as_deref() {
-                None if is_cn => false,
-                Some("CN") => is_cn,
-                _ => true,
-            })
-            .expect("Empty Mirror")
-            .get_url()
-    }
+    log::debug!("mirror: {m:?}");
+
+    Url::parse(m.get_url())
+}
+
+pub(crate) fn debian_archive() -> UrlResult {
+    log::debug!("finding the mirror url from static debian archive mirrors.");
+    find_mirror_url(
+        static_debian_archive_mirrors(),
+        MirrorVariant::DebianArchive,
+    )
 }
 
 pub(crate) fn add_slash(x: &str) -> &str {
