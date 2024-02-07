@@ -6,6 +6,7 @@ tmp.*
 desktop.ini
 .DS_Store
 .directory
+Thumbs.db
 perf.data
 perf.data.old
 flamegraph.svg

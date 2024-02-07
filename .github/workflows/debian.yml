@@ -2,14 +2,14 @@ name: get Bo, Hamm, Slink & Potato rootfs
 
 env:
   DEBIAN_FRONTEND: noninteractive
-  GET_BASE_DISK_LOG: debug
+  GET_CTR_LOG: debug
   REG_USER: "robot$debian+bot_actions_2024"
   ZSTD_LV: 18
 
 on:
   push:
-    # branches:
-    #   - master
+    branches:
+      - master
     paths:
       - ".github/workflows/debian.yml"
 
@@ -23,11 +23,10 @@ jobs:
           #   ver: "1.3"
           # - os: debian
           #   ver: "2.0"
-          # - os: debian
-          #   ver: "2.1"
-          - os: debain
+          - os: debian
+            ver: "2.1"
+          - os: debian
             ver: "2.2"
-            release_tag: "2.2-base"
             tag: base
     runs-on: ubuntu-latest
     # defaults:
@@ -36,22 +35,14 @@ jobs:
     env:
       digests_ron: digests.ron
       digests_yaml: digests.yml
-      build_cmd: get-base-disk --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
+      build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
 
     steps:
-      - name: update RELEASE_TAG env
-        run: |
-          tag=${{matrix.release_tag}}
+      - name: get `get-ctr` bin from docker
+        run: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-ctr:x64 cp get-ctr /host
 
-          case $tag in
-          "") new_tag=${{matrix.ver}};;
-          *) new_tag=$tag ;;
-          esac
-
-          echo RELEASE_TAG=$new_tag >>$GITHUB_ENV
-
-      - name: get-base-disk.bin
-        run: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-base-disk:x64 cp get-base-disk /host
+      - name: +RELEASE_TAG env
+        run: echo RELEASE_TAG=$(${{env.build_cmd}} --release-tag) >>$GITHUB_ENV
 
       - name: download & repack rootfs
         run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}}
@@ -87,7 +78,7 @@ jobs:
           echo '```yaml' > digests.md
           cat tmp/${{env.digests_yaml}} >> digests.md
           echo '```' >> digests.md
-          echo TITLE=$(${{env.build_cmd}} --title | tail -n1) >>$GITHUB_ENV
+          echo TITLE=$(${{env.build_cmd}} --title) >>$GITHUB_ENV
 
       - name: release
         uses: softprops/action-gh-release@v1
