@@ -201,6 +201,8 @@ deb-architectures = [
     "ia64",
     "i386",
     "hppa",
+    # ---
+    "m68k",
 ]
 no-minbase = false
 deb822-format = false
@@ -211,7 +213,12 @@ sources = [
     "debian-archive/debian-volatile etch/volatile",
     "debian-archive/debian-backports etch-backports",
 ]
-disabled-sources = []
+
+[[os.tag]]
+arch = "m68k"
+deb-arch = "m68k"
+sources = ["debian-archive/debian etch-m68k"]
+
 
 [[os.tag]]
 arch = "armv3"
@@ -892,7 +899,7 @@ name = "debian"
 version = "13"
 codename = "Trixie"
 series = "trixie"
-date = ""
+# date = ""
 compoents = "main contrib non-free non-free-firmware"
 deb-architectures = [
     "i386",
@@ -948,10 +955,11 @@ deb-arch = "armel"
 
 [[os]]
 name = "debian"
+# version = "unstable"
+# inf is infinite and can be parsed as a number, whereas unstable cannot.
 version = "inf"
 codename = "Sid"
 series = "sid"
-date = ""
 compoents = "main contrib non-free non-free-firmware"
 deb-architectures = [
     "i386",
@@ -963,6 +971,17 @@ deb-architectures = [
     "armhf",
     "riscv64",
     "armel",
+    # -----
+    "alpha",
+    "hppa",
+    "ia64",
+    "loong64",
+    "m68k",
+    "powerpc",
+    "ppc64",
+    "sh4",
+    "sparc64",
+    "x32",
 ]
 no-minbase = false
 deb822-format = true
@@ -1004,3 +1023,65 @@ deb-arch = "riscv64"
 [[os.tag]]
 arch = "armv5te"
 deb-arch = "armel"
+
+# ------
+
+[[os.tag]]
+arch = "alpha"
+deb-arch = "alpha"
+sources = ["debian-ports sid"]
+disabled-sources = ["debian-ports experimental"]
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+sources = ["debian-ports sid"]
+disabled-sources = ["debian-ports experimental"]
+
+[[os.tag]]
+arch = "ia64"
+deb-arch = "ia64"
+sources = ["debian-ports sid"]
+disabled-sources = ["debian-ports experimental"]
+
+[[os.tag]]
+arch = "loong64"
+deb-arch = "loong64"
+sources = ["debian-ports sid"]
+disabled-sources = ["debian-ports experimental"]
+
+[[os.tag]]
+arch = "m68k"
+deb-arch = "m68k"
+sources = ["debian-ports sid"]
+disabled-sources = ["debian-ports experimental"]
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+sources = ["debian-ports sid"]
+disabled-sources = ["debian-ports experimental"]
+
+[[os.tag]]
+arch = "ppc64"
+deb-arch = "ppc64"
+sources = ["debian-ports sid"]
+disabled-sources = ["debian-ports experimental"]
+
+[[os.tag]]
+arch = "sh4"
+deb-arch = "sh4"
+sources = ["debian-ports sid"]
+disabled-sources = ["debian-ports experimental"]
+
+[[os.tag]]
+arch = "sparc64"
+deb-arch = "sparc64"
+sources = ["debian-ports sid"]
+disabled-sources = ["debian-ports experimental"]
+
+[[os.tag]]
+arch = "x32"
+deb-arch = "x32"
+sources = ["debian-ports sid"]
+disabled-sources = ["debian-ports experimental"]
