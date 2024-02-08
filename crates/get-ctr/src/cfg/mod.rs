@@ -1,3 +1,4 @@
+pub(crate) mod debootstrap;
 pub(crate) mod digest;
 pub(crate) mod disk;
 pub(crate) mod mirror;

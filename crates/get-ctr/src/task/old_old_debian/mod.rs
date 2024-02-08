@@ -280,8 +280,7 @@ mod tests {
     use super::*;
     use crate::dir::set_static_workdir;
     use byteunit::ByteUnit;
-    use serde::ser::SerializeStruct;
-    use std::{num::ParseFloatError, path::Path};
+    use std::path::Path;
 
     #[test]
     fn deser_ron_cfg() -> anyhow::Result<()> {

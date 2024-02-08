@@ -25,27 +25,45 @@ mod tests {
 
     #[test]
     fn convert_toml_to_ron() -> anyhow::Result<()> {
-        use ron::{extensions::Extensions, ser::PrettyConfig};
+        use ron::{
+            extensions::Extensions,
+            ser::{to_string_pretty, PrettyConfig},
+        };
 
-        let ron_file = concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/assets/old_old_debian/disk.v1.ron"
-        );
+        let workdir = Path::new(env!("CARGO_MANIFEST_DIR")).join("assets");
+        if !workdir.exists() {
+            return Ok(());
+        }
+        env::set_current_dir(&workdir)?;
 
-        // logger::init();
-        dbg!(env::current_dir());
-        let toml_path = Path::new(ron_file).with_extension("toml");
-        dbg!(&toml_path);
+        for (name, file) in [
+            ("old", "old_old_debian/disk.v1.toml"),
+            ("debian", "debootstrap/debian.toml"),
+            ("ubuntu", "debootstrap/ubuntu.toml"),
+        ] {
+            let pretty = PrettyConfig::default()
+                .enumerate_arrays(true)
+                .extensions(Extensions::IMPLICIT_SOME)
+                .depth_limit(4);
 
-        let disk_v1 = toml::from_str::<DiskV1>(&fs::read_to_string(toml_path)?)?;
+            let ron_file = Path::new(file).with_extension("ron");
 
-        let pretty = PrettyConfig::default()
-            .enumerate_arrays(true)
-            // .extensions(Extensions::IMPLICIT_SOME),
-            .depth_limit(4);
+            let ron_str = match name {
+                "debian" | "ubuntu" => {
+                    let value = toml::from_str::<cfg::debootstrap::DebootstrapCfg>(
+                        &fs::read_to_string(file)?,
+                    )?;
+                    to_string_pretty(&value, pretty)?
+                }
+                _ => {
+                    let value =
+                        toml::from_str::<DiskV1>(&fs::read_to_string(file)?)?;
+                    to_string_pretty(&value, pretty)?
+                }
+            };
 
-        let ron_str = ron::ser::to_string_pretty(&disk_v1, pretty)?;
-        fs::write(ron_file, ron_str)?;
+            fs::write(ron_file, ron_str)?;
+        }
 
         Ok(())
     }

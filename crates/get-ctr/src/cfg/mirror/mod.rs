@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, derive_more::Display,
 )]
+
+// ubuntu: https://old-releases.ubuntu.com/ubuntu/
+// https://mirrors.ustc.edu.cn/ubuntu-old-releases/ubuntu/
+
 pub(crate) enum MirrorVariant {
     #[display(fmt = "debian-archive")]
     DebianArchive,

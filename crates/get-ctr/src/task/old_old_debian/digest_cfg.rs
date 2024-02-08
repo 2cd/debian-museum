@@ -119,6 +119,7 @@ fn create_digest_file(
                 &digest_cfg,
                 PrettyConfig::default()
                     .enumerate_arrays(true)
+                    // .depth_limit(1)
                     .extensions(Extensions::IMPLICIT_SOME),
             )?;
             fs::write(dst_file, ron)?;
