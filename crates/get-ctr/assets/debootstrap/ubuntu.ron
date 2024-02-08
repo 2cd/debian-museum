@@ -7,7 +7,7 @@
             "codename": "Warty Warthog",
             "series": "warty",
             "date": "2004-10-20",
-            "no-minbase": false,
+            "no-minbase": true,
             "deb822-format": false,
             "deb-architectures": [
                 /*[0]*/ "powerpc",
@@ -27,7 +27,7 @@
             "codename": "Hoary Hedgehog",
             "series": "hoary",
             "date": "2005-04-08",
-            "no-minbase": false,
+            "no-minbase": true,
             "deb822-format": false,
             "deb-architectures": [
                 /*[0]*/ "ia64",
@@ -51,7 +51,7 @@
             "codename": "Breezy Badger",
             "series": "breezy",
             "date": "2005-10-12",
-            "no-minbase": false,
+            "no-minbase": true,
             "deb822-format": false,
             "deb-architectures": [
                 /*[0]*/ "ia64",
@@ -75,7 +75,7 @@
             "codename": "Dapper Drake",
             "series": "dapper",
             "date": "2006-06-01",
-            "no-minbase": false,
+            "no-minbase": true,
             "deb822-format": false,
             "deb-architectures": [
                 /*[0]*/ "amd64",
@@ -101,7 +101,7 @@
             "codename": "Edgy Eft",
             "series": "edgy",
             "date": "2006-10-26",
-            "no-minbase": false,
+            "no-minbase": true,
             "deb822-format": false,
             "deb-architectures": [
                 /*[0]*/ "sparc",
@@ -127,7 +127,7 @@
             "codename": "Feisty Fawn",
             "series": "feisty",
             "date": "2007-04-19",
-            "no-minbase": false,
+            "no-minbase": true,
             "deb822-format": false,
             "deb-architectures": [
                 /*[0]*/ "sparc",

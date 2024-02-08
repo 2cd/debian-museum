@@ -5,7 +5,7 @@ codename = "Warty Warthog"
 series = "warty"
 date = "2004-10-20"
 deb-architectures = ["powerpc", "i386", "amd64"]
-no-minbase = false
+no-minbase = true
 deb822-format = false
 src = "ubuntu-old-releases"
 # sources = [
@@ -35,7 +35,7 @@ codename = "Hoary Hedgehog"
 series = "hoary"
 date = "2005-04-08"
 deb-architectures = ["ia64", "i386", "amd64", "sparc", "powerpc"]
-no-minbase = false
+no-minbase = true
 deb822-format = false
 src = "ubuntu-old-releases"
 
@@ -66,7 +66,8 @@ codename = "Breezy Badger"
 series = "breezy"
 date = "2005-10-12"
 deb-architectures = ["ia64", "powerpc", "sparc", "amd64", "i386"]
-no-minbase = false
+# variant = "buildd"
+no-minbase = true
 deb822-format = false
 src = "ubuntu-old-releases"
 
@@ -97,7 +98,7 @@ codename = "Dapper Drake"
 series = "dapper"
 date = "2006-06-01"
 deb-architectures = ["amd64", "i386", "powerpc", "sparc", "ia64", "hppa"]
-no-minbase = false
+no-minbase = true
 deb822-format = false
 src = "ubuntu-old-releases"
 
@@ -132,10 +133,9 @@ codename = "Edgy Eft"
 series = "edgy"
 date = "2006-10-26"
 deb-architectures = ["sparc", "powerpc", "ia64", "i386", "hppa", "amd64"]
-no-minbase = false
+no-minbase = true
 deb822-format = false
 src = "ubuntu-old-releases"
-
 
 [[os.tag]]
 arch = "sparc"
@@ -168,7 +168,7 @@ codename = "Feisty Fawn"
 series = "feisty"
 date = "2007-04-19"
 deb-architectures = ["sparc", "powerpc", "ia64", "i386", "hppa", "amd64"]
-no-minbase = false
+no-minbase = true
 deb822-format = false
 src = "ubuntu-old-releases"
 
