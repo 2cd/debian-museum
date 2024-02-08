@@ -29,6 +29,9 @@
             "sources": [
                 /*[0]*/ "debian-archive/debian potato",
             ],
+            "disabled-sources": [
+                /*[0]*/ "debian-archive/debian potato-proposed-updates",
+            ],
         },
         /*[1]*/ {
             "name": "debian",
@@ -111,6 +114,9 @@
                 /*[2]*/ "debian-archive/debian-volatile sarge/volatile-sloppy",
                 /*[3]*/ "debian-archive/debian-volatile sarge/volatile",
                 /*[4]*/ "debian-archive/debian-backports sarge-backports",
+            ],
+            "disabled-sources": [
+                /*[0]*/ "debian-archive/debian sarge-proposed-updates",
             ],
         },
         /*[3]*/ {
@@ -241,6 +247,9 @@
                 /*[2]*/ "debian-archive/debian-backports squeeze-backports",
                 /*[3]*/ "debian-archive/debian-backports squeeze-backports-sloppy",
             ],
+            "disabled-sources": [
+                /*[0]*/ "debian-archive/debian squeeze-proposed-updates",
+            ],
         },
         /*[6]*/ {
             "name": "debian",
@@ -283,6 +292,9 @@
                 /*[2]*/ "debian-archive/debian wheezy-backports-sloppy",
                 /*[3]*/ "debian-archive/debian-security wheezy/updates",
             ],
+            "disabled-sources": [
+                /*[0]*/ "debian-archive/debian wheezy-proposed-updates",
+            ],
         },
         /*[7]*/ {
             "name": "debian",
@@ -306,10 +318,10 @@
                 /*[9]*/ "arm64",
             ],
             "tag": [
-                /*[0]*/ {"arch": "x86", "deb-arch": "i386", "sources": ["debian-elts jessie"]},
-                /*[1]*/ {"arch": "x64", "deb-arch": "amd64", "sources": ["debian-elts jessie"]},
-                /*[2]*/ {"arch": "armv7a", "deb-arch": "armhf", "sources": ["debian-elts jessie"]},
-                /*[3]*/ {"arch": "armv4t", "deb-arch": "armel", "sources": ["debian-elts jessie"]},
+                /*[0]*/ {"arch": "x86", "deb-arch": "i386", "sources": ["debian-elts jessie"], "disabled-sources": ["debian-archive/debian jessie", "debian-archive/debian jessie-backports", "debian-archive/debian jessie-backports-sloppy", "debian-archive/debian-security jessie/updates"]},
+                /*[1]*/ {"arch": "x64", "deb-arch": "amd64", "sources": ["debian-elts jessie"], "disabled-sources": ["debian-archive/debian jessie", "debian-archive/debian jessie-backports", "debian-archive/debian jessie-backports-sloppy", "debian-archive/debian-security jessie/updates"]},
+                /*[2]*/ {"arch": "armv7a", "deb-arch": "armhf", "sources": ["debian-elts jessie"], "disabled-sources": ["debian-archive/debian jessie", "debian-archive/debian jessie-backports", "debian-archive/debian jessie-backports-sloppy", "debian-archive/debian-security jessie/updates"]},
+                /*[3]*/ {"arch": "armv4t", "deb-arch": "armel", "sources": ["debian-elts jessie"], "disabled-sources": ["debian-archive/debian jessie", "debian-archive/debian jessie-backports", "debian-archive/debian jessie-backports-sloppy", "debian-archive/debian-security jessie/updates"]},
                 /*[4]*/ {"arch": "s390x", "deb-arch": "s390x"},
                 /*[5]*/ {"arch": "mipsle", "deb-arch": "mipsel"},
                 /*[6]*/ {"arch": "mipsbe", "deb-arch": "mips"},
@@ -322,6 +334,9 @@
                 /*[1]*/ "debian-archive/debian jessie-backports",
                 /*[2]*/ "debian-archive/debian jessie-backports-sloppy",
                 /*[3]*/ "debian-archive/debian-security jessie/updates",
+            ],
+            "disabled-sources": [
+                /*[0]*/ "",
             ],
         },
         /*[8]*/ {
@@ -346,9 +361,9 @@
                 /*[9]*/ "armel",
             ],
             "tag": [
-                /*[0]*/ {"arch": "x64", "deb-arch": "amd64", "sources": ["debian-elts stretch"]},
-                /*[1]*/ {"arch": "x86", "deb-arch": "i386", "sources": ["debian-elts stretch"]},
-                /*[2]*/ {"arch": "armv7a", "deb-arch": "armhf", "sources": ["debian-elts stretch"]},
+                /*[0]*/ {"arch": "x64", "deb-arch": "amd64", "sources": ["debian-elts stretch"], "disabled-sources": ["debian-archive/debian stretch", "debian-archive/debian stretch-backports", "debian-archive/debian stretch-backports-sloppy", "debian-archive/debian-security stretch/updates", "debian-archive/debian stretch-proposed-updates"]},
+                /*[1]*/ {"arch": "x86", "deb-arch": "i386", "sources": ["debian-elts stretch"], "disabled-sources": ["debian-archive/debian stretch", "debian-archive/debian stretch-backports", "debian-archive/debian stretch-backports-sloppy", "debian-archive/debian-security stretch/updates", "debian-archive/debian stretch-proposed-updates"]},
+                /*[2]*/ {"arch": "armv7a", "deb-arch": "armhf", "sources": ["debian-elts stretch"], "disabled-sources": ["debian-archive/debian stretch", "debian-archive/debian stretch-backports", "debian-archive/debian stretch-backports-sloppy", "debian-archive/debian-security stretch/updates", "debian-archive/debian stretch-proposed-updates"]},
                 /*[3]*/ {"arch": "arm64", "deb-arch": "arm64"},
                 /*[4]*/ {"arch": "ppc64le", "deb-arch": "ppc64el"},
                 /*[5]*/ {"arch": "mips64le", "deb-arch": "mips64el"},
@@ -362,6 +377,9 @@
                 /*[1]*/ "debian-archive/debian stretch-backports",
                 /*[2]*/ "debian-archive/debian stretch-backports-sloppy",
                 /*[3]*/ "debian-archive/debian-security stretch/updates",
+            ],
+            "disabled-sources": [
+                /*[0]*/ "debian-archive/debian stretch-proposed-updates",
             ],
         },
         /*[9]*/ {
@@ -404,6 +422,9 @@
                 /*[3]*/ "debian buster-updates",
                 /*[4]*/ "debian-security buster/updates",
             ],
+            "disabled-sources": [
+                /*[0]*/ "debian buster-proposed-updates",
+            ],
         },
         /*[10]*/ {
             "name": "debian",
@@ -442,6 +463,9 @@
                 /*[2]*/ "debian bullseye-backports-sloppy",
                 /*[3]*/ "debian bullseye-updates",
                 /*[4]*/ "debian-security bullseye-security",
+            ],
+            "disabled-sources": [
+                /*[0]*/ "debian bullseye-proposed-updates",
             ],
         },
         /*[11]*/ {
@@ -482,6 +506,9 @@
                 /*[3]*/ "debian bookworm-updates",
                 /*[4]*/ "debian-security bookworm-security",
             ],
+            "disabled-sources": [
+                /*[0]*/ "debian bookworm-proposed-updates",
+            ],
         },
         /*[12]*/ {
             "name": "debian",
@@ -517,6 +544,9 @@
                 /*[1]*/ "debian trixie-backports",
                 /*[2]*/ "debian trixie-updates",
                 /*[3]*/ "debian-security trixie-security",
+            ],
+            "disabled-sources": [
+                /*[0]*/ "debian trixie-proposed-updates",
             ],
         },
         /*[13]*/ {
@@ -559,19 +589,22 @@
                 /*[6]*/ {"arch": "armv7a", "deb-arch": "armhf"},
                 /*[7]*/ {"arch": "rv64gc", "deb-arch": "riscv64"},
                 /*[8]*/ {"arch": "armv5te", "deb-arch": "armel"},
-                /*[9]*/ {"arch": "alpha", "deb-arch": "alpha", "sources": ["debian-ports sid"]},
-                /*[10]*/ {"arch": "hppa", "deb-arch": "hppa", "sources": ["debian-ports sid"]},
-                /*[11]*/ {"arch": "ia64", "deb-arch": "ia64", "sources": ["debian-ports sid"]},
-                /*[12]*/ {"arch": "loong64", "deb-arch": "loong64", "sources": ["debian-ports sid"]},
-                /*[13]*/ {"arch": "m68k", "deb-arch": "m68k", "sources": ["debian-ports sid"]},
-                /*[14]*/ {"arch": "ppc", "deb-arch": "powerpc", "sources": ["debian-ports sid"]},
-                /*[15]*/ {"arch": "ppc64", "deb-arch": "ppc64", "sources": ["debian-ports sid"]},
-                /*[16]*/ {"arch": "sh4", "deb-arch": "sh4", "sources": ["debian-ports sid"]},
-                /*[17]*/ {"arch": "sparc64", "deb-arch": "sparc64", "sources": ["debian-ports sid"]},
-                /*[18]*/ {"arch": "x32", "deb-arch": "x32", "sources": ["debian-ports sid"]},
+                /*[9]*/ {"arch": "alpha", "deb-arch": "alpha", "sources": ["debian-ports sid"], "disabled-sources": ["debian-ports experimental"]},
+                /*[10]*/ {"arch": "hppa", "deb-arch": "hppa", "sources": ["debian-ports sid"], "disabled-sources": ["debian-ports experimental"]},
+                /*[11]*/ {"arch": "ia64", "deb-arch": "ia64", "sources": ["debian-ports sid"], "disabled-sources": ["debian-ports experimental"]},
+                /*[12]*/ {"arch": "loong64", "deb-arch": "loong64", "sources": ["debian-ports sid"], "disabled-sources": ["debian-ports experimental"]},
+                /*[13]*/ {"arch": "m68k", "deb-arch": "m68k", "sources": ["debian-ports sid"], "disabled-sources": ["debian-ports experimental"]},
+                /*[14]*/ {"arch": "ppc", "deb-arch": "powerpc", "sources": ["debian-ports sid"], "disabled-sources": ["debian-ports experimental"]},
+                /*[15]*/ {"arch": "ppc64", "deb-arch": "ppc64", "sources": ["debian-ports sid"], "disabled-sources": ["debian-ports experimental"]},
+                /*[16]*/ {"arch": "sh4", "deb-arch": "sh4", "sources": ["debian-ports sid"], "disabled-sources": ["debian-ports experimental"]},
+                /*[17]*/ {"arch": "sparc64", "deb-arch": "sparc64", "sources": ["debian-ports sid"], "disabled-sources": ["debian-ports experimental"]},
+                /*[18]*/ {"arch": "x32", "deb-arch": "x32", "sources": ["debian-ports sid"], "disabled-sources": ["debian-ports experimental"]},
             ],
             "sources": [
                 /*[0]*/ "debian sid",
+            ],
+            "disabled-sources": [
+                /*[0]*/ "debian experimental",
             ],
         },
     ],

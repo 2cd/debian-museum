@@ -25,7 +25,7 @@ struct Source {
     src: Option<String>,
     sources: Option<Vec<String>>,
 
-    #[serde(rename = "disabled_sources")]
+    #[serde(rename = "disabled-sources")]
     disabled_sources: Option<Vec<String>>,
 }
 
