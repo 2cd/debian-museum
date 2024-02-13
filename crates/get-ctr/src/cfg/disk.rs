@@ -46,16 +46,16 @@ pub(crate) struct DiskV1 {
 }
 
 impl DiskV1 {
-    pub(crate) const DISK_RON: &'static str = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/assets/old_old_debian/disk.v1.ron"
-    ));
-
     pub(crate) fn deser() -> anyhow::Result<Self> {
         crate::dir::set_static_workdir();
 
-        debug!("deserializing the ron cfg");
-        let cfg = ron::from_str(Self::DISK_RON)?;
+        let content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/old_old_debian/disk.v1.ron"
+        ));
+
+        debug!("deserializing the disk cfg");
+        let cfg = ron::from_str(content)?;
         debug!("complete");
 
         trace!("cfg: {:?}", cfg);

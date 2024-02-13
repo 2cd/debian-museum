@@ -1,4 +1,7 @@
-use crate::{command::run_as_root, task::pool};
+use crate::{
+    command::{force_remove_item_as_root, run_as_root},
+    task::pool,
+};
 use log::{debug, info};
 use repack::compression::{Operation, Upack};
 use std::{
@@ -39,7 +42,7 @@ pub(crate) fn spawn_zstd_thread(
     })
 }
 
-pub(crate) fn extract_tar<D: AsRef<Path>>(
+pub(crate) fn extract_tar_as_root<D: AsRef<Path>>(
     tar_path: &Path,
     dst_dir: D,
 ) -> io::Result<()> {
@@ -64,12 +67,12 @@ pub(crate) fn extract_tar<D: AsRef<Path>>(
     Ok(())
 }
 
-pub(crate) fn pack_tar<S: AsRef<OsStr>>(
+/// Invokes the `tar` command as root and packages the `src_dir` to `tar_path`.
+pub(crate) fn pack_tar_as_root<S: AsRef<OsStr>>(
     src_dir: S,
     tar_path: &Path,
     exclude_dev: bool,
-) -> io::Result<()> {
-    #[allow(unused_variables)]
+) {
     let osstr = OsStr::new;
 
     let mut args = TinyVec::<[&OsStr; 24]>::new();
@@ -77,23 +80,25 @@ pub(crate) fn pack_tar<S: AsRef<OsStr>>(
     let src_osdir = src_dir.as_ref();
 
     // doas tar --posix --directory src_dir --exclude=... -cf tar_path .
-    args.extend([
-        osstr("--posix"),
-        osstr("--directory"),
-        src_osdir,
-        osstr(r##"--exclude=proc/*"##),
-        osstr(r#"--exclude=sys/*"#),
-        osstr(r#"--exclude=tmp/*"#),
-        osstr(r#"--exclude=var/tmp/*"#),
-        osstr(r#"--exclude=run/*"#),
-        osstr(r#"--exclude=mnt/*"#),
-        osstr(r#"--exclude=media/*"#),
-        osstr(r#"--exclude=var/cache/apt/pkgcache.bin"#),
-        osstr(r#"--exclude=var/cache/apt/srcpkgcache.bin"#),
-        osstr(r#"--exclude=var/cache/apt/archives/*deb"#),
-        osstr(r#"--exclude=var/cache/apt/archives/partial/*"#),
-        // osstr(r#"--exclude=var/cache/apt/archives/lock"#),
-    ]);
+    args.extend(["--posix", "--directory"].map(osstr));
+    args.push(src_osdir);
+    args.extend(
+        [
+            r"--exclude=proc/*",
+            r"--exclude=sys/*",
+            r"--exclude=tmp/*",
+            r"--exclude=var/tmp/*",
+            r"--exclude=run/*",
+            r"--exclude=mnt/*",
+            r"--exclude=media/*",
+            r"--exclude=var/cache/apt/pkgcache.bin",
+            r"--exclude=var/cache/apt/srcpkgcache.bin",
+            r"--exclude=var/cache/apt/archives/*deb",
+            r"--exclude=var/cache/apt/archives/partial/*",
+            // r#"--exclude=var/cache/apt/archives/lock"#,
+        ]
+        .map(osstr),
+    );
 
     if exclude_dev {
         args.push(osstr(r#"--exclude=dev/*"#));
@@ -103,14 +108,11 @@ pub(crate) fn pack_tar<S: AsRef<OsStr>>(
 
     run_as_root("tar", &args);
 
-    // At least two levels of directories are required to avoid deleting the root directory.
-    if Path::new(src_osdir)
-        .components()
-        .count()
-        >= 2
-    {
-        run_as_root("rm", &[osstr("-rf"), src_osdir]);
+    let sys_dir = Path::new(src_osdir).join("sys");
+
+    if sys_dir.join("kernel").exists() {
+        run_as_root("umount", &[osstr("-lf"), sys_dir.as_os_str()])
     }
 
-    Ok(())
+    force_remove_item_as_root(src_osdir);
 }

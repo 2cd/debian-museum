@@ -19,17 +19,12 @@ fn main() -> anyhow::Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::cfg::disk::DiskV1;
+    // use super::*;
+    use crate::cfg::{debootstrap, disk::DiskV1};
     use std::{env, fs, path::Path};
 
     #[test]
     fn convert_toml_to_ron() -> anyhow::Result<()> {
-        use ron::{
-            extensions::Extensions,
-            ser::{to_string_pretty, PrettyConfig},
-        };
-
         let workdir = Path::new(env!("CARGO_MANIFEST_DIR")).join("assets");
         if !workdir.exists() {
             return Ok(());
@@ -41,28 +36,24 @@ mod tests {
             ("debian", "debootstrap/debian.toml"),
             ("ubuntu", "debootstrap/ubuntu.toml"),
         ] {
-            let pretty = PrettyConfig::default()
-                .enumerate_arrays(true)
-                .extensions(Extensions::IMPLICIT_SOME)
-                .depth_limit(4);
-
-            let ron_file = Path::new(file).with_extension("ron");
+            let new_file = Path::new(file).with_extension("ron");
 
             let ron_str = match name {
                 "debian" | "ubuntu" => {
-                    let value = toml::from_str::<cfg::debootstrap::DebootstrapCfg>(
+                    let value = toml::from_str::<debootstrap::Cfg>(
                         &fs::read_to_string(file)?,
                     )?;
-                    to_string_pretty(&value, pretty)?
+                    ron::to_string(&value)
                 }
                 _ => {
                     let value =
                         toml::from_str::<DiskV1>(&fs::read_to_string(file)?)?;
-                    to_string_pretty(&value, pretty)?
-                }
-            };
 
-            fs::write(ron_file, ron_str)?;
+                    ron::to_string(&value)
+                }
+            }?;
+
+            fs::write(new_file, ron_str)?;
         }
 
         Ok(())

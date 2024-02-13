@@ -81,7 +81,7 @@ fn create_digest_file(
     dst_file: &Path,
 ) -> Result<(), anyhow::Error> {
     let yaml =
-        || -> anyhow::Result<String> { Ok(serde_yaml::to_string(&digest_cfg)?) };
+        || -> serde_yaml::Result<String> { serde_yaml::to_string(&digest_cfg) };
 
     let create_parent = || -> io::Result<()> {
         match dst_file.parent() {
@@ -238,6 +238,7 @@ fn archive_file_cfg(
                 r.get_version(),
                 zstd_filename.to_string_lossy()
             );
+
             let cmt = format!(
                 r##"Usage:
     mkdir -p ./tmp/{tag_name}
@@ -248,7 +249,7 @@ fn archive_file_cfg(
     tar -C {tag_name} -xf {zstd_filename:?}
 
     # run nspawn as root (i.e., +sudo/+doas)
-    systemd-nspawn -D {tag_name} -E TERM=xterm -E LANG=en_US.UTF-8
+    systemd-nspawn -D {tag_name} -E TERM=xterm -E LANG=$LANG
 
 "##,
             );
@@ -357,18 +358,13 @@ pub(crate) fn init_root_cfg(
         .mirror(mirrors)
         .cmt(cmt)
         .build();
+
     digest_os_config[0] = digest::OS::builder()
-        .codename(r.get_codename())
+        .codename(r.get_codename().to_owned())
+        .series(r.get_series())
         .name(r.get_project().to_owned())
         .version(r.get_version().to_owned())
         .docker(os_docker)
         .build();
     Ok(())
 }
-
-// pub(crate) fn generate_title<'a, I>(repos: I, path: &Path) -> anyhow::Result<()>
-// where
-//     I: IntoIterator<Item = &'a Repository<'a>>,
-// {
-//     Ok(())
-// }

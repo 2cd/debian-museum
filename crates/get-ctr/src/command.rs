@@ -68,7 +68,6 @@ where
     A: AsRef<OsStr>,
     S: AsRef<OsStr>,
 {
-    // pub(crate) fn run_as_root(cmd: &str, args: &[&str]) {
     let uid = unsafe { libc::getuid() };
     log::debug!("uid: {uid}");
     if uid == 0 {
@@ -79,6 +78,7 @@ where
     log::debug!("root_cmd: {root_cmd}");
 
     let mut new_args = Vec::with_capacity(args.len() + 1);
+
     new_args.push(cmd.as_ref());
     for a in args {
         new_args.push(a.as_ref())
@@ -143,4 +143,64 @@ fn cmd_exists(bin_name: &str) -> bool {
                 .join(bin_name)
                 .exists()
         })
+}
+
+/// ~= sudo fs::remove_dir_all(path)
+pub(crate) fn force_remove_item_as_root<P: AsRef<Path>>(path: P) {
+    #[allow(unused_variables)]
+    let osstr = OsStr::new;
+
+    let p = path.as_ref();
+    // At least two levels of directories are required to avoid deleting the root directory.
+    if p.components().count() <= 1 {
+        return log::debug!("do nothing");
+    }
+
+    // run_as_root("chmod", &[osstr("-R"), osstr("777"), p.as_ref()]);
+    run_as_root("rm", &[osstr("-rf"), p.as_ref()]);
+}
+
+/// ~= sudo fs::rename(src, dst)
+pub(crate) fn move_item_as_root<S: AsRef<OsStr>, D: AsRef<OsStr>>(src: S, dst: D) {
+    run_as_root("mv", &[OsStr::new("-f"), src.as_ref(), dst.as_ref()]);
+}
+
+// pub(crate) fn copy_dir_as_root<S: AsRef<OsStr>, D: AsRef<OsStr>>(src: S, dst: D) {
+//     run_as_root("cp", &[OsStr::new("-rf"), src.as_ref(), dst.as_ref()]);
+// }
+
+pub(crate) fn create_dir_all_as_root<D: AsRef<OsStr>>(dst: D) {
+    run_as_root("mkdir", &[OsStr::new("-p"), dst.as_ref()]);
+}
+
+pub(crate) fn run_nspawn<S: AsRef<OsStr>, R: AsRef<OsStr>>(
+    rootfs_dir: R,
+    sh_cmd: S,
+) {
+    #[allow(unused_variables)]
+    let osstr = OsStr::new;
+
+    run_as_root(
+        "systemd-nspawn",
+        &[
+            osstr("-D"),
+            rootfs_dir.as_ref(),
+            osstr("-E"),
+            osstr(crate::task::build_rootfs::DEB_ENV),
+            osstr("sh"),
+            osstr("-c"),
+            sh_cmd.as_ref(),
+        ],
+    );
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::command::RootCmd;
+
+    #[test]
+    fn display_root_cmd() {
+        let root = RootCmd::Sudo;
+        assert_eq!(root.to_string(), "sudo");
+    }
 }

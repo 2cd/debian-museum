@@ -131,7 +131,7 @@ where
 }
 
 fn update_repo_digest_map<'a>(
-    repo_digest_map: &mut ahash::HashMap<&'a str, TinyVec<[String; 4]>>,
+    repo_digest_map: &mut ahash::HashMap<&'a str, MainRepoDigests>,
     key: &'a str,
     digest_element: String,
 ) {
@@ -275,11 +275,10 @@ where
 
             let json_arr = String::from_utf8_lossy(&cmd.stdout);
             log::debug!("cmd.output: {json_arr}");
-
-            let cfg = serde_yaml::from_str::<MainRepoDigests>(json_arr.trim())?;
-
             let new_fname = repo_digests_filename(fname);
             log::info!("writing to: {new_fname}");
+
+            let cfg = serde_yaml::from_str::<MainRepoDigests>(json_arr.trim())?;
             fs::write(docker_dir.join(new_fname), ron::to_string(&cfg)?)?
         }
     }

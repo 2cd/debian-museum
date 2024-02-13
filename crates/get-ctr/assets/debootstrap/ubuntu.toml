@@ -7,6 +7,8 @@ date = "2004-10-20"
 deb-architectures = ["powerpc", "i386", "amd64"]
 no-minbase = true
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 # sources = [
 #     "ubuntu-old-releases/ubuntu warty",
@@ -37,6 +39,8 @@ date = "2005-04-08"
 deb-architectures = ["ia64", "i386", "amd64", "sparc", "powerpc"]
 no-minbase = true
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -69,6 +73,8 @@ deb-architectures = ["ia64", "powerpc", "sparc", "amd64", "i386"]
 # variant = "buildd"
 no-minbase = true
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -100,6 +106,8 @@ date = "2006-06-01"
 deb-architectures = ["amd64", "i386", "powerpc", "sparc", "ia64", "hppa"]
 no-minbase = true
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -135,6 +143,8 @@ date = "2006-10-26"
 deb-architectures = ["sparc", "powerpc", "ia64", "i386", "hppa", "amd64"]
 no-minbase = true
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -170,6 +180,8 @@ date = "2007-04-19"
 deb-architectures = ["sparc", "powerpc", "ia64", "i386", "hppa", "amd64"]
 no-minbase = true
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -213,6 +225,8 @@ deb-architectures = [
 ]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -261,6 +275,8 @@ deb-architectures = [
 ]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -312,6 +328,8 @@ deb-architectures = [
 ]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -359,6 +377,8 @@ deb-architectures = [
 ]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -398,6 +418,8 @@ date = "2009-10-29"
 deb-architectures = ["sparc", "powerpc", "ia64", "i386", "armel", "amd64"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -441,6 +463,8 @@ deb-architectures = [
 ]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -480,6 +504,8 @@ date = "2010-10-10"
 deb-architectures = ["armhf", "powerpc", "i386", "armel", "amd64"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -511,6 +537,8 @@ date = "2011-04-28"
 deb-architectures = ["armhf", "powerpc", "i386", "armel", "amd64"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -542,6 +570,8 @@ date = "2011-10-13"
 deb-architectures = ["armhf", "powerpc", "i386", "armel", "amd64"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -573,6 +603,8 @@ date = "2012-04-26"
 deb-architectures = ["powerpc", "i386", "armhf", "armel", "amd64"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -604,6 +636,8 @@ date = "2012-10-18"
 deb-architectures = ["powerpc", "i386", "armhf", "armel", "amd64"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -635,6 +669,8 @@ date = "2013-04-25"
 deb-architectures = ["powerpc", "i386", "armhf", "amd64"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -662,6 +698,8 @@ date = "2013-10-17"
 deb-architectures = ["powerpc", "i386", "armhf", "amd64", "arm64"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -698,31 +736,37 @@ deb822-format = false
 [[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "ppc"
 deb-arch = "powerpc"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
+[os.tag.source]
 src = "ubuntu"
 
 [[os.tag]]
 arch = "armv7a"
 deb-arch = "armhf"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "arm64"
 deb-arch = "arm64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
+[os.tag.source]
 src = "ubuntu"
 
 [[os]]
@@ -734,6 +778,8 @@ date = "2014-10-23"
 deb-architectures = ["ppc64el", "powerpc", "i386", "armhf", "arm64", "amd64"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -769,6 +815,8 @@ date = "2015-04-23"
 deb-architectures = ["ppc64el", "powerpc", "i386", "armhf", "arm64", "amd64"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -804,6 +852,8 @@ date = "2015-10-22"
 deb-architectures = ["i386", "ppc64el", "armhf", "amd64", "arm64", "powerpc"]
 no-minbase = false
 deb822-format = false
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -846,42 +896,49 @@ deb-architectures = [
     "amd64",
 ]
 no-minbase = false
-deb822-format = false
+deb822-format = true
 # src = "ubuntu-old-releases"
 
 [[os.tag]]
 arch = "s390x"
 deb-arch = "s390x"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "ppc"
 deb-arch = "powerpc"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
+[os.tag.source]
 src = "ubuntu"
 
 [[os.tag]]
 arch = "armv7a"
 deb-arch = "armhf"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "arm64"
 deb-arch = "arm64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
+[os.tag.source]
 src = "ubuntu"
 
 [[os]]
@@ -900,7 +957,9 @@ deb-architectures = [
     "amd64",
 ]
 no-minbase = false
-deb822-format = false
+deb822-format = true
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -939,7 +998,9 @@ series = "zesty"
 date = "2017-04-13"
 deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
 no-minbase = false
-deb822-format = false
+deb822-format = true
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -974,7 +1035,9 @@ series = "artful"
 date = "2017-10-19"
 deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
 no-minbase = false
-deb822-format = false
+deb822-format = true
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -1015,31 +1078,37 @@ deb822-format = true
 [[os.tag]]
 arch = "s390x"
 deb-arch = "s390x"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
+[os.tag.source]
 src = "ubuntu"
 
 [[os.tag]]
 arch = "armv7a"
 deb-arch = "armhf"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "arm64"
 deb-arch = "arm64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
+[os.tag.source]
 src = "ubuntu"
 
 [[os]]
@@ -1051,6 +1120,8 @@ date = "2018-10-18"
 deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
 no-minbase = false
 deb822-format = true
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -1086,6 +1157,8 @@ date = "2019-04-18"
 deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
 no-minbase = false
 deb822-format = true
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -1121,6 +1194,8 @@ date = "2019-10-17"
 deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
 no-minbase = false
 deb822-format = true
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -1169,36 +1244,43 @@ deb822-format = true
 [[os.tag]]
 arch = "s390x"
 deb-arch = "s390x"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "rv64gc"
 deb-arch = "riscv64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
+[os.tag.source]
 src = "ubuntu"
 
 [[os.tag]]
 arch = "armv7a"
 deb-arch = "armhf"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "arm64"
 deb-arch = "arm64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
+[os.tag.source]
 src = "ubuntu"
 
 [[os]]
@@ -1218,6 +1300,8 @@ deb-architectures = [
 ]
 no-minbase = false
 deb822-format = true
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -1265,6 +1349,8 @@ deb-architectures = [
 ]
 no-minbase = false
 deb822-format = true
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -1312,6 +1398,8 @@ deb-architectures = [
 ]
 no-minbase = false
 deb822-format = true
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -1364,36 +1452,43 @@ deb822-format = true
 [[os.tag]]
 arch = "s390x"
 deb-arch = "s390x"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "rv64gc"
 deb-arch = "riscv64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
+[os.tag.source]
 src = "ubuntu"
 
 [[os.tag]]
 arch = "armv7a"
 deb-arch = "armhf"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "arm64"
 deb-arch = "arm64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
+[os.tag.source]
 src = "ubuntu"
 
 [[os]]
@@ -1413,6 +1508,8 @@ deb-architectures = [
 ]
 no-minbase = false
 deb822-format = true
+
+[os.source]
 src = "ubuntu-old-releases"
 
 [[os.tag]]
@@ -1465,36 +1562,43 @@ deb822-format = true
 [[os.tag]]
 arch = "s390x"
 deb-arch = "s390x"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "rv64gc"
 deb-arch = "riscv64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
+[os.tag.source]
 src = "ubuntu"
 
 [[os.tag]]
 arch = "armv7a"
 deb-arch = "armhf"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "arm64"
 deb-arch = "arm64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
+[os.tag.source]
 src = "ubuntu"
 
 [[os]]
@@ -1519,36 +1623,43 @@ deb822-format = false
 [[os.tag]]
 arch = "s390x"
 deb-arch = "s390x"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "rv64gc"
 deb-arch = "riscv64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
+[os.tag.source]
 src = "ubuntu"
 
 [[os.tag]]
 arch = "armv7a"
 deb-arch = "armhf"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "arm64"
 deb-arch = "arm64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
+[os.tag.source]
 src = "ubuntu"
 
 [[os]]
@@ -1572,34 +1683,41 @@ deb822-format = true
 [[os.tag]]
 arch = "s390x"
 deb-arch = "s390x"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "rv64gc"
 deb-arch = "riscv64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
+[os.tag.source]
 src = "ubuntu"
 
 [[os.tag]]
 arch = "armv7a"
 deb-arch = "armhf"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "arm64"
 deb-arch = "arm64"
+[os.tag.source]
 src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
+[os.tag.source]
 src = "ubuntu"

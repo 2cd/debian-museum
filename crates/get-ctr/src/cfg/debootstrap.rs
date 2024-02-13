@@ -2,26 +2,41 @@ use getset::Getters;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use typed_builder::TypedBuilder;
+use url::Url;
 
-#[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder)]
+use crate::{
+    cfg::{components, mirror},
+    url::find_mirror_url,
+};
+
+pub(crate) const DEBIAN_RON: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/assets/debootstrap/debian.ron"
+));
+
+pub(crate) const UBUNTU_RON: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/assets/debootstrap/ubuntu.ron"
+));
+
+#[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder, Clone)]
 #[getset(get = "pub(crate) with_prefix")]
 #[serde(default)]
 #[builder(field_defaults(setter(into)))]
-struct Tag {
+pub(crate) struct Tag {
     arch: String,
     #[serde(rename = "deb-arch")]
     deb_arch: String,
 
-    #[serde(flatten)]
     source: Source,
 }
 
 #[skip_serializing_none]
-#[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder)]
+#[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder, Clone)]
 #[getset(get = "pub(crate) with_prefix")]
 #[serde(default)]
 #[builder(field_defaults(default, setter(strip_option, into)))]
-struct Source {
+pub(crate) struct Source {
     src: Option<String>,
     sources: Option<Vec<String>>,
 
@@ -29,11 +44,103 @@ struct Source {
     disabled_sources: Option<Vec<String>>,
 }
 
-#[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder)]
+impl Source {
+    pub(crate) fn disabled_srcs_owned(&self) -> Option<Vec<String>> {
+        self.get_disabled_sources()
+            .to_owned()
+    }
+}
+
+#[derive(Getters, Debug, TypedBuilder, Clone)]
+#[getset(get = "pub(crate) with_prefix")]
+pub(crate) struct DebootstrapSrc {
+    url: Url,
+
+    #[builder(setter(into))]
+    components: String,
+
+    #[builder(setter(into))]
+    suite: String,
+
+    #[builder(default)]
+    include_pkgs: Option<&'static str>,
+    //
+    // #[builder(default)]
+    // exclude_pkgs: Option<&'static str>,
+}
+
+impl Source {
+    pub(crate) fn debootstrap_src(&self, suite: &str) -> Option<DebootstrapSrc> {
+        let Self { src, sources, .. } = self;
+        log::debug!("sources: {sources:?}");
+
+        match (src, sources) {
+            (Some(src), _) => {
+                let (uuu_mirrors, include_pkgs) = match src.as_str() {
+                    "ubuntu" => (
+                        mirror::ubuntu::mirrors(),
+                        Some(mirror::ubuntu::include_pkgs()),
+                    ),
+                    "ubuntu-ports" => (
+                        mirror::ubuntu_ports::mirrors(),
+                        Some(mirror::ubuntu_ports::include_pkgs()),
+                    ),
+                    // ubuntu-old-releases
+                    _ => (mirror::ubuntu_old::mirrors(), None),
+                };
+                find_mirror_url(&uuu_mirrors)
+                    .ok()
+                    .map(|url| {
+                        DebootstrapSrc::builder()
+                            .url(url)
+                            .components(components::UBUNTU_BOOTSTRAP)
+                            .suite(suite)
+                            .include_pkgs(include_pkgs)
+                            .build()
+                    })
+            }
+            (_, Some(srcs)) => {
+                let (site_left, suite) = srcs.first()?.split_once(' ')?;
+                log::debug!("site_left: {site_left}, suite: {suite}");
+                let mirror_name = site_left.split('/').next()?;
+
+                match mirror_name {
+                    "debian-archive" => {
+                        find_mirror_url(&mirror::debian_archive::deb_mirrors())
+                            .map(|url| (url, None))
+                    }
+                    "debian-elts" => {
+                        find_mirror_url(&mirror::debian_elts::mirrors()).map(|url| {
+                            (url, Some(mirror::debian_elts::include_pkgs()))
+                        })
+                    }
+                    "debian-ports" => find_mirror_url(
+                        &mirror::debian_ports::mirrors(),
+                    )
+                    .map(|url| (url, Some(mirror::debian_ports::include_pkgs()))),
+                    _ => find_mirror_url(&mirror::debian::mirrors())
+                        .map(|url| (url, Some(mirror::debian::include_pkgs()))),
+                }
+                .ok()
+                .map(|(url, pkgs)| {
+                    DebootstrapSrc::builder()
+                        .url(url)
+                        .components(components::DEBIAN_BOOTSTRAP)
+                        .suite(suite)
+                        .include_pkgs(pkgs)
+                        .build()
+                })
+            }
+            _ => None,
+        }
+    }
+}
+
+#[derive(Getters, Serialize, Deserialize, Clone, Debug, Default, TypedBuilder)]
 #[getset(get = "pub(crate) with_prefix")]
 #[serde(default)]
 #[builder(field_defaults(setter(into)))]
-struct OS {
+pub(crate) struct OS {
     name: String,
     version: String,
     codename: String,
@@ -41,7 +148,7 @@ struct OS {
     date: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    compoents: Option<String>,
+    components: Option<String>,
 
     #[serde(rename = "no-minbase")]
     no_minbase: bool,
@@ -55,16 +162,17 @@ struct OS {
 
     tag: Vec<Tag>,
 
-    #[serde(flatten)]
     source: Source,
 }
 
-#[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder)]
-#[getset(get = "pub(crate) with_prefix")]
+#[derive(
+    Serialize, Deserialize, Debug, Default, TypedBuilder, derive_more::Deref,
+)]
 #[serde(default)]
 #[builder(field_defaults(setter(into)))]
-pub(crate) struct DebootstrapCfg {
-    os: Vec<OS>,
+pub(crate) struct Cfg {
+    #[deref]
+    pub(crate) os: Vec<OS>,
 }
 
 const fn yes() -> bool {
