@@ -336,8 +336,8 @@ impl Cli {
 
 fn get_src_format(sub_src: &Source, main_src: &Source) -> SrcFormat {
     match (
-        (sub_src.get_src(), sub_src.get_sources()),
-        (main_src.get_src(), main_src.get_sources()),
+        (sub_src.get_src(), sub_src.get_enabled()),
+        (main_src.get_src(), main_src.get_enabled()),
     ) {
         ((Some(s), _), ..) => SrcFormat::Simple(s.into()),
         ((_, Some(s)), ..) => SrcFormat::Complex {

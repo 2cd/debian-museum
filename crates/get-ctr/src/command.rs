@@ -44,6 +44,7 @@ where
             })
     };
 
+    // 1st run:
     if !status().success() {
         error!(
             "Failed to run : {:?} ({:?} ...)",
@@ -51,7 +52,12 @@ where
             args.first().map(|x| x.as_ref())
         );
         eprintln!("Retrying ...");
-        exit_if_failure(status())
+        // 2nd run:
+        if !status().success() {
+            eprintln!("Retrying ...");
+            // 3rd run:
+            exit_if_failure(status())
+        }
     }
 }
 
@@ -187,6 +193,8 @@ pub(crate) fn run_nspawn<S: AsRef<OsStr>, R: AsRef<OsStr>>(
             rootfs_dir.as_ref(),
             osstr("-E"),
             osstr(crate::task::build_rootfs::DEB_ENV),
+            // osstr("-E"),
+            // osstr("LANG=en_US.UTF-8"),
             osstr("sh"),
             osstr("-c"),
             sh_cmd.as_ref(),

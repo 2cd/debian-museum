@@ -9,8 +9,8 @@ deb-architectures = ["i386", "alpha", "sparc", "m68k", "powerpc", "arm"]
 no-minbase = true
 deb822-format = false
 [os.source]
-sources = ["debian-archive/debian/ potato"]
-disabled-sources = ["debian-archive/debian/ potato-proposed-updates"]
+enabled = ["debian-archive/debian/ potato"]
+disabled = ["debian-archive/debian/ potato-proposed-updates"]
 
 [[os.tag]]
 arch = "x86"
@@ -59,7 +59,7 @@ deb-architectures = [
 no-minbase = true
 deb822-format = false
 [os.source]
-sources = [
+enabled = [
     "debian-archive/debian/ woody",
     "debian-archive/debian-security/ woody/updates",
 ]
@@ -115,6 +115,8 @@ codename = "Sarge"
 series = "sarge"
 date = "2005-06"
 components = "main contrib non-free"
+no-minbase = true
+deb822-format = false
 deb-architectures = [
     "sparc",
     "s390",
@@ -128,18 +130,25 @@ deb-architectures = [
     "arm",
     "alpha",
 ]
-
-no-minbase = true
-deb822-format = false
 [os.source]
-sources = [
+enabled = [
     "debian-archive/debian/ sarge",
+    "debian-archive/debian-backports/ sarge-backports",
     "debian-archive/debian-security/ sarge/updates",
     "debian-archive/debian-volatile/ sarge/volatile-sloppy",
     "debian-archive/debian-volatile/ sarge/volatile",
-    "debian-archive/debian-backports/ sarge-backports",
 ]
-disabled-sources = ["debian-archive/debian/ sarge-proposed-updates"]
+disabled = ["debian-archive/debian/ sarge-proposed-updates"]
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+enabled = ["debian-archive/debian-amd64/ sarge"]
 
 [[os.tag]]
 arch = "sparc"
@@ -168,10 +177,6 @@ deb-arch = "m68k"
 [[os.tag]]
 arch = "ia64"
 deb-arch = "ia64"
-
-[[os.tag]]
-arch = "x86"
-deb-arch = "i386"
 
 [[os.tag]]
 arch = "hppa"
@@ -210,20 +215,26 @@ deb-architectures = [
 no-minbase = false
 deb822-format = false
 [os.source]
-sources = [
+enabled = [
     "debian-archive/debian/ etch",
+    "debian-archive/debian-backports/ etch-backports",
+]
+# W: GPG error: http://archive.debian.org etch/updates Release: 
+# The following signatures were invalid: KEYEXPIRED 
+# W: GPG error: http://archive.debian.org etch/volatile-sloppy Release: The following signatures were invalid: KEYEXPIRED 
+# W: GPG error: http://archive.debian.org etch/volatile Release: The following signatures were invalid: KEYEXPIRED 
+disabled = [
     "debian-archive/debian-security/ etch/updates",
     "debian-archive/debian-volatile/ etch/volatile-sloppy",
     "debian-archive/debian-volatile/ etch/volatile",
-    "debian-archive/debian-backports/ etch-backports",
+    "debian-archive/debian/ etch-proposed-updates",
 ]
 
 [[os.tag]]
 arch = "m68k"
 deb-arch = "m68k"
 [os.tag.source]
-sources = ["debian-archive/debian/ etch-m68k"]
-
+enabled = ["debian-archive/debian/ etch-m68k"]
 
 [[os.tag]]
 arch = "armv3"
@@ -293,13 +304,21 @@ deb-architectures = [
 no-minbase = false
 deb822-format = false
 [os.source]
-sources = [
+enabled = [
     "debian-archive/debian/ lenny",
     "debian-archive/debian-security/ lenny/updates",
-    "debian-archive/debian-volatile/ lenny/volatile-sloppy",
-    "debian-archive/debian-volatile/ lenny/volatile",
+]
+# W: GPG error: http://archive.debian.org lenny Release: The following signatures were invalid: KEYEXPIRED 1520281423 KEYEXPIRED 1337087218
+# W: GPG error: http://archive.debian.org lenny/updates Release: The following signatures were invalid: KEYEXPIRED 1356982504
+# W: GPG error: http://archive.debian.org lenny/volatile-sloppy Release: The following signatures were invalid: KEYEXPIRED 1358963195
+# W: GPG error: http://archive.debian.org lenny/volatile Release: The following signatures were invalid: KEYEXPIRED 1358963195
+# W: GPG error: http://archive.debian.org lenny-backports Release: The following signatures were invalid: KEYEXPIRED 1520281423
+# W: GPG error: http://archive.debian.org lenny-backports-sloppy Release: The following signatures were invalid: KEYEXPIRED 1520281423
+disabled = [
     "debian-archive/debian-backports/ lenny-backports",
     "debian-archive/debian-backports/ lenny-backports-sloppy",
+    "debian-archive/debian-volatile/ lenny/volatile-sloppy",
+    "debian-archive/debian-volatile/ lenny/volatile",
 ]
 
 [[os.tag]]
@@ -372,36 +391,38 @@ no-minbase = false
 deb822-format = false
 # x86/x64 + squeeze-lts
 [os.source]
-sources = [
+enabled = [
     "debian-archive/debian/ squeeze",
     "debian-archive/debian-security/ squeeze/updates",
+]
+# W: GPG error: http://archive.debian.org squeeze Release: The following signatures were invalid: KEYEXPIRED 1520281423 KEYEXPIRED 1501892461
+# W: GPG error: http://archive.debian.org squeeze-lts Release: The following signatures were invalid: KEYEXPIRED 1587841717
+# W: GPG error: http://archive.debian.org squeeze/updates Release: The following signatures were invalid: KEYEXPIRED 1520281423
+# W: GPG error: http://archive.debian.org squeeze-backports Release: The following signatures were invalid: KEYEXPIRED 1587841717
+# W: GPG error: http://archive.debian.org squeeze-backports-sloppy Release: The following signatures were invalid: KEYEXPIRED 1587841717
+disabled = [
     "debian-archive/debian-backports/ squeeze-backports",
     "debian-archive/debian-backports/ squeeze-backports-sloppy",
+    "debian-archive/debian/ squeeze-proposed-updates",
 ]
-disabled-sources = ["debian-archive/debian/ squeeze-proposed-updates"]
-
 
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
 [os.tag.source]
-sources = [
+enabled = [
     "debian-archive/debian/ squeeze",
     "debian-archive/debian/ squeeze-lts",
     "debian-archive/debian-security/ squeeze/updates",
-    "debian-archive/debian-backports/ squeeze-backports",
-    "debian-archive/debian-backports/ squeeze-backports-sloppy",
 ]
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
 [os.tag.source]
-sources = [
+enabled = [
     "debian-archive/debian/ squeeze",
     "debian-archive/debian/ squeeze-lts",
     "debian-archive/debian-security/ squeeze/updates",
-    "debian-archive/debian-backports/ squeeze-backports",
-    "debian-archive/debian-backports/ squeeze-backports-sloppy",
 ]
 
 [[os.tag]]
@@ -456,21 +477,39 @@ deb-architectures = [
 no-minbase = false
 deb822-format = false
 [os.source]
-sources = [
+enabled = [
     "debian-archive/debian/ wheezy",
     "debian-archive/debian/ wheezy-backports",
     "debian-archive/debian/ wheezy-backports-sloppy",
     "debian-archive/debian-security/ wheezy/updates",
 ]
-disabled-sources = ["debian-archive/debian/ wheezy-proposed-updates"]
+disabled = ["debian-archive/debian/ wheezy-proposed-updates"]
 
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
+[os.tag.source]
+enabled = ["debian-elts-official/ wheezy"]
+disabled = [
+    "debian-archive/debian/ wheezy",
+    "debian-archive/debian/ wheezy-backports",
+    "debian-archive/debian/ wheezy-backports-sloppy",
+    "debian-archive/debian-security/ wheezy/updates",
+    "debian-archive/debian/ wheezy-proposed-updates",
+]
 
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
+[os.tag.source]
+enabled = ["debian-elts-official/ wheezy"]
+disabled = [
+    "debian-archive/debian/ wheezy",
+    "debian-archive/debian/ wheezy-backports",
+    "debian-archive/debian/ wheezy-backports-sloppy",
+    "debian-archive/debian-security/ wheezy/updates",
+    "debian-archive/debian/ wheezy-proposed-updates",
+]
 
 [[os.tag]]
 arch = "armv7a"
@@ -531,7 +570,7 @@ no-minbase = false
 # debian-8-elts::apt = 1.0.9.8.7
 deb822-format = false
 [os.source]
-sources = [
+enabled = [
     "debian-archive/debian/ jessie",
     "debian-archive/debian/ jessie-backports",
     "debian-archive/debian/ jessie-backports-sloppy",
@@ -542,8 +581,8 @@ sources = [
 arch = "x86"
 deb-arch = "i386"
 [os.tag.source]
-sources = ["debian-elts/ jessie"]
-disabled-sources = [
+enabled = ["debian-elts/ jessie"]
+disabled = [
     "debian-archive/debian/ jessie",
     "debian-archive/debian/ jessie-backports",
     "debian-archive/debian/ jessie-backports-sloppy",
@@ -555,8 +594,8 @@ disabled-sources = [
 arch = "x64"
 deb-arch = "amd64"
 [os.tag.source]
-sources = ["debian-elts/ jessie"]
-disabled-sources = [
+enabled = ["debian-elts/ jessie"]
+disabled = [
     "debian-archive/debian/ jessie",
     "debian-archive/debian/ jessie-backports",
     "debian-archive/debian/ jessie-backports-sloppy",
@@ -567,8 +606,8 @@ disabled-sources = [
 arch = "armv7a"
 deb-arch = "armhf"
 [os.tag.source]
-sources = ["debian-elts/ jessie"]
-disabled-sources = [
+enabled = ["debian-elts/ jessie"]
+disabled = [
     "debian-archive/debian/ jessie",
     "debian-archive/debian/ jessie-backports",
     "debian-archive/debian/ jessie-backports-sloppy",
@@ -579,8 +618,8 @@ disabled-sources = [
 arch = "armv4t"
 deb-arch = "armel"
 [os.tag.source]
-sources = ["debian-elts/ jessie"]
-disabled-sources = [
+enabled = ["debian-elts/ jessie"]
+disabled = [
     "debian-archive/debian/ jessie",
     "debian-archive/debian/ jessie-backports",
     "debian-archive/debian/ jessie-backports-sloppy",
@@ -633,20 +672,20 @@ deb-architectures = [
 no-minbase = false
 deb822-format = true
 [os.source]
-sources = [
+enabled = [
     "debian-archive/debian/ stretch",
     "debian-archive/debian/ stretch-backports",
     "debian-archive/debian/ stretch-backports-sloppy",
     "debian-archive/debian-security/ stretch/updates",
 ]
-disabled-sources = ["debian-archive/debian/ stretch-proposed-updates"]
+disabled = ["debian-archive/debian/ stretch-proposed-updates"]
 
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
 [os.tag.source]
-sources = ["debian-elts/ stretch"]
-disabled-sources = [
+enabled = ["debian-elts/ stretch"]
+disabled = [
     "debian-archive/debian/ stretch",
     "debian-archive/debian/ stretch-backports",
     "debian-archive/debian/ stretch-backports-sloppy",
@@ -658,8 +697,8 @@ disabled-sources = [
 arch = "x86"
 deb-arch = "i386"
 [os.tag.source]
-sources = ["debian-elts/ stretch"]
-disabled-sources = [
+enabled = ["debian-elts/ stretch"]
+disabled = [
     "debian-archive/debian/ stretch",
     "debian-archive/debian/ stretch-backports",
     "debian-archive/debian/ stretch-backports-sloppy",
@@ -671,8 +710,8 @@ disabled-sources = [
 arch = "armv7a"
 deb-arch = "armhf"
 [os.tag.source]
-sources = ["debian-elts/ stretch"]
-disabled-sources = [
+enabled = ["debian-elts/ stretch"]
+disabled = [
     "debian-archive/debian/ stretch",
     "debian-archive/debian/ stretch-backports",
     "debian-archive/debian/ stretch-backports-sloppy",
@@ -730,17 +769,14 @@ deb-architectures = [
 no-minbase = false
 deb822-format = true
 [os.source]
-sources = [
+enabled = [
     "debian/ buster",
     "debian/ buster-backports",
     "debian/ buster-backports-sloppy",
     "debian/ buster-updates",
     "debian-security/ buster/updates",
 ]
-disabled-sources = [
-    "debian/ buster-proposed-updates",
-    "debian-debug/ buster-debug",
-]
+disabled = ["debian/ buster-proposed-updates", "debian-debug/ buster-debug"]
 
 [[os.tag]]
 arch = "x86"
@@ -803,17 +839,14 @@ deb-architectures = [
 no-minbase = false
 deb822-format = true
 [os.source]
-sources = [
+enabled = [
     "debian/ bullseye",
     "debian/ bullseye-backports",
     "debian/ bullseye-backports-sloppy",
     "debian/ bullseye-updates",
     "debian-security/ bullseye-security",
 ]
-disabled-sources = [
-    "debian/ bullseye-proposed-updates",
-    "debian-debug/ bullseye-debug",
-]
+disabled = ["debian/ bullseye-proposed-updates", "debian-debug/ bullseye-debug"]
 
 [[os.tag]]
 arch = "x86"
@@ -872,17 +905,14 @@ deb-architectures = [
 no-minbase = false
 deb822-format = true
 [os.source]
-sources = [
+enabled = [
     "debian/ bookworm",
     "debian/ bookworm-backports",
     "debian/ bookworm-backports-sloppy",
     "debian/ bookworm-updates",
     "debian-security/ bookworm-security",
 ]
-disabled-sources = [
-    "debian/ bookworm-proposed-updates",
-    "debian-debug/ bookworm-debug",
-]
+disabled = ["debian/ bookworm-proposed-updates", "debian-debug/ bookworm-debug"]
 
 [[os.tag]]
 arch = "arm64"
@@ -940,16 +970,13 @@ deb-architectures = [
 no-minbase = false
 deb822-format = true
 [os.source]
-sources = [
+enabled = [
     "debian/ trixie",
     "debian/ trixie-backports",
     "debian/ trixie-updates",
     "debian-security/ trixie-security",
 ]
-disabled-sources = [
-    "debian/ trixie-proposed-updates",
-    "debian-debug/ trixie-debug",
-]
+disabled = ["debian/ trixie-proposed-updates", "debian-debug/ trixie-debug"]
 
 [[os.tag]]
 arch = "x86"
@@ -1016,8 +1043,8 @@ deb-architectures = [
 no-minbase = false
 deb822-format = true
 [os.source]
-sources = ["debian/ sid"]
-disabled-sources = ["debian/ experimental", "debian-debug/ sid-debug"]
+enabled = ["debian/ sid"]
+disabled = ["debian/ experimental", "debian-debug/ sid-debug"]
 
 [[os.tag]]
 arch = "x86"
@@ -1061,68 +1088,68 @@ deb-arch = "armel"
 arch = "alpha"
 deb-arch = "alpha"
 [os.tag.source]
-sources = ["debian-ports/ sid"]
-disabled-sources = ["debian-ports/ experimental"]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "hppa"
 deb-arch = "hppa"
 [os.tag.source]
-sources = ["debian-ports/ sid"]
-disabled-sources = ["debian-ports/ experimental"]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "ia64"
 deb-arch = "ia64"
 [os.tag.source]
-sources = ["debian-ports/ sid"]
-disabled-sources = ["debian-ports/ experimental"]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "loong64"
 deb-arch = "loong64"
 [os.tag.source]
-sources = ["debian-ports/ sid"]
-disabled-sources = ["debian-ports/ experimental"]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "m68k"
 deb-arch = "m68k"
 [os.tag.source]
-sources = ["debian-ports/ sid"]
-disabled-sources = ["debian-ports/ experimental"]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "ppc"
 deb-arch = "powerpc"
 [os.tag.source]
-sources = ["debian-ports/ sid"]
-disabled-sources = ["debian-ports/ experimental"]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "ppc64"
 deb-arch = "ppc64"
 [os.tag.source]
-sources = ["debian-ports/ sid"]
-disabled-sources = ["debian-ports/ experimental"]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "sh4"
 deb-arch = "sh4"
 [os.tag.source]
-sources = ["debian-ports/ sid"]
-disabled-sources = ["debian-ports/ experimental"]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "sparc64"
 deb-arch = "sparc64"
 [os.tag.source]
-sources = ["debian-ports/ sid"]
-disabled-sources = ["debian-ports/ experimental"]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "x32"
 deb-arch = "x32"
 [os.tag.source]
-sources = ["debian-ports/ sid"]
-disabled-sources = ["debian-ports/ experimental"]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]

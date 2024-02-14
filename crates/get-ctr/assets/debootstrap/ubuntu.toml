@@ -10,13 +10,13 @@ deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
-# sources = [
+# enabled = [
 #     "ubuntu-old-releases/ubuntu warty",
 #     "ubuntu-old-releases/ubuntu warty-updates",
 #     "ubuntu-old-releases/ubuntu warty-security",
 #     "ubuntu-old-releases/ubuntu warty-backports",
 # ]
-# disabled-sources = ["ubuntu-old-releases/ubuntu warty-proposed"]
+# disabled = ["ubuntu-old-releases/ubuntu warty-proposed"]
 
 [[os.tag]]
 arch = "ppc"

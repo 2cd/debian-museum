@@ -226,21 +226,37 @@ fn archive_file_cfg(
         .tar_readable(tar_readable)
         .build();
 
-    let zstd_mirror = [("github", "github.com/2cd/debian-museum/releases/download")]
-        .map(|(name, u)| {
-            let (tag_prefix, tag) = match r.get_tag() {
-                Some(t) => ("-", *t),
-                None => ("", ""),
-            };
+    let nspawn_env = match r.get_series().as_str() {
+        "bo" | "hamm" | "slink" | "potato" | "woody" | "etch" => "-E TERM=xterm",
+        _ => "",
+    };
 
-            let url_str = format!(
-                "https://{u}/{}{tag_prefix}{tag}/{}",
-                r.get_version(),
-                zstd_filename.to_string_lossy()
-            );
+    let gh_repo = match r.get_project() {
+        &"debian" => "debian-museum",
+        // &"ubuntu"
+        _ => "ubuntu-museum",
+    };
 
-            let cmt = format!(
-                r##"Usage:
+    // github.com/2cd/debian-museum/releases/download
+    let gh_url = format!(
+        "github.com/{owner}/{gh_repo}/releases/download",
+        owner = r.get_owner()
+    );
+
+    let zstd_mirror = [("github", gh_url)].map(|(name, u)| {
+        let (tag_prefix, tag) = match r.get_tag() {
+            Some(t) => ("-", *t),
+            None => ("", ""),
+        };
+
+        let url_str = format!(
+            "https://{u}/{}{tag_prefix}{tag}/{}",
+            r.get_version(),
+            zstd_filename.to_string_lossy()
+        );
+
+        let cmt = format!(
+            r##"Usage:
     mkdir -p ./tmp/{tag_name}
     cd tmp
     curl -LO '{url_str}'
@@ -249,16 +265,16 @@ fn archive_file_cfg(
     tar -C {tag_name} -xf {zstd_filename:?}
 
     # run nspawn as root (i.e., +sudo/+doas)
-    systemd-nspawn -D {tag_name} -E TERM=xterm -E LANG=$LANG
+    systemd-nspawn -D {tag_name} -E LANG=$LANG {nspawn_env}
 
 "##,
-            );
-            FileMirror::builder()
-                .name(name)
-                .cmt(cmt)
-                .url(Url::parse(&url_str).expect("Invalid URL"))
-                .build()
-        });
+        );
+        FileMirror::builder()
+            .name(name)
+            .cmt(cmt)
+            .url(Url::parse(&url_str).expect("Invalid URL"))
+            .build()
+    });
     let archive_file = digest::ArchiveFile::builder()
         .name(zstd_filename)
         .digest(zstd_digests)

@@ -38,16 +38,15 @@ pub(crate) struct Tag {
 #[builder(field_defaults(default, setter(strip_option, into)))]
 pub(crate) struct Source {
     src: Option<String>,
-    sources: Option<Vec<String>>,
+    enabled: Option<Vec<String>>,
 
-    #[serde(rename = "disabled-sources")]
-    disabled_sources: Option<Vec<String>>,
+    // #[serde(rename = "disabled-sources")]
+    disabled: Option<Vec<String>>,
 }
 
 impl Source {
     pub(crate) fn disabled_srcs_owned(&self) -> Option<Vec<String>> {
-        self.get_disabled_sources()
-            .to_owned()
+        self.get_disabled().to_owned()
     }
 }
 
@@ -71,7 +70,11 @@ pub(crate) struct DebootstrapSrc {
 
 impl Source {
     pub(crate) fn debootstrap_src(&self, suite: &str) -> Option<DebootstrapSrc> {
-        let Self { src, sources, .. } = self;
+        let Self {
+            src,
+            enabled: sources,
+            ..
+        } = self;
         log::debug!("sources: {sources:?}");
 
         match (src, sources) {
@@ -108,20 +111,37 @@ impl Source {
                     "debian-archive" => {
                         find_mirror_url(&mirror::debian_archive::deb_mirrors())
                             .map(|url| (url, None))
+                            .ok()
                     }
                     "debian-elts" => {
-                        find_mirror_url(&mirror::debian_elts::mirrors()).map(|url| {
-                            (url, Some(mirror::debian_elts::include_pkgs()))
-                        })
+                        find_mirror_url(&mirror::debian_elts::mirrors())
+                            .map(|url| {
+                                (url, Some(mirror::debian_elts::include_pkgs()))
+                            })
+                            .ok()
                     }
-                    "debian-ports" => find_mirror_url(
-                        &mirror::debian_ports::mirrors(),
-                    )
-                    .map(|url| (url, Some(mirror::debian_ports::include_pkgs()))),
+                    "debian-elts-official" => mirror::debian_elts::mirrors()
+                        .into_iter()
+                        .find(|x| x.get_name() == &"Official")
+                        .map(|mirror| {
+                            (
+                                Url::parse(mirror.get_url())
+                                    .expect("Invalid ELTS URL"),
+                                Some(mirror::debian_elts::include_pkgs()),
+                            )
+                        }),
+                    "debian-ports" => {
+                        find_mirror_url(&mirror::debian_ports::mirrors())
+                            .map(|url| {
+                                (url, Some(mirror::debian_ports::include_pkgs()))
+                            })
+                            .ok()
+                    }
                     _ => find_mirror_url(&mirror::debian::mirrors())
-                        .map(|url| (url, Some(mirror::debian::include_pkgs()))),
+                        .map(|url| (url, Some(mirror::debian::include_pkgs())))
+                        .ok(),
                 }
-                .ok()
+                // .ok()
                 .map(|(url, pkgs)| {
                     DebootstrapSrc::builder()
                         .url(url)

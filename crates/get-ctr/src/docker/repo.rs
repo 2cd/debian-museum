@@ -128,6 +128,10 @@ impl SrcFormat {
 
                 let mut official_deb822_style = String::with_capacity(4096);
                 let mut cdn_deb822_style = String::with_capacity(4096);
+                let deb_vendor = match series {
+                    "sarge" | "woody" | "potato" => "",
+                    _ => "[trusted=yes] ",
+                };
 
                 for src in enabled {
                     let enabled = true;
@@ -145,6 +149,7 @@ impl SrcFormat {
                         .suite(suite)
                         .enabled(enabled)
                         .src(src)
+                        .deb_vendor(deb_vendor)
                         .build();
 
                     deb_src.update_debian_list(
@@ -172,6 +177,7 @@ impl SrcFormat {
                             .suite(suite)
                             .enabled(enabled)
                             .src(src)
+                            .deb_vendor(deb_vendor)
                             .build();
 
                         deb_src.update_debian_list(
@@ -252,6 +258,7 @@ struct DebianSrc<'a> {
     suite: &'a str,
     components: &'a str,
     keyring: &'a str,
+    deb_vendor: &'a str,
     enabled: bool,
 }
 
@@ -263,12 +270,13 @@ impl<'a> DebianSrc<'a> {
             suite,
             components,
             enabled,
+            deb_vendor,
             ..
         } = self;
 
         let prefix = if *enabled { "" } else { "# " };
 
-        format!("{prefix}deb {url}{url_suffix} {suite} {components}\n")
+        format!("{prefix}deb {deb_vendor}{url}{url_suffix} {suite} {components}\n")
     }
 
     fn one_line_debsrc_str(&self) -> String {
@@ -277,9 +285,10 @@ impl<'a> DebianSrc<'a> {
             url_suffix,
             suite,
             components,
+            deb_vendor,
             ..
         } = self;
-        format!("# deb-src {url}{url_suffix} {suite} {components}\n")
+        format!("# deb-src {deb_vendor}{url}{url_suffix} {suite} {components}\n\n")
     }
 
     fn deb822_str(&self) -> String {
@@ -291,6 +300,7 @@ impl<'a> DebianSrc<'a> {
             enabled,
             keyring,
             src,
+            ..
         } = self;
 
         let yes_or_no = if *enabled { "yes" } else { "no" };
@@ -305,6 +315,10 @@ URIs: {url}{url_suffix}
 Suites: {suite}
 Components: {components}
 Signed-By: {keyring}
+Trusted: yes
+# When using official source, recommended -> yes; using mirrors -> no. 
+Check-Valid-Until: no
+# Allow-Insecure: no
 
 "##
         )
@@ -339,14 +353,16 @@ fn get_debian_components(components: Option<&str>) -> &str {
 fn get_debian_keyring(site_left: &str) -> &str {
     match site_left {
         "debian-ports" => "/usr/share/keyrings/debian-ports-archive-keyring.gpg",
-        "debian-elts" => "/etc/apt/trusted.gpg.d/freexian-archive-extended-lts.gpg",
+        "debian-elts" | "debian-elts-official" => {
+            "/etc/apt/trusted.gpg.d/freexian-archive-extended-lts.gpg"
+        }
         _ => "/usr/share/keyrings/debian-archive-keyring.gpg",
     }
 }
 
 fn get_debian_mirrors(site_left: &str) -> [mirror::Mirror<'_>; 2] {
     match site_left {
-        "debian-elts" => mirror::debian_elts::mirrors(),
+        "debian-elts" | "debian-elts-official" => mirror::debian_elts::mirrors(),
         "debian-debug" => mirror::debian_debug::mirrors(),
         "debian-archive" => mirror::debian_archive::root_mirrors(),
         "debian-ports" => mirror::debian_ports::mirrors(),
@@ -360,22 +376,22 @@ fn ubuntu_one_line_style(suite: &str, url: &str) -> String {
 
     format!(
         r##"
-deb {url} {suite} {components}
-# deb-src {url} {suite} {components}
+deb [trusted=yes] {url} {suite} {components}
+# deb-src [trusted=yes] {url} {suite} {components}
 
-deb {url} {suite}-updates {components}
-# deb-src {url} {suite}-updates {components}
+deb [trusted=yes] {url} {suite}-updates {components}
+# deb-src [trusted=yes] {url} {suite}-updates {components}
 
-deb {url} {suite}-backports {components}
-# deb-src {url} {suite}-backports {components}
+deb [trusted=yes] {url} {suite}-backports {components}
+# deb-src [trusted=yes] {url} {suite}-backports {components}
 
-deb {url} {suite}-security {components}
-# deb-src {url} {suite}-security {components}
+deb [trusted=yes] {url} {suite}-security {components}
+# deb-src [trusted=yes] {url} {suite}-security {components}
 
 # --------
 # Disabled
-# deb {url} {suite}-proposed {components}
-# deb-src {url} {suite}-proposed {components}
+# deb [trusted=yes] {url} {suite}-proposed {components}
+# deb-src [trusted=yes] {url} {suite}-proposed {components}
 "##
     )
 }
@@ -394,6 +410,10 @@ URIs: {url}
 Suites: {suite} {suite}-updates {suite}-backports {suite}-security
 Components: {components}
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+Trusted: yes
+# When using official source, recommended -> yes; using mirrors -> no. 
+Check-Valid-Until: no
+# Allow-Insecure: no
 
 "##
     )

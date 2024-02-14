@@ -110,12 +110,7 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
             extract_tar_as_root(tar_path, &extracted_dir)?;
 
             if *patch.get_add_src_mirrors() {
-                add_archive_src_mirrors(
-                    r.get_series(),
-                    OLD_DEBIAN,
-                    docker_dir,
-                    &extracted_dir,
-                )?;
+                add_archive_src_mirrors(r.get_series(), docker_dir, &extracted_dir)?;
             }
 
             // exclude_dev:
@@ -132,11 +127,12 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
 ///
 /// This function creates the official and mirror sources for debian-archive.
 fn add_archive_src_mirrors(
-    codename: &str,
-    components: &str,
+    series: &str,
+    // components: &str,
     docker_dir: &Path,
     rootfs_dir: &Path,
 ) -> anyhow::Result<()> {
+    let components = OLD_DEBIAN;
     let mirror_dir = get_mirror_dir_based_on(docker_dir)?;
 
     for m in debian_archive::deb_mirrors() {
@@ -150,9 +146,10 @@ fn add_archive_src_mirrors(
             format!("{name}{region_prefix}{region}.list", name = m.get_name());
         log::debug!("src list file name: {fname}");
 
+        // DO NOT ADD `[trusted=yes]` for old-old debian
         let content = format!(
-            "deb {url} {codename} {components}\n\
-            # deb-src {url} {codename} {components}\n",
+            "deb {url} {series} {components}\n\
+            # deb-src {url} {series} {components}\n",
             url = crate::docker::repo::https_to_http(&m),
         );
         log::debug!("content: {content}");
