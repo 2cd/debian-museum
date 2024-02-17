@@ -16,25 +16,25 @@ disabled = ["debian-archive/debian/ potato-proposed-updates"]
 arch = "x86"
 deb-arch = "i386"
 
-# [[os.tag]]
-# arch = "alpha"
-# deb-arch = "alpha"
+[[os.tag]]
+arch = "alpha"
+deb-arch = "alpha"
 
-# [[os.tag]]
-# arch = "sparc"
-# deb-arch = "sparc"
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
 
-# [[os.tag]]
-# arch = "m68k"
-# deb-arch = "m68k"
+[[os.tag]]
+arch = "m68k"
+deb-arch = "m68k"
 
-# [[os.tag]]
-# arch = "ppc"
-# deb-arch = "powerpc"
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
 
-# [[os.tag]]
-# arch = "armv3"
-# deb-arch = "arm"
+[[os.tag]]
+arch = "armv3"
+deb-arch = "arm"
 
 [[os]]
 name = "debian"

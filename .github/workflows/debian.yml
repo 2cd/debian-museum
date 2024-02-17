@@ -46,10 +46,12 @@ jobs:
       - name: get `get-ctr` bin from docker
         run: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-ctr:x64 cp get-ctr /host
 
-      - name: install qemu-user
+      - name: install qemu-user & debootstrap
         run: |
           sudo apt-get update
-          yes | sudo apt-get install qemu-user-static
+          for i in qemu-user-static debootstrap; do
+            yes | sudo apt-get install $i
+          done
 
       - name: +RELEASE_TAG env
         run: echo RELEASE_TAG=$(${{env.build_cmd}} --release-tag) >>$GITHUB_ENV
