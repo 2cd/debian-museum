@@ -8,8 +8,8 @@ env:
 
 on:
   push:
-    branches:
-      - master
+    # branches:
+    #   - master
     paths:
       - ".github/workflows/debian.yml"
 
