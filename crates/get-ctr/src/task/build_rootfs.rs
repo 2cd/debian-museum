@@ -10,12 +10,12 @@ pub(crate) const DEB_ENV: &str = "DEBIAN_FRONTEND=noninteractive";
 
 use crate::{
     command::{
-        create_dir_all_as_root, force_remove_item_as_root, move_item_as_root,
+        create_dir_all_as_root, force_remove_item_as_root, move_item_as_root, run,
         run_as_root, run_nspawn,
     },
     docker::repo::Repository,
     task::{
-        compression::pack_tar_as_root,
+        compression::{extract_tar_as_root, pack_tar_as_root},
         old_old_debian::{TarFile, BUILD_TIME_RON},
     },
 };
@@ -37,7 +37,15 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
     let iter = repos
         .into_iter()
         // .filter(|x| matches!(x.get_arch(), &"x64" | &"x86"))
-        .filter(|x| matches!(x.get_arch(), &"x86"));
+        // .filter(|x| matches!(x.get_arch(), &"x86"))
+        // dbg
+        ;
+
+    const OLD_AMD64: [&str; 19] = [
+        "breezy", "dapper", "edgy", "etch", "feisty", "hardy", "hoary", "intrepid",
+        "jaunty", "karmic", "lenny", "lucid", "maverick", "natty", "oneiric",
+        "sarge", "squeeze", "warty", "wheezy",
+    ];
 
     for repo in iter {
         log::debug!("building: {} ({})", repo.get_codename(), repo.get_version());
@@ -57,10 +65,32 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
             bail!("Invalid debootstrap source")
         };
         let rootfs_dir = docker_dir.join("rootfs");
+        let series = repo.get_series().as_str();
+        let deb_arch = repo.get_deb_arch();
 
         // #[cfg(not(debug_assertions))]
-        if !rootfs_dir.exists() {
-            run_debootstrap(deb_src, repo, &rootfs_dir);
+        if !rootfs_dir.exists() || !tar_path.exists() {
+            match (deb_arch, series) {
+                (Some(arch @ "amd64"), s) if OLD_AMD64.contains(&s) => {
+                    get_old_rootfs(docker_dir, &rootfs_dir, arch, s)?
+                }
+                (Some(arch), s)
+                    if ["i386", "powerpc", "sparc"].contains(arch)
+                        && ["warty", "hoary"].contains(&s) =>
+                {
+                    get_old_rootfs(docker_dir, &rootfs_dir, arch, s)?
+                }
+                _ => {
+                    let mut ex_pkgs = TinyVec::<[&str; 1]>::new();
+                    match series {
+                        "squeeze" | "lenny" | "etch" => {
+                            ex_pkgs.push("apt-transport-https");
+                        }
+                        _ => {}
+                    };
+                    run_debootstrap(deb_src, repo, &rootfs_dir, &ex_pkgs)
+                }
+            }
         }
 
         if let Some(src) = repo.get_source() {
@@ -78,6 +108,40 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
         pack_tar_as_root(&rootfs_dir, tar_path, true);
     }
     Ok(())
+}
+
+fn get_old_rootfs(
+    docker_dir: &Path,
+    rootfs_dir: &Path,
+    arch: &str,
+    series: &str,
+) -> Result<(), anyhow::Error> {
+    get_rootfs_from_docker(
+        &format!("reg.tmoe.me:2096/rootfs/{series}:{arch}",),
+        docker_dir,
+    );
+    let base_tar = docker_dir.join("base.tar");
+    extract_tar_as_root(&base_tar, rootfs_dir)?;
+    force_remove_item_as_root(base_tar);
+    Ok(())
+}
+
+// docker run -t --rm -v $docker_dir:/app reg.tmoe.me:2096/rootfs/sarge:amd64 mv base.tar /app
+fn get_rootfs_from_docker(docker_repo: &str, docker_dir: &Path) {
+    run(
+        "docker",
+        &[
+            "run",
+            "-t",
+            "--rm",
+            "-v",
+            &format!("{}:/app", docker_dir.to_string_lossy()),
+            docker_repo,
+            "mv",
+            "base.tar",
+            "/app",
+        ],
+    )
 }
 
 fn patch_deb_rootfs(rootfs_dir: &PathBuf, repo: &Repository<'_>) {
@@ -134,13 +198,44 @@ fn run_debootstrap(
     deb_src: &crate::cfg::debootstrap::DebootstrapSrc,
     repo: &Repository<'_>,
     rootfs_dir: &std::path::PathBuf,
-    // osstr: fn(&str) -> &OsStr,
+    exclude_pkgs: &[&str],
 ) {
     let osstr = OsStr::new;
     let mut args = TinyVec::<[&OsStr; 10]>::new();
+    let mut ex_packages_arr = TinyVec::<[&str; 24]>::new();
+
+    ex_packages_arr.extend([
+        "postfix",
+        "postfix-tls",
+        "ubuntu-base",
+        "popularity-contest",
+        "vim",
+        "vim-common",
+        "wireless-tools",
+        "ppp",
+        "pppoe",
+        "pppconfig",
+        "pppoeconf",
+        "w3m",
+        "kbd",
+        "udev",
+        "man-db",
+    ]);
+
+    if !exclude_pkgs
+        .first()
+        .is_some_and(|x| x.is_empty())
+    {
+        ex_packages_arr.extend(exclude_pkgs.iter().copied())
+    }
+
+    let ex_pkgs_comma_str = ex_packages_arr.join(",");
+
     args.extend(
         [
             "--no-check-gpg",
+            "--exclude",
+            &ex_pkgs_comma_str,
             "--components",
             deb_src.get_components(),
             "--arch",

@@ -4,7 +4,7 @@ version = "4.10"
 codename = "Warty Warthog"
 series = "warty"
 date = "2004-10-20"
-deb-architectures = ["powerpc", "i386", "amd64"]
+deb-architectures = ["amd64", "i386", "powerpc"]
 no-minbase = true
 deb822-format = false
 
@@ -36,16 +36,26 @@ version = "5.04"
 codename = "Hoary Hedgehog"
 series = "hoary"
 date = "2005-04-08"
-deb-architectures = ["ia64", "i386", "amd64", "sparc", "powerpc"]
+deb-architectures = [
+    # "ia64",
+    "sparc",
+    "i386",
+    "amd64",
+    "powerpc",
+]
 no-minbase = true
 deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
 
+# [[os.tag]]
+# arch = "ia64"
+# deb-arch = "ia64"
+
 [[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+arch = "sparc"
+deb-arch = "sparc"
 
 [[os.tag]]
 arch = "x86"
@@ -54,10 +64,6 @@ deb-arch = "i386"
 [[os.tag]]
 arch = "x64"
 deb-arch = "amd64"
-
-[[os.tag]]
-arch = "sparc"
-deb-arch = "sparc"
 
 [[os.tag]]
 arch = "ppc"
@@ -69,7 +75,13 @@ version = "5.10"
 codename = "Breezy Badger"
 series = "breezy"
 date = "2005-10-12"
-deb-architectures = ["ia64", "powerpc", "sparc", "amd64", "i386"]
+deb-architectures = [
+    # "ia64",
+    "powerpc",
+    "sparc",
+    "amd64",
+    "i386",
+]
 # variant = "buildd"
 no-minbase = true
 deb822-format = false
@@ -77,9 +89,9 @@ deb822-format = false
 [os.source]
 src = "ubuntu-old-releases"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "ppc"
@@ -103,7 +115,14 @@ version = "6.06 LTS"
 codename = "Dapper Drake"
 series = "dapper"
 date = "2006-06-01"
-deb-architectures = ["amd64", "i386", "powerpc", "sparc", "ia64", "hppa"]
+deb-architectures = [
+    "amd64",
+    "i386",
+    "powerpc",
+    "sparc",
+    # "ia64",
+    "hppa",
+]
 no-minbase = true
 deb822-format = false
 
@@ -126,9 +145,9 @@ deb-arch = "powerpc"
 arch = "sparc"
 deb-arch = "sparc"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "hppa"
@@ -140,7 +159,14 @@ version = "6.10"
 codename = "Edgy Eft"
 series = "edgy"
 date = "2006-10-26"
-deb-architectures = ["sparc", "powerpc", "ia64", "i386", "hppa", "amd64"]
+deb-architectures = [
+    "sparc",
+    "powerpc",
+    # "ia64",
+    "i386",
+    "hppa",
+    "amd64",
+]
 no-minbase = true
 deb822-format = false
 
@@ -155,9 +181,9 @@ deb-arch = "sparc"
 arch = "ppc"
 deb-arch = "powerpc"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"
@@ -177,7 +203,14 @@ version = "7.04"
 codename = "Feisty Fawn"
 series = "feisty"
 date = "2007-04-19"
-deb-architectures = ["sparc", "powerpc", "ia64", "i386", "hppa", "amd64"]
+deb-architectures = [
+    "sparc",
+    "powerpc",
+    # "ia64",
+    "i386",
+    "hppa",
+    "amd64",
+]
 no-minbase = true
 deb822-format = false
 
@@ -192,9 +225,9 @@ deb-arch = "sparc"
 arch = "ppc"
 deb-arch = "powerpc"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"
@@ -218,7 +251,7 @@ deb-architectures = [
     "armel",
     "sparc",
     "powerpc",
-    "ia64",
+    # "ia64",
     "i386",
     "hppa",
     "amd64",
@@ -241,9 +274,9 @@ deb-arch = "sparc"
 arch = "ppc"
 deb-arch = "powerpc"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"
@@ -268,7 +301,9 @@ deb-architectures = [
     "armel",
     "sparc",
     "powerpc",
-    "ia64",
+
+    # "ia64",
+
     "i386",
     "hppa",
     "amd64",
@@ -295,9 +330,9 @@ deb-arch = "sparc"
 arch = "ppc"
 deb-arch = "powerpc"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"
@@ -322,7 +357,9 @@ deb-architectures = [
     "hppa",
     "sparc",
     "powerpc",
-    "ia64",
+
+    # "ia64",
+
     "i386",
     "amd64",
 ]
@@ -348,9 +385,9 @@ deb-arch = "sparc"
 arch = "ppc"
 deb-arch = "powerpc"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"
@@ -369,7 +406,9 @@ date = "2009-04-23"
 deb-architectures = [
     "sparc",
     "powerpc",
-    "ia64",
+
+    # "ia64",
+
     "i386",
     "hppa",
     "armel",
@@ -389,9 +428,9 @@ deb-arch = "sparc"
 arch = "ppc"
 deb-arch = "powerpc"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"
@@ -415,7 +454,14 @@ version = "9.10"
 codename = "Karmic Koala"
 series = "karmic"
 date = "2009-10-29"
-deb-architectures = ["sparc", "powerpc", "ia64", "i386", "armel", "amd64"]
+deb-architectures = [
+    "sparc",
+    "powerpc",
+    # "ia64",
+    "i386",
+    "armel",
+    "amd64",
+]
 no-minbase = false
 deb822-format = false
 
@@ -430,9 +476,9 @@ deb-arch = "sparc"
 arch = "ppc"
 deb-arch = "powerpc"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"
@@ -456,7 +502,9 @@ deb-architectures = [
     "armhf",
     "sparc",
     "powerpc",
-    "ia64",
+
+    # "ia64",
+
     "i386",
     "armel",
     "amd64",
@@ -479,9 +527,9 @@ deb-arch = "sparc"
 arch = "ppc"
 deb-arch = "powerpc"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"

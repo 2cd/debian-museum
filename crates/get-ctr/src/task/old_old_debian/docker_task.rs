@@ -3,11 +3,13 @@ use crate::{
     docker::{
         repo::Repository,
         repo_map::{MainRepo, RepoMap},
-        DOCKER_FILE_CONTENT, DOCKER_IGNORE_CONTENT,
+        DOCKER_FILE_FOR_NEW_DISTROS, DOCKER_FILE_OLD_CONTENT, DOCKER_IGNORE_CONTENT,
     },
     task::{
         docker::{run_docker_build, run_docker_push},
-        old_old_debian::{self, deser_ron, TarFile},
+        old_old_debian::{
+            self, deser_ron, digest_cfg::DISTROS_THAT_REQUIRE_XTERM, TarFile,
+        },
         pool::wait_process,
     },
 };
@@ -197,7 +199,9 @@ where
             ..
         } = r.base_tar_name()?;
 
-        create_docker_file(docker_dir, tar_fname)?;
+        let is_new = !matches!(r.get_series().as_str(), s if DISTROS_THAT_REQUIRE_XTERM.contains(&s));
+
+        create_docker_file(docker_dir, tar_fname, is_new)?;
 
         run_docker_build(r, &mut children, docker_dir, &mut tag_map)?;
         treeset.insert(r.oci_platform());
@@ -220,14 +224,22 @@ where
 }
 
 /// Replaces "base.tar" in the default DOCKER_FILE_CONTENT with tar_fname(e.g., 2.2_potato_x86_base_2001-06-14.tar), and finally write.
-fn create_docker_file(docker_dir: &Path, tar_fname: &str) -> Result<(), io::Error> {
+fn create_docker_file(
+    docker_dir: &Path,
+    tar_fname: &str,
+    new: bool,
+) -> Result<(), io::Error> {
     let docker_file = docker_dir.join("Dockerfile");
     log::debug!("docker_file: {:?}", docker_file);
 
     log::debug!("creating the Dockerfile");
+
+    let docker_file_content =
+        if new { DOCKER_FILE_FOR_NEW_DISTROS } else { DOCKER_FILE_OLD_CONTENT };
+
     fs::write(
         &docker_file,
-        DOCKER_FILE_CONTENT.replace("base.tar", tar_fname),
+        docker_file_content.replace("base.tar", tar_fname),
     )?;
 
     let docker_ignore = docker_dir.join(".dockerignore");

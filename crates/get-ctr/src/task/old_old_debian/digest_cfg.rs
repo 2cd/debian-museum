@@ -23,6 +23,10 @@ use std::{
 };
 use url::Url;
 
+pub(crate) const DISTROS_THAT_REQUIRE_XTERM: [&str; 8] = [
+    "bo", "hamm", "slink", "potato", "woody", "sarge", "etch", "warty",
+];
+
 // create_digest
 pub(crate) fn create_digest_cfg<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
     repos: I,
@@ -227,7 +231,7 @@ fn archive_file_cfg(
         .build();
 
     let nspawn_env = match r.get_series().as_str() {
-        "bo" | "hamm" | "slink" | "potato" | "woody" | "etch" => "-E TERM=xterm",
+        s if DISTROS_THAT_REQUIRE_XTERM.contains(&s) => "-E TERM=xterm",
         _ => "",
     };
 

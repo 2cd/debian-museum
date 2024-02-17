@@ -91,10 +91,13 @@ pub(crate) fn pack_tar_as_root<S: AsRef<OsStr>>(
             r"--exclude=run/*",
             r"--exclude=mnt/*",
             r"--exclude=media/*",
+            r"--exclude=boot/*",
             r"--exclude=var/cache/apt/pkgcache.bin",
             r"--exclude=var/cache/apt/srcpkgcache.bin",
             r"--exclude=var/cache/apt/archives/*deb",
             r"--exclude=var/cache/apt/archives/partial/*",
+            r"--exclude=var/cache/archive-copier/*",
+            r"--exclude=var/lib/apt/lists/*.*",
             // r#"--exclude=var/cache/apt/archives/lock"#,
         ]
         .map(osstr),

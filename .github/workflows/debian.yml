@@ -23,11 +23,16 @@ jobs:
           #   ver: "1.3"
           # - os: debian
           #   ver: "2.0"
-          - os: debian
-            ver: "2.1"
+          # - os: debian
+          #   ver: "2.1"
+          # - os: debian
+          #   ver: "2.2"
+          #   tag: base
           - os: debian
             ver: "2.2"
-            tag: base
+          - os: debian
+            ver: "3.0"
+
     runs-on: ubuntu-latest
     # defaults:
     #   run:
@@ -40,6 +45,11 @@ jobs:
     steps:
       - name: get `get-ctr` bin from docker
         run: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-ctr:x64 cp get-ctr /host
+
+      - name: install qemu-user
+        run: |
+          sudo apt-get update
+          yes | sudo apt-get install qemu-user-static
 
       - name: +RELEASE_TAG env
         run: echo RELEASE_TAG=$(${{env.build_cmd}} --release-tag) >>$GITHUB_ENV

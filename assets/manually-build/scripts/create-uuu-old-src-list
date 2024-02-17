@@ -1,0 +1,160 @@
+#!/usr/bin/zsh -f
+# ----------------
+cli_args=(
+    # "-get-mirror-url=get_mirror_url"
+    "-version=o_version_bool"
+    "h=o_help_bool"
+    "-help=o_help_bool"
+
+    "-mirror=o_mirror_bool"
+    "-mirror-http=o_mirror_http_bool"
+
+    "-get-url=o_get_url_bool"
+
+    "-series:=o_series"
+    "-rootfs-dir:=o_rootfs_dir"
+)
+# ----------------
+set_url() {
+    local mirror_url="https://mirrors.nju.edu.cn/ubuntu-old-releases/ubuntu/"
+    local official_url="http://old-releases.ubuntu.com/ubuntu/"
+    URL=$official_url
+    if (($+o_mirror_bool[1])) {
+        URL=$mirror_url
+    }
+
+    if (($+o_mirror_http_bool[1])) {
+        mirror_url[5]=''
+        URL=$mirror_url
+    }
+
+    dbg "URL(global var):" $URL
+}
+
+main() {
+    set_url
+    parse_args
+}
+
+parse_args() {
+    local ver="0.0.0-beta.1"
+    if (($+o_help_bool[1])) {
+        dbg Getting Help Information
+        print_help_info
+        exit
+    }
+    if (($+o_version_bool[1])) {
+        print $ver
+        exit
+    }
+    if (($+o_get_url_bool[1])) {
+        print $URL
+        exit
+    }
+
+
+    update_src_list
+}
+
+panic() {
+    print >&2 -- "[FATAL]" $*
+    exit 1
+}
+
+dbg() {
+    case $UUU_LOG {
+        (debug* | trace*) ;;
+        (*) return 0 ;; 
+    }
+    print >&2 -- "[DEBUG]" $*
+}
+
+update_src_list() {
+    local deb_vendor=$(get_deb_vendor)
+    local name=$o_rootfs_dir[2]
+    local series=$o_series[2]
+    local url=$URL
+
+    dbg $(local -p o_rootfs_dir)
+    if ((! $#name)) {
+        panic 'Please pass the "--rootfs-dir" arg'
+    }
+
+components=$(get-deb-components uuu)
+
+    > $name/etc/apt/sources.list <<-UBUNTU_SRC_LIST
+# ${(U)series}
+deb ${deb_vendor}${url} $series $components
+# deb-src ${deb_vendor}${url} $series $components
+
+# ${(U)series}-UPDATES
+deb ${deb_vendor}${url} $series-updates $components
+
+# ${(U)series}-BACKPORTS
+deb ${deb_vendor}${url} $series-backports $components
+
+# ${(U)series}-SECURITY
+deb ${deb_vendor}${url} $series-security $components
+
+# ${(U)series}-PROPOSED
+# deb ${deb_vendor}${url} $series-proposed $components
+UBUNTU_SRC_LIST
+}
+
+get_deb_vendor() {
+    case $o_series[2] {
+        ("warty") print "";;
+        ("" | [[:space:]]*) panic 'Requires the "--series" argument, and its value cannot start with a space.' ;;
+        (*) print "[trusted=yes] " ;;
+    }
+}
+
+print_options_info() {
+    <<-'OPTIONS_INFO'
+Usage:
+    create-uuu-old-src-list [OPTIONS]
+
+Options:
+  --mirror
+        For **MODERN** ubuntu, we can get mirrors from <mirrors.ubuntu.com/mirrors.txt>.
+        However, this is a one-time script for **VINTAGE**.
+        This option will use the url of NJU(CN) ubuntu-old-releases.
+  --mirror-http
+        Similar to `--mirror` , but using http instead of https.
+  --get-url
+        Print the old ubuntu source url
+  --series
+        Specify an old ubuntu series, e.g., warty, breezy, gutsy.
+  --rootfs-dir
+        Specify rootfs-dir.
+        It will modify [rootfs-dir]/etc/apt/sources.list
+Info:
+  --version
+        Print Version
+  -h, --help
+        Print help
+OPTIONS_INFO
+    exit
+}
+
+print_help_info() {
+    <<-'HELP_INFO'
+Note:
+    This script can only be used by **VINTAGE** ubuntu and only supports `ubuntu-old-releases`.
+
+    The `ubuntu-archive` source is not supported, and deb822-style is not supported.
+    You should not run it on **MODERN** Ubuntu.
+
+Example1:
+    create-uuu-old-src-list --mirror --get-url
+
+Example2:
+    create-uuu-old-src-list --mirror --series warty --rootfs-dir ubuntu-warty-i386
+HELP_INFO
+}
+
+# --------------------------
+(($#)) || print_options_info
+zmodload zsh/zutil
+zparseopts -D -- $cli_args
+main

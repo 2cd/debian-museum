@@ -156,47 +156,8 @@ impl Cli {
             old_old_debian::obtain(&repos)?;
         }
 
-        if *self.get_repack() {
-            old_old_debian::repack(&repos, self.get_zstd_level().as_ref())?;
-        }
+        self.cli_common(repos.to_vec())?;
 
-        if *self.get_build() {
-            old_old_debian::docker_task::docker_build(&repos)?;
-        }
-
-        if *self.get_push() {
-            old_old_debian::docker_task::docker_push(&repos)?;
-        }
-
-        if *self.get_create_manifest() {
-            old_old_debian::docker_task::create_manifest(&repos)?;
-        }
-
-        if *self.get_update_repo_digest() {
-            old_old_debian::docker_task::pull_image_and_create_repo_digests(&repos)?;
-        }
-
-        if let Some(p) = self.get_digest() {
-            old_old_debian::digest_cfg::create_digest_cfg(&repos, p)?;
-        }
-
-        let first = || {
-            repos
-                .iter()
-                .next()
-                .expect("Empty Repos")
-        };
-
-        if *self.get_title() {
-            print_title(first());
-        }
-
-        if *self.get_release_tag() {
-            let first = first();
-            println!("{}{}", first.get_version(), first.opt_tag_suffix());
-        }
-
-        global_pool().join();
         Ok(())
     }
 
@@ -291,45 +252,43 @@ impl Cli {
             build_rootfs::obtain(&repos)?;
         }
 
-        // if *self.get_repack() {
-        //     old_old_debian::repack(&repos, self.get_zstd_level().as_ref())?;
-        // }
+        self.cli_common(repos.to_vec())?;
+        Ok(())
+    }
 
-        // if *self.get_build() {
-        //     old_old_debian::docker_task::docker_build(&repos)?;
-        // }
+    fn cli_common(&self, repos: Vec<Repository>) -> Result<(), anyhow::Error> {
+        if *self.get_repack() {
+            old_old_debian::repack(&repos, self.get_zstd_level().as_ref())?;
+        }
+        if *self.get_build() {
+            old_old_debian::docker_task::docker_build(&repos)?;
+        }
+        if *self.get_push() {
+            old_old_debian::docker_task::docker_push(&repos)?;
+        }
+        if *self.get_create_manifest() {
+            old_old_debian::docker_task::create_manifest(&repos)?;
+        }
+        if *self.get_update_repo_digest() {
+            old_old_debian::docker_task::pull_image_and_create_repo_digests(&repos)?;
+        }
+        if let Some(p) = self.get_digest() {
+            old_old_debian::digest_cfg::create_digest_cfg(&repos, p)?;
+        }
+        let first = || {
+            repos
+                .first()
+                .expect("Empty Repos")
+        };
+        if *self.get_title() {
+            print_title(first());
+        }
+        if *self.get_release_tag() {
+            let first = first();
+            println!("{}{}", first.get_version(), first.opt_tag_suffix());
+        };
+        global_pool().join();
 
-        // if *self.get_push() {
-        //     old_old_debian::docker_task::docker_push(&repos)?;
-        // }
-
-        // if *self.get_create_manifest() {
-        //     old_old_debian::docker_task::create_manifest(&repos)?;
-        // }
-
-        // if *self.get_update_repo_digest() {
-        //     old_old_debian::docker_task::pull_image_and_create_repo_digests(&repos)?;
-        // }
-
-        // if let Some(p) = self.get_digest() {
-        //     old_old_debian::digest_cfg::create_digest_cfg(&repos, p)?;
-        // }
-
-        // let first = || {
-        //     repos
-        //         .iter()
-        //         .next()
-        //         .expect("Empty Repos")
-        // };
-
-        // if *self.get_title() {
-        //     print_title(first());
-        // }
-
-        // if *self.get_release_tag() {
-        //     let first = first();
-        //     println!("{}{}", first.get_version(), first.opt_tag_suffix());
-        // }
         Ok(())
     }
 }

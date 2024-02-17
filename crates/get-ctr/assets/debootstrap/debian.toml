@@ -16,25 +16,25 @@ disabled = ["debian-archive/debian/ potato-proposed-updates"]
 arch = "x86"
 deb-arch = "i386"
 
-[[os.tag]]
-arch = "alpha"
-deb-arch = "alpha"
+# [[os.tag]]
+# arch = "alpha"
+# deb-arch = "alpha"
 
-[[os.tag]]
-arch = "sparc"
-deb-arch = "sparc"
+# [[os.tag]]
+# arch = "sparc"
+# deb-arch = "sparc"
 
-[[os.tag]]
-arch = "m68k"
-deb-arch = "m68k"
+# [[os.tag]]
+# arch = "m68k"
+# deb-arch = "m68k"
 
-[[os.tag]]
-arch = "ppc"
-deb-arch = "powerpc"
+# [[os.tag]]
+# arch = "ppc"
+# deb-arch = "powerpc"
 
-[[os.tag]]
-arch = "armv3"
-deb-arch = "arm"
+# [[os.tag]]
+# arch = "armv3"
+# deb-arch = "arm"
 
 [[os]]
 name = "debian"
@@ -46,14 +46,14 @@ components = "main contrib non-free"
 deb-architectures = [
     "alpha",
     "hppa",
-    "ia64",
     "i386",
     "mipsel",
     "sparc",
     "arm",
-    "s390",
-    "mips",
-    "powerpc",
+    # "ia64",
+    # "s390",
+    # "mips",
+    # "powerpc",
     "m68k",
 ]
 no-minbase = true
@@ -64,6 +64,10 @@ enabled = [
     "debian-archive/debian-security/ woody/updates",
 ]
 
+# [[os.tag]]
+# arch = "ppc"
+# deb-arch = "powerpc"
+
 [[os.tag]]
 arch = "alpha"
 deb-arch = "alpha"
@@ -72,9 +76,9 @@ deb-arch = "alpha"
 arch = "hppa"
 deb-arch = "hppa"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+# [[os.tag]]
+# arch = "ia64"
+# deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"
@@ -92,17 +96,13 @@ deb-arch = "sparc"
 arch = "armv3"
 deb-arch = "arm"
 
-[[os.tag]]
-arch = "s390"
-deb-arch = "s390"
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
 
-[[os.tag]]
-arch = "mipsbe"
-deb-arch = "mips"
-
-[[os.tag]]
-arch = "ppc"
-deb-arch = "powerpc"
+# [[os.tag]]
+# arch = "mipsbe"
+# deb-arch = "mips"
 
 [[os.tag]]
 arch = "m68k"
@@ -119,12 +119,14 @@ no-minbase = true
 deb822-format = false
 deb-architectures = [
     "sparc",
-    "s390",
+    # "s390",
     "powerpc",
     "mipsel",
     "mips",
     "m68k",
-    "ia64",
+    # 
+    # "ia64",
+
     "i386",
     "hppa",
     "arm",
@@ -154,9 +156,9 @@ enabled = ["debian-archive/debian-amd64/ sarge"]
 arch = "sparc"
 deb-arch = "sparc"
 
-[[os.tag]]
-arch = "s390"
-deb-arch = "s390"
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
 
 [[os.tag]]
 arch = "ppc"
@@ -174,9 +176,9 @@ deb-arch = "mips"
 arch = "m68k"
 deb-arch = "m68k"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "hppa"
@@ -202,11 +204,13 @@ deb-architectures = [
     "amd64",
     "alpha",
     "sparc",
-    "s390",
+    # "s390",
     "powerpc",
     "mipsel",
     "mips",
-    "ia64",
+
+    # "ia64",
+
     "i386",
     "hppa",
     # ---
@@ -252,9 +256,9 @@ deb-arch = "alpha"
 arch = "sparc"
 deb-arch = "sparc"
 
-[[os.tag]]
-arch = "s390"
-deb-arch = "s390"
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
 
 [[os.tag]]
 arch = "ppc"
@@ -268,9 +272,9 @@ deb-arch = "mipsel"
 arch = "mipsbe"
 deb-arch = "mips"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"
@@ -289,11 +293,13 @@ date = "2009-02"
 components = "main contrib non-free"
 deb-architectures = [
     "sparc",
-    "s390",
+    # "s390",
     "powerpc",
     "mipsel",
     "mips",
-    "ia64",
+
+    # "ia64",
+
     "i386",
     "hppa",
     "armel",
@@ -325,9 +331,9 @@ disabled = [
 arch = "sparc"
 deb-arch = "sparc"
 
-[[os.tag]]
-arch = "s390"
-deb-arch = "s390"
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
 
 [[os.tag]]
 arch = "ppc"
@@ -341,9 +347,9 @@ deb-arch = "mipsel"
 arch = "mipsbe"
 deb-arch = "mips"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "x86"
@@ -378,11 +384,13 @@ date = "2011-02"
 components = "main contrib non-free"
 deb-architectures = [
     "sparc",
-    "s390",
+    # "s390",
     "powerpc",
     "mipsel",
     "mips",
-    "ia64",
+
+    # "ia64",
+
     "i386",
     "armel",
     "amd64",
@@ -429,9 +437,9 @@ enabled = [
 arch = "sparc"
 deb-arch = "sparc"
 
-[[os.tag]]
-arch = "s390"
-deb-arch = "s390"
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
 
 [[os.tag]]
 arch = "ppc"
@@ -445,9 +453,9 @@ deb-arch = "mipsel"
 arch = "mipsbe"
 deb-arch = "mips"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "armv4t"
@@ -468,11 +476,13 @@ deb-architectures = [
     "powerpc",
     "sparc",
     "s390x",
-    "ia64",
+
+    # "s390",
+    # "ia64",
+
     "mipsel",
     "mips",
     "armel",
-    "s390",
 ]
 no-minbase = false
 deb822-format = false
@@ -527,9 +537,9 @@ deb-arch = "sparc"
 arch = "s390x"
 deb-arch = "s390x"
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
 
 [[os.tag]]
 arch = "mipsle"
@@ -543,9 +553,9 @@ deb-arch = "mips"
 arch = "armv4t"
 deb-arch = "armel"
 
-[[os.tag]]
-arch = "s390"
-deb-arch = "s390"
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
 
 [[os]]
 name = "debian"
@@ -1031,7 +1041,9 @@ deb-architectures = [
     # -----
     "alpha",
     "hppa",
-    "ia64",
+
+    # "ia64",
+
     "loong64",
     "m68k",
     "powerpc",
@@ -1098,12 +1110,12 @@ deb-arch = "hppa"
 enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]
 
-[[os.tag]]
-arch = "ia64"
-deb-arch = "ia64"
-[os.tag.source]
-enabled = ["debian-ports/ sid"]
-disabled = ["debian-ports/ experimental"]
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+# [os.tag.source]
+# enabled = ["debian-ports/ sid"]
+# disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "loong64"

@@ -13,7 +13,7 @@ use crate::{
     docker::{get_oci_platform, repo_map},
 };
 
-#[derive(Getters, TypedBuilder, Debug)]
+#[derive(Getters, TypedBuilder, Debug, Clone)]
 #[getset(get = "pub(crate) with_prefix")]
 #[builder(field_defaults(default))]
 pub(crate) struct Repository<'r> {
@@ -129,7 +129,7 @@ impl SrcFormat {
                 let mut official_deb822_style = String::with_capacity(4096);
                 let mut cdn_deb822_style = String::with_capacity(4096);
                 let deb_vendor = match series {
-                    "sarge" | "woody" | "potato" => "",
+                    "sarge" | "woody" | "potato" | "warty" => "",
                     _ => "[trusted=yes] ",
                 };
 

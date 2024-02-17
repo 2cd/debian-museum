@@ -1,0 +1,66 @@
+#!/usr/bin/zsh -fxe
+
+for series (
+    # warty
+    # hoary
+    breezy
+    dapper
+    edgy
+    feisty
+    # # gutsy
+    hardy
+    intrepid
+    jaunty
+    karmic
+    lucid
+    maverick
+    natty
+    oneiric
+    ) {
+    arch=amd64
+    # arch=powerpc
+    # arch=sparc
+
+    name=$series-$arch
+    exclude_pkgs="postfix,postfix-tls,ubuntu-base,popularity-contest,vim,vim-common,wireless-tools,ppp,pppconfig,pppoeconf,w3m,kbd,udev,man-db"
+
+    args=(
+        --no-check-gpg
+        --exclude=$exclude_pkgs
+        --components=$(get-deb-components uuu-debootstrap)
+        --arch=$arch
+    )
+
+    case $series {
+        (warty | hoary | breezy | dapper | edgy | feisty) ;;
+        # gutsy+: minbase
+        (*) args+="--variant=minbase" ;;
+    }
+
+    args+=(
+        $series
+        $name
+        $(create-uuu-old-src-list --mirror --get-url)
+    )
+
+    if [[ ! -e $name ]] {
+        debootstrap $args
+    }
+
+    uuu_list_args=(
+        --series $series
+        --rootfs-dir $name
+    )
+
+    # update_src_list $mirror_url
+    create-uuu-old-src-list --mirror-http $uuu_list_args
+
+    run-apt-upgrade-in-container $name
+
+    # update_src_list $official_url
+    create-uuu-old-src-list $uuu_list_args
+
+    test-apt-update-in-container $name
+
+    pack-rootfs-to-tar $name
+}

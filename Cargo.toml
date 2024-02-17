@@ -18,3 +18,7 @@ panic = "abort"
 strip = true
 lto = "thin"
 # opt-level = "s"
+
+[profile.no-lto]
+inherits = "thin"
+lto = false
