@@ -11,7 +11,7 @@ build() {
 
     args=(
         --no-check-gpg
-        # --exclude=$exclude_pkgs
+        --exclude=man-db,isc-dhcp-client,isc-dhcp-common
         # 
         --components=$deb_components
         --arch=$arch
@@ -43,6 +43,7 @@ EOF
         (*) echo "deb $official_url $series $components" > $src_list ;;
     }
     run-apt-upgrade-in-container $name
+    install-pkgs-in-container $name apt-utils
     pack-rootfs-to-tar $name
 }
 
@@ -125,15 +126,15 @@ for series (
             ("jessie")
             for arch (
                 # "i386"
-                # "s390x"
                 # "amd64"
                 # "armhf"
                 # "armel"
                 # "arm64"
+                "s390x"
                 # "mipsel"
                 # "mips"
-                "powerpc"
-                "ppc64el"
+                # "powerpc"
+                # "ppc64el"
             ) {
                 build
             } ;;

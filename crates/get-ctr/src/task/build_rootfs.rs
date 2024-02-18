@@ -63,8 +63,8 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
         let get_rootfs = |arch, series| -> Result<(), anyhow::Error> {
             get_old_rootfs(docker_dir, &rootfs_dir, arch, series)
         };
-        const JESSIE_NO_LTS_ARCHS: [&str; 5] =
-            ["arm64", "mipsel", "mips", "powerpc", "ppc64el"];
+        const JESSIE_NO_LTS_ARCHS: [&str; 6] =
+            ["arm64", "mipsel", "mips", "powerpc", "ppc64el", "s390x"];
 
         // #[cfg(not(debug_assertions))]
         if !rootfs_dir.exists() || !tar_path.exists() {
