@@ -24,75 +24,51 @@ on:
       - ".github/workflows/debian.yml"
 
 jobs:
-  # build:
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       include:
-  #         # - os: debian
-  #         #   ver: "1.3"
-  #         # - os: debian
-  #         #   ver: "2.0"
-  #         # - os: debian
-  #         #   ver: "2.1"
-  #         # - os: debian
-  #         #   ver: "2.2"
-  #         #   tag: base
-  #         # - os: debian
-  #         #   ver: "2.2"
-  #         # - os: debian
-  #         #   ver: "3.0"
-  #         # - os: debian
-  #         #   ver: "3.1"
-  #         # - os: debian
-  #         #   ver: "4.0"
-  #         # - os: debian
-  #         #   ver: "5.0"
-  #         # - os: debian
-  #         #   ver: "5.0"
-  #         # - os: debian
-  #         #   ver: "6.0"
-  #         # - os: debian
-  #         #   ver: "7"
-  #         # - os: debian
-  #         #   ver: "8"
-  #         # - os: debian
-  #         #   ver: "9"
-  #         # - os: debian
-  #         #   ver: "10"
-  #         # - os: debian
-  #         #   ver: "11"
-  #         # - os: debian
-  #         #   ver: "12"
-  #         # - os: debian
-  #         #   ver: "13"
-  #         - os: debian
-  #           ver: "unstable"
-  #           arch: amd64
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          # - os: debian
+          #   ver: "13"
+          - arch: "i386"
+          - arch: "amd64"
+          - arch: "arm64"
+          - arch: "ppc64el"
+          - arch: "mips64el"
+          - arch: "s390x"
+          - arch: "armhf"
+          - arch: "riscv64"
+          - arch: "armel"
+          - arch: "alpha"
+          - arch: "hppa"
+          - arch: "loong64"
+          - arch: "m68k"
+          - arch: "powerpc"
+          - arch: "ppc64"
+          - arch: "sh4"
+          - arch: "sparc64"
 
-  #         - os: debian
-  #           ver: "unstable"
-  #           arch: i386
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}} --arch ${{matrix.arch}}
+    runs-on: ubuntu-latest
+    env:
+      build_cmd: get-ctr --os debian --ver unstable --arch ${{matrix.arch}}
 
-  #   steps:
-  #     - name: preparations
-  #       run: |
-  #         ${{env.INSTALL_DEPS}}
-  #         ${{env.GET_CTR_CMD}}
+    steps:
+      - name: preparations
+        run: |
+          ${{env.INSTALL_DEPS}}
+          ${{env.GET_CTR_CMD}}
 
-  #     - name: Login to REG
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: ${{env.REG_URI}}
-  #         username: ${{env.REG_USER}}
-  #         password: ${{ secrets.REG_TOKEN }}
+      - name: Login to REG
+        uses: docker/login-action@v3
+        with:
+          registry: ${{env.REG_URI}}
+          username: ${{env.REG_USER}}
+          password: ${{ secrets.REG_TOKEN }}
 
-  #     - name: download & repack rootfs & save cache
-  #       run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}} --save-cache
-  restore:
+      - name: download & repack rootfs & save cache
+        run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}} --save-cache
+  docker:
     # needs: build
     strategy:
       fail-fast: true
@@ -100,9 +76,16 @@ jobs:
         include:
           - os: debian
             ver: "unstable"
-    runs-on: ubuntu-latest
+    runs-on:
+      ubuntu-latest
+      #   # defaults:
+      #   #   run:
+      #   #     shell: zsh -f -e {0}
     env:
-      build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
+      digests_ron: digests.ron
+      digests_yaml: digests.yml
+      # build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
+      build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}}
     steps:
       - name: Login to REG
         uses: docker/login-action@v3
@@ -110,78 +93,64 @@ jobs:
           registry: ${{env.REG_URI}}
           username: ${{env.REG_USER}}
           password: ${{ secrets.REG_TOKEN }}
+
       - name: restore cache
         run: |
           ${{env.GET_CTR_CMD}}
-          for arch in amd64 i386; do
+          archs=(
+            "i386" "amd64" "arm64" "ppc64el" "mips64el" "s390x" "armhf" "riscv64" "armel" "alpha" "hppa" "loong64" "m68k" "powerpc" "ppc64" "sh4" "sparc64"
+          )
+          for arch in "${archs[@]}"; do
             ${{env.build_cmd}} --restore-cache --arch $arch
-            ls -lah tmp
+            tree tmp
           done
 
-  # docker:
-  #   runs-on: ubuntu-latest
-  #   # defaults:
-  #   #   run:
-  #   #     shell: zsh -f -e {0}
-  #   env:
-  #     digests_ron: digests.ron
-  #     digests_yaml: digests.yml
-  #     build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
+      # - name: get `get-ctr` bin from docker
+      #   run: ${{env.GET_CTR_CMD}}
 
-  #   steps:
-  #     - name: get `get-ctr` bin from docker
-  #       run: ${{env.GET_CTR_CMD}}
+      - name: install qemu-user & debootstrap
+        run: ${{env.INSTALL_DEPS}}
 
-  #     - name: install qemu-user & debootstrap
-  #       run: ${{env.INSTALL_DEPS}}
+      - name: +RELEASE_TAG env
+        run: echo RELEASE_TAG=$(${{env.build_cmd}} --release-tag) >>$GITHUB_ENV
 
-  #     - name: +RELEASE_TAG env
-  #       run: echo RELEASE_TAG=$(${{env.build_cmd}} --release-tag) >>$GITHUB_ENV
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  #     - name: Login to GHCR
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.actor }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
+      # - name: download & repack rootfs
+      #   run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}}
 
-  #     - name: Login to REG
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: reg.tmoe.me:2096
-  #         username: ${{env.REG_USER}}
-  #         password: ${{ secrets.REG_TOKEN }}
+      - name: build container
+        run: ${{env.build_cmd}} --build
 
-  #     - name: download & repack rootfs
-  #       run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}}
+      - name: push to ghcr & reg
+        run: ${{env.build_cmd}} --push
 
-  #     - name: build container
-  #       run: ${{env.build_cmd}} --build
+      - name: create manifest
+        run: ${{env.build_cmd}} --create-manifest --update-repo-digest
 
-  #     - name: push to ghcr & reg
-  #       run: ${{env.build_cmd}} --push
+      - name: generate digests.{ron,yml}
+        run: ${{env.build_cmd}} --digest ${{env.digests_ron}} --digest ${{env.digests_yaml}}
 
-  #     - name: create manifest
-  #       run: ${{env.build_cmd}} --create-manifest --update-repo-digest
+      - name: create digests.md
+        run: |
+          echo '```yaml' > digests.md
+          cat tmp/${{env.digests_yaml}} >> digests.md
+          echo '```' >> digests.md
+          echo TITLE=$(${{env.build_cmd}} --title) >>$GITHUB_ENV
 
-  #     - name: generate digests.{ron,yml}
-  #       run: ${{env.build_cmd}} --digest ${{env.digests_ron}} --digest ${{env.digests_yaml}}
-
-  #     - name: create digests.md
-  #       run: |
-  #         echo '```yaml' > digests.md
-  #         cat tmp/${{env.digests_yaml}} >> digests.md
-  #         echo '```' >> digests.md
-  #         echo TITLE=$(${{env.build_cmd}} --title) >>$GITHUB_ENV
-
-  #     - name: release
-  #       uses: softprops/action-gh-release@v1
-  #       with:
-  #         fail_on_unmatched_files: true
-  #         tag_name: ${{env.RELEASE_TAG}}
-  #         name: ${{env.TITLE}}
-  #         files: |
-  #           tmp/zstd/*.zst
-  #           tmp/${{env.digests_ron}}
-  #           tmp/${{env.digests_yaml}}
-  #         body_path: digests.md
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          fail_on_unmatched_files: true
+          tag_name: ${{env.RELEASE_TAG}}
+          name: ${{env.TITLE}}
+          files: |
+            tmp/zstd/*.zst
+            tmp/${{env.digests_ron}}
+            tmp/${{env.digests_yaml}}
+          body_path: digests.md

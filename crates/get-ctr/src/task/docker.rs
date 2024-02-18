@@ -143,6 +143,7 @@ pub(crate) fn restore_cache(first_repo: &Repository<'_>) -> io::Result<()> {
         "always",
         &docker_tag,
         "mv",
+        "-f",
         "/cache.tar",
         "/host",
     ];
