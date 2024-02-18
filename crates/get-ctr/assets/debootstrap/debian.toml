@@ -655,26 +655,62 @@ disabled = [
 [[os.tag]]
 arch = "s390x"
 deb-arch = "s390x"
+[os.tag.source]
+enabled = [
+    "debian-elts/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
 
 [[os.tag]]
 arch = "mipsle"
 deb-arch = "mipsel"
+[os.tag.source]
+enabled = [
+    "debian-elts/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
 
 [[os.tag]]
 arch = "mipsbe"
 deb-arch = "mips"
+[os.tag.source]
+enabled = [
+    "debian-elts/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
 
 [[os.tag]]
 arch = "ppc"
 deb-arch = "powerpc"
+[os.tag.source]
+enabled = [
+    "debian-elts/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
 
 [[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
+[os.tag.source]
+enabled = [
+    "debian-elts/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
 
 [[os.tag]]
 arch = "arm64"
 deb-arch = "arm64"
+[os.tag.source]
+enabled = [
+    "debian-elts/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
 
 [[os]]
 name = "debian"

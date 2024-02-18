@@ -63,6 +63,8 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
         let get_rootfs = |arch, series| -> Result<(), anyhow::Error> {
             get_old_rootfs(docker_dir, &rootfs_dir, arch, series)
         };
+        const JESSIE_NO_LTS_ARCHS: [&str; 5] =
+            ["arm64", "mipsel", "mips", "powerpc", "ppc64el"];
 
         // #[cfg(not(debug_assertions))]
         if !rootfs_dir.exists() || !tar_path.exists() {
@@ -74,6 +76,9 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                     get_rootfs(arch, s)?
                 }
                 (Some(arch), s) if ["potato", "woody"].contains(&s) => {
+                    get_rootfs(arch, s)?
+                }
+                (Some(arch), s @ "jessie") if JESSIE_NO_LTS_ARCHS.contains(arch) => {
                     get_rootfs(arch, s)?
                 }
                 (Some(arch), s @ "sarge")
@@ -118,7 +123,7 @@ fn get_old_rootfs(
     series: &str,
 ) -> Result<(), anyhow::Error> {
     get_rootfs_from_docker(
-        &format!("reg.tmoe.me:2096/rootfs/{series}:{arch}",),
+        &format!("{uri}/rootfs/{series}:{arch}", uri = Repository::REG_URI),
         docker_dir,
     );
     let base_tar = docker_dir.join("base.tar");
@@ -187,7 +192,7 @@ fn patch_deb_rootfs(rootfs_dir: &PathBuf, repo: &Repository<'_>) {
 
     run_nspawn(
         rootfs_dir,
-        "apt-get dist-upgrade --assume-yes --force-yes \
+        "timeout 1800 apt-get dist-upgrade --assume-yes --force-yes \
             ;  for i in apt-utils eatmydata; do \
                     apt-get install --assume-yes --force-yes $i \
             ;  done \
@@ -220,15 +225,20 @@ fn run_debootstrap(
         "popularity-contest",
         "vim",
         "vim-common",
+        "vim-tiny",
         "wireless-tools",
         "ppp",
         "pppoe",
         "pppconfig",
         "pppoeconf",
+        "isc-dhcp-common",
+        "isc-dhcp-client",
         "w3m",
         "kbd",
         "udev",
         "man-db",
+        "tasksel",
+        "tasksel-data",
     ]);
 
     if !exclude_pkgs

@@ -48,14 +48,16 @@ jobs:
           #   ver: "8"
           # - os: debian
           #   ver: "9"
+          # - os: debian
+          #   ver: "10"
+          # - os: debian
+          #   ver: "11"
+          # - os: debian
+          #   ver: "12"
+          # - os: debian
+          #   ver: "13"
           - os: debian
-            ver: "10"
-          - os: debian
-            ver: "11"
-          - os: debian
-            ver: "12"
-          - os: debian
-            ver: "13"
+            ver: "unstable"
 
     runs-on: ubuntu-latest
     # defaults:

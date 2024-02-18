@@ -1,11 +1,13 @@
 #!/usr/bin/zsh -fxe
 official_url="http://archive.debian.org/debian/"
 mirror_url="https://mirrors.nju.edu.cn/debian-archive/debian"
+
 deb_components=$(get-deb-components deb-debootstrap)
 components=$(get-deb-components deb)
 
 build() {
     name=$series-$arch
+    src_list=$name/etc/apt/sources.list
 
     args=(
         --no-check-gpg
@@ -23,7 +25,23 @@ build() {
         debootstrap $args
     }
 
-    echo "deb $official_url $series $components" > $name/etc/apt/sources.list
+    case $series {
+        ("jessie") 
+    > $src_list<<-'EOF'
+# | version | codename     | created    | release    | eol        | eol-lts    | eol-elts   |
+# | ------- | ------------ | ---------- | ---------- | ---------- | ---------- | ---------- |
+# | 8       | Jessie       | 2013-05-04 | 2015-04-26 | 2018-06-17 | 2020-06-30 | 2025-06-30 |
+#
+deb http://archive.debian.org/debian/ jessie main contrib non-free
+deb http://archive.debian.org/debian/ jessie-backports main contrib non-free
+deb http://archive.debian.org/debian/ jessie-backports-sloppy main contrib non-free
+# deb http://archive.debian.org/debian-security/ jessie/updates main contrib non-free
+# Debian ELTS
+# deb http://deb.freexian.com/extended-lts/ jessie main contrib non-free
+EOF
+        ;;
+        (*) echo "deb $official_url $series $components" > $src_list ;;
+    }
     run-apt-upgrade-in-container $name
     pack-rootfs-to-tar $name
 }
@@ -31,12 +49,12 @@ build() {
 for series (
     # potato
     # woody
-    sarge
+    # sarge
     # etch
     # lenny
     # squeeze
     # wheezy
-    # jessie
+    jessie
     # stretch
     # buster
     # bullseye
@@ -101,6 +119,21 @@ for series (
                 # "hppa"
                 # "ia64"
                 # "s390"
+            ) {
+                build
+            } ;;
+            ("jessie")
+            for arch (
+                # "i386"
+                # "s390x"
+                # "amd64"
+                # "armhf"
+                # "armel"
+                # "arm64"
+                # "mipsel"
+                # "mips"
+                "powerpc"
+                "ppc64el"
             ) {
                 build
             } ;;
