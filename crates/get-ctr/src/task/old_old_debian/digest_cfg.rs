@@ -386,7 +386,7 @@ pub(crate) fn init_root_cfg(
     digest_os_config[0] = digest::OS::builder()
         .codename(r.get_codename().to_owned())
         .series(r.get_series())
-        .name(r.get_project().to_owned())
+        .name(r.get_osname().to_owned())
         .version(r.get_version().to_owned())
         .docker(os_docker)
         .build();

@@ -11,6 +11,7 @@ use url::Url;
 use crate::{
     cfg::{components, debootstrap::DebootstrapSrc, disk::OsPatch, mirror},
     docker::{get_oci_platform, repo_map},
+    logger,
 };
 
 #[derive(Getters, TypedBuilder, Debug, Clone)]
@@ -21,6 +22,9 @@ pub(crate) struct Repository<'r> {
     owner: &'r str,
     #[builder(default = "debian")]
     project: &'r str,
+
+    #[builder(default = "Debian")]
+    osname: &'r str,
 
     #[builder(!default)]
     codename: &'r str,
@@ -62,6 +66,8 @@ pub(crate) struct Repository<'r> {
 
     #[builder(setter(strip_option))]
     debootstrap_src: Option<DebootstrapSrc>,
+
+    date_tagged: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -489,6 +495,13 @@ impl<'r> Repository<'r> {
         }
     }
 
+    pub(crate) fn opt_tag_prefix(&self) -> Cow<str> {
+        match self.tag {
+            Some(t) => Cow::from(format!("{t}-")),
+            _ => Cow::from(""),
+        }
+    }
+
     /// -> `[ghcr.io/xx/yy, ghcr.io/xx/zz]`
     /// > xx/yy/zz from Self.
     pub(crate) fn ghcr_repos(&self) -> NormalRepos {
@@ -515,6 +528,71 @@ impl<'r> Repository<'r> {
                 // ghcr.io/2cd/debian:potato-x86-base OR ghcr.io/2cd/debian:bo-x86
                 "{}/{}/{}:{}-{}{}",
                 uri, owner, project, version, arch, suffix
+            ),
+        ]
+        .into()
+    }
+
+    pub(crate) fn ghcr_date_tagged_repos(&self) -> NormalRepos {
+        let suffix = self.opt_tag_suffix();
+        let uri = Self::GHCR_URI;
+
+        let Self {
+            owner,
+            project,
+            // series,
+            // version,
+            arch,
+            ..
+        } = self;
+
+        [
+            format!(
+                // ghcr.io/2cd/debian-sid:x64 OR x64-base
+                "{uri}/{owner}/{project}:{arch}{suffix}",
+            ),
+            format!(
+                // ghcr.io/2cd/debian-sid:x64-2024-01-01
+                // OR: x64-base-2024-01-01
+                "{uri}/{owner}/{project}:{arch}{suffix}-{today}",
+                today = logger::today()
+            ),
+        ]
+        .into()
+    }
+
+    fn reg_date_tagged_owner(&self) -> &str {
+        match *self.get_project() {
+            "debian-sid" => "debian",
+            "ubuntu-dev" => "ubuntu",
+            p => p,
+        }
+    }
+
+    pub(crate) fn reg_date_tagged_repos(&self) -> NormalRepos {
+        let suffix = self.opt_tag_suffix();
+        let uri = Self::REG_URI;
+
+        let Self {
+            // owner,
+            // project,
+            series,
+            // version,
+            arch,
+            ..
+        } = self;
+
+        let owner = self.reg_date_tagged_owner();
+
+        [
+            format!(
+                // REG_URI/debian/sid:x64 OR x64-base
+                "{uri}/{owner}/{series}:{arch}{suffix}",
+            ),
+            format!(
+                // REG_URI/debian/sid:x64-2024-01-01
+                "{uri}/{owner}/{series}:{arch}{suffix}-{date}",
+                date = logger::today(),
             ),
         ]
         .into()
@@ -585,6 +663,55 @@ impl<'r> Repository<'r> {
             format!("{}/{}/{}:{}{}", uri, owner, project, series, suffix),
             // ghcr.io/2cd/debian:2.2-base OR ghcr.io/2cd/debian:1.3
             format!("{}/{}/{}:{}{}", uri, owner, project, version, suffix),
+        ]
+        .map(repo_map::MainRepo::Ghcr)
+        .into()
+    }
+    // date_tagged_repos
+
+    pub(crate) fn reg_main_date_tagged_repos(&self) -> MainRepos {
+        let uri = Self::REG_URI;
+        let tag = self.tag.unwrap_or("latest");
+        let series = self.get_series();
+        let prefix = self.opt_tag_prefix();
+
+        let owner = self.reg_date_tagged_owner();
+
+        // REG_URI/debian/sid:tag
+        // REG_URI/debian/sid:2024-01-01 OR base-2024-01-01
+        [
+            format!("{uri}/{owner}/{series}:{tag}"),
+            format!(
+                "{uri}/{owner}/{series}:{prefix}{date}",
+                date = logger::today()
+            ),
+        ]
+        .map(repo_map::MainRepo::Reg)
+        .into()
+    }
+
+    pub(crate) fn ghcr_main_date_tagged_repos(&self) -> MainRepos {
+        let prefix = self.opt_tag_prefix();
+
+        let tag = self.tag.unwrap_or("latest");
+
+        let uri = Self::GHCR_URI;
+        let Self {
+            owner,
+            project,
+            // series,
+            // version,
+            ..
+        } = self;
+
+        // ghcr.io/2cd/debian-sid:TAG, if TAG is empty => latest
+        // ghcr.io/2cd/debian-sid:2024-01-01 OR base-2024-01-01
+        [
+            format!("{uri}/{owner}/{project}:{tag}"),
+            format!(
+                "{uri}/{owner}/{project}:{prefix}{date}",
+                date = logger::today()
+            ),
         ]
         .map(repo_map::MainRepo::Ghcr)
         .into()

@@ -22,8 +22,10 @@ pub(crate) fn run_docker_build(
     docker_dir: &Path,
     tag_map: &mut docker::repo_map::RepoMap,
 ) -> anyhow::Result<()> {
-    let ghcr_tags = repo.ghcr_repos();
-    let reg_tags = repo.reg_repos();
+    let (ghcr_tags, reg_tags) = match repo.get_date_tagged() {
+        true => (repo.ghcr_date_tagged_repos(), repo.reg_date_tagged_repos()),
+        _ => (repo.ghcr_repos(), repo.reg_repos()),
+    };
 
     // ghcr_tags => docker-dir/ghcr.ron
     // tag => docker-dir/tag.ron
@@ -57,8 +59,16 @@ pub(crate) fn run_docker_build(
     // children
     //     .push(("sleep 0.009s", command::spawn_cmd("sleep", &["0.009"])));
 
-    let reg_iter = iter::zip(repo.reg_main_repos(), reg_tags);
-    let ghcr_iter = iter::zip(repo.ghcr_main_repos(), ghcr_tags);
+    let (ghcr_main, reg_main) = match repo.get_date_tagged() {
+        true => (
+            repo.ghcr_main_date_tagged_repos(),
+            repo.reg_main_date_tagged_repos(),
+        ),
+        _ => (repo.ghcr_main_repos(), repo.reg_main_repos()),
+    };
+
+    let ghcr_iter = iter::zip(ghcr_main, ghcr_tags);
+    let reg_iter = iter::zip(reg_main, reg_tags);
 
     // Map {key: Reg(manifest-repo-0), value: TinyVec[x86-tag0, m68k-tag0, element0...]}
     // Map {key: Reg(manifest-repo-1), value: TinyVec[x86-tag1, m68k-tag1, element1...]}

@@ -1,5 +1,5 @@
 [[os]]
-name = "debian"
+name = "Debian"
 version = "2.2"
 codename = "Potato"
 series = "potato"
@@ -44,7 +44,7 @@ arch = "armv3"
 deb-arch = "arm"
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "3.0"
 codename = "Woody"
 series = "woody"
@@ -116,7 +116,7 @@ arch = "m68k"
 deb-arch = "m68k"
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "3.1"
 codename = "Sarge"
 series = "sarge"
@@ -209,7 +209,7 @@ arch = "alpha"
 deb-arch = "alpha"
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "4.0"
 codename = "Etch"
 series = "etch"
@@ -301,7 +301,7 @@ arch = "hppa"
 deb-arch = "hppa"
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "5.0"
 codename = "Lenny"
 series = "lenny"
@@ -392,7 +392,7 @@ arch = "alpha"
 deb-arch = "alpha"
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "6.0"
 codename = "Squeeze"
 series = "squeeze"
@@ -479,7 +479,7 @@ deb-arch = "armel"
 
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "7"
 codename = "Wheezy"
 series = "wheezy"
@@ -574,7 +574,7 @@ deb-arch = "armel"
 # deb-arch = "s390"
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "8"
 codename = "Jessie"
 series = "jessie"
@@ -713,7 +713,7 @@ enabled = [
 ]
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "9"
 codename = "Stretch"
 series = "stretch"
@@ -810,7 +810,7 @@ arch = "armv4t"
 deb-arch = "armel"
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "10"
 codename = "Buster"
 series = "buster"
@@ -881,7 +881,7 @@ arch = "mipsle"
 deb-arch = "mipsel"
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "11"
 codename = "Bullseye"
 series = "bullseye"
@@ -947,7 +947,7 @@ arch = "armv5te"
 deb-arch = "armel"
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "12"
 codename = "Bookworm"
 series = "bookworm"
@@ -1013,7 +1013,7 @@ arch = "s390x"
 deb-arch = "s390x"
 
 [[os]]
-name = "debian"
+name = "Debian"
 version = "13"
 codename = "Trixie"
 series = "trixie"
@@ -1073,10 +1073,10 @@ arch = "armv5te"
 deb-arch = "armel"
 
 [[os]]
-name = "debian"
+name = "Debian"
+
 # inf is infinite and can be parsed as a number, whereas unstable cannot.
 # version = "inf"
-
 version = "unstable"
 codename = "Sid"
 series = "sid"
@@ -1094,8 +1094,8 @@ deb-architectures = [
     # -----
     "alpha",
     "hppa",
-
     # "ia64",
+    # "x32",
 
     "loong64",
     "m68k",
@@ -1103,13 +1103,30 @@ deb-architectures = [
     "ppc64",
     "sh4",
     "sparc64",
-    "x32",
 ]
 no-minbase = false
 deb822-format = true
 [os.source]
 enabled = ["debian/ sid"]
 disabled = ["debian/ experimental", "debian-debug/ sid-debug"]
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+# [os.tag.source]
+# enabled = ["debian-ports/ sid"]
+# disabled = ["debian-ports/ experimental"]
+# [[os.tag]]
+# arch = "x32"
+# deb-arch = "x32"
+# [os.tag.source]
+# enabled = ["debian-ports/ sid"]
+# disabled = ["debian-ports/ experimental"]
+
+# ------
+# ------
+# ------
+
 
 [[os.tag]]
 arch = "x86"
@@ -1147,7 +1164,6 @@ deb-arch = "riscv64"
 arch = "armv5te"
 deb-arch = "armel"
 
-# ------
 
 [[os.tag]]
 arch = "alpha"
@@ -1162,13 +1178,6 @@ deb-arch = "hppa"
 [os.tag.source]
 enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]
-
-#[[os.tag]]
-#arch = "ia64"
-#deb-arch = "ia64"
-# [os.tag.source]
-# enabled = ["debian-ports/ sid"]
-# disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
 arch = "loong64"
@@ -1199,22 +1208,15 @@ enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
-arch = "sh4"
-deb-arch = "sh4"
-[os.tag.source]
-enabled = ["debian-ports/ sid"]
-disabled = ["debian-ports/ experimental"]
-
-[[os.tag]]
 arch = "sparc64"
 deb-arch = "sparc64"
 [os.tag.source]
 enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]
 
-# [[os.tag]]
-# arch = "x32"
-# deb-arch = "x32"
-# [os.tag.source]
-# enabled = ["debian-ports/ sid"]
-# disabled = ["debian-ports/ experimental"]
+[[os.tag]]
+arch = "sh4"
+deb-arch = "sh4"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]

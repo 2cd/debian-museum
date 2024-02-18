@@ -69,11 +69,22 @@ fn get_repo_map_from_ron(
     Ok((map, docker_ron))
 }
 
+/// Splits `xx/yy:latest` and returns xx/yy.
+///
+/// `url:port/xx:latest` must be split from right to left.
 fn rsplit_colon<'a>(s: &'a str, arr: &mut [&'a str; 2]) -> &'a str {
     s.rsplitn(2, ':')
         .enumerate()
         .for_each(|(i, x)| unsafe { *arr.get_unchecked_mut(i) = x });
     arr.reverse();
+
+    if arr[0].is_empty() {
+        if arr[1].is_empty() {
+            panic!("Invalid repo: {s}")
+        }
+        return arr[1];
+    }
+
     arr[0]
 }
 

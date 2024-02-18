@@ -143,6 +143,7 @@ impl Cli {
                         })
                         .version(os.get_version())
                         .project("debian")
+                        .osname("Debian")
                         .url(mirror.join(&url_path)?)
                         .date(disk.get_date())
                         .title_date(os.get_date())
@@ -182,23 +183,27 @@ impl Cli {
 
     /// debian 2.2 ~ sid
     fn handle_debian(&self) -> anyhow::Result<()> {
-        let project = match self.get_ver().as_str() {
-            "sid" | "unstable" | "inf" => "debian-sid",
-            _ => "debian",
+        let (project, date_tagged) = match self.get_ver().as_str() {
+            "sid" | "unstable" => ("debian-sid", true),
+            _ => ("debian", false),
         };
-        self.handle_modern_os(project)
+        self.handle_modern_os(project, date_tagged)
     }
 
     /// handles all ubuntu versions
     fn handle_ubuntu(&self) -> anyhow::Result<()> {
-        let project = match self.get_ver().as_str() {
-            "dev" | "devel" | "inf" => "ubuntu-dev",
-            _ => "ubuntu",
+        let (project, date_tagged) = match self.get_ver().as_str() {
+            "dev" | "devel" => ("ubuntu-dev", true),
+            _ => ("ubuntu", false),
         };
-        self.handle_modern_os(project)
+        self.handle_modern_os(project, date_tagged)
     }
 
-    fn handle_modern_os(&self, project: &str) -> anyhow::Result<()> {
+    fn handle_modern_os(
+        &self,
+        project: &str,
+        date_tagged: bool,
+    ) -> anyhow::Result<()> {
         log::debug!("parsing the {project} (ron config)");
         let ron_str = match project {
             "debian" | "debian-sid" => debootstrap::DEBIAN_RON,
@@ -248,6 +253,7 @@ impl Cli {
                 };
 
                 let repo = Repository::builder()
+                    .osname(os.get_name())
                     .arch(tag.get_arch())
                     .codename(os.get_codename())
                     .series(os.get_series())
@@ -260,6 +266,7 @@ impl Cli {
                     .project(project)
                     .source(src_fmt)
                     .components(os.get_components().as_deref())
+                    .date_tagged(date_tagged)
                     .build();
                 repos.push(repo)
             }
@@ -343,10 +350,18 @@ fn print_title(first: &Repository<'_>) {
         (Some(p), _) => (*p, ""),
         _ => ("", ""),
     };
+
+    if *first.get_date_tagged() {
+        return println!(
+            "{name} ({tag}{tag_suffix}{date})",
+            name = first.get_codename()
+        );
+    }
+
     println!(
         "{} {}{}{}{}{}{}",
         first.get_version(),
-        first.get_series(),
+        first.get_codename(),
         date_prefix,
         tag,
         tag_suffix,

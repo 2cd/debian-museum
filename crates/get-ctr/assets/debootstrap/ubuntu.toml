@@ -1,5 +1,5 @@
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "4.10"
 codename = "Warty Warthog"
 series = "warty"
@@ -31,7 +31,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "5.04"
 codename = "Hoary Hedgehog"
 series = "hoary"
@@ -70,7 +70,7 @@ arch = "ppc"
 deb-arch = "powerpc"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "5.10"
 codename = "Breezy Badger"
 series = "breezy"
@@ -110,7 +110,7 @@ arch = "x86"
 deb-arch = "i386"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "6.06 LTS"
 codename = "Dapper Drake"
 series = "dapper"
@@ -154,7 +154,7 @@ arch = "hppa"
 deb-arch = "hppa"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "6.10"
 codename = "Edgy Eft"
 series = "edgy"
@@ -198,7 +198,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "7.04"
 codename = "Feisty Fawn"
 series = "feisty"
@@ -242,7 +242,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "7.10"
 codename = "Gutsy Gibbon"
 series = "gutsy"
@@ -291,7 +291,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "8.04 LTS"
 codename = "Hardy Heron"
 series = "hardy"
@@ -347,7 +347,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "8.10"
 codename = "Intrepid Ibex"
 series = "intrepid"
@@ -398,7 +398,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "9.04"
 codename = "Jaunty Jackalope"
 series = "jaunty"
@@ -449,7 +449,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "9.10"
 codename = "Karmic Koala"
 series = "karmic"
@@ -493,7 +493,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "10.04 LTS"
 codename = "Lucid Lynx"
 series = "lucid"
@@ -544,7 +544,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "10.10"
 codename = "Maverick Meerkat"
 series = "maverick"
@@ -577,7 +577,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "11.04"
 codename = "Natty Narwhal"
 series = "natty"
@@ -610,7 +610,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "11.10"
 codename = "Oneiric Ocelot"
 series = "oneiric"
@@ -643,7 +643,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "12.04 LTS"
 codename = "Precise Pangolin"
 series = "precise"
@@ -676,7 +676,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "12.10"
 codename = "Quantal Quetzal"
 series = "quantal"
@@ -709,7 +709,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "13.04"
 codename = "Raring Ringtail"
 series = "raring"
@@ -738,7 +738,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "13.10"
 codename = "Saucy Salamander"
 series = "saucy"
@@ -771,7 +771,7 @@ arch = "arm64"
 deb-arch = "arm64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "14.04 LTS"
 codename = "Trusty Tahr"
 series = "trusty"
@@ -818,7 +818,7 @@ deb-arch = "amd64"
 src = "ubuntu"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "14.10"
 codename = "Utopic Unicorn"
 series = "utopic"
@@ -855,7 +855,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "15.04"
 codename = "Vivid Vervet"
 series = "vivid"
@@ -892,7 +892,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "15.10"
 codename = "Wily Werewolf"
 series = "wily"
@@ -929,7 +929,7 @@ arch = "ppc"
 deb-arch = "powerpc"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "16.04 LTS"
 codename = "Xenial Xerus"
 series = "xenial"
@@ -990,7 +990,7 @@ deb-arch = "amd64"
 src = "ubuntu"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "16.10"
 codename = "Yakkety Yak"
 series = "yakkety"
@@ -1039,7 +1039,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "17.04"
 codename = "Zesty Zapus"
 series = "zesty"
@@ -1076,7 +1076,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "17.10"
 codename = "Artful Aardvark"
 series = "artful"
@@ -1113,7 +1113,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "18.04 LTS"
 codename = "Bionic Beaver"
 series = "bionic"
@@ -1160,7 +1160,7 @@ deb-arch = "amd64"
 src = "ubuntu"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "18.10"
 codename = "Cosmic Cuttlefish"
 series = "cosmic"
@@ -1197,7 +1197,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "19.04"
 codename = "Disco Dingo"
 series = "disco"
@@ -1234,7 +1234,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "19.10"
 codename = "Eoan Ermine"
 series = "eoan"
@@ -1271,7 +1271,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "20.04 LTS"
 codename = "Focal Fossa"
 series = "focal"
@@ -1332,7 +1332,7 @@ deb-arch = "amd64"
 src = "ubuntu"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "20.10"
 codename = "Groovy Gorilla"
 series = "groovy"
@@ -1381,7 +1381,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "21.04"
 codename = "Hirsute Hippo"
 series = "hirsute"
@@ -1430,7 +1430,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "21.10"
 codename = "Impish Indri"
 series = "impish"
@@ -1479,7 +1479,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "22.04 LTS"
 codename = "Jammy Jellyfish"
 series = "jammy"
@@ -1540,7 +1540,7 @@ deb-arch = "amd64"
 src = "ubuntu"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "22.10"
 codename = "Kinetic Kudu"
 series = "kinetic"
@@ -1589,7 +1589,7 @@ arch = "x64"
 deb-arch = "amd64"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "23.04"
 codename = "Lunar Lobster"
 series = "lunar"
@@ -1650,7 +1650,7 @@ deb-arch = "amd64"
 src = "ubuntu"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "23.10"
 codename = "Mantic Minotaur"
 series = "mantic"
@@ -1711,7 +1711,7 @@ deb-arch = "amd64"
 src = "ubuntu"
 
 [[os]]
-name = "ubuntu"
+name = "Ubuntu"
 version = "24.04 LTS"
 codename = "Noble Numbat"
 series = "noble"

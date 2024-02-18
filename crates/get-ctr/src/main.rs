@@ -33,13 +33,13 @@ mod tests {
 
         for (name, file) in [
             ("old", "old_old_debian/disk.v1.toml"),
-            ("debian", "debootstrap/debian.toml"),
-            ("ubuntu", "debootstrap/ubuntu.toml"),
+            ("deb", "debootstrap/debian.toml"),
+            ("uuu", "debootstrap/ubuntu.toml"),
         ] {
             let new_file = Path::new(file).with_extension("ron");
 
             let ron_str = match name {
-                "debian" | "ubuntu" => {
+                "deb" | "uuu" => {
                     let value = toml::from_str::<debootstrap::Cfg>(
                         &fs::read_to_string(file)?,
                     )?;
