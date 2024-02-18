@@ -93,6 +93,7 @@ jobs:
       - name: download & repack rootfs & save cache
         run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}} --save-cache
   restore:
+    needs: build
     runs-on: ubuntu-latest
     env:
       build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}} --arch ${{matrix.arch}}
