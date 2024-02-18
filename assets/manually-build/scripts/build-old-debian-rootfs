@@ -29,8 +29,8 @@ build() {
 }
 
 for series (
-    # potato
-    woody
+    potato
+    # woody
     # sarge
     # etch
     # lenny
@@ -49,10 +49,10 @@ for series (
             for arch (
                 ## "i386"
                 ### "powerpc"
-                "alpha"
-                "sparc"
+                # "arm"
+                # "alpha"
+                # "sparc"
                 "m68k"
-                "arm"
             ) {
                 build
             } ;;
@@ -99,7 +99,6 @@ for series (
                 "mipsel"
                 "mips"
                 # "hppa"
-                # "m68k"
                 # "ia64"
                 # "s390"
             ) {

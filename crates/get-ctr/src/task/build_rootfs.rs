@@ -30,24 +30,16 @@ pub(crate) fn create_build_time_ron(docker_dir: &Path) -> anyhow::Result<()> {
 pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
     repos: I,
 ) -> anyhow::Result<()> {
-    #[cfg(not(debug_assertions))]
-    let iter = repos;
-
-    #[cfg(debug_assertions)]
-    let iter = repos
-        .into_iter()
-        // .filter(|x| matches!(x.get_arch(), &"x64" | &"x86"))
-        // .filter(|x| matches!(x.get_arch(), &"x86"))
-        // dbg
-        ;
-
     const OLD_AMD64: [&str; 19] = [
         "breezy", "dapper", "edgy", "etch", "feisty", "hardy", "hoary", "intrepid",
         "jaunty", "karmic", "lenny", "lucid", "maverick", "natty", "oneiric",
         "sarge", "squeeze", "warty", "wheezy",
     ];
 
-    for repo in iter {
+    for repo in repos.into_iter()
+    // .filter(|x| matches!(x.get_arch(), &"x64" | &"x86"))
+    // .filter(|x| matches!(x.get_arch(), &"x86"))
+    {
         log::debug!("building: {} ({})", repo.get_codename(), repo.get_version());
 
         log::trace!("{repo:#?}");
@@ -134,20 +126,27 @@ fn get_old_rootfs(
 
 // docker run -t --rm -v $docker_dir:/app reg.tmoe.me:2096/rootfs/sarge:amd64 mv base.tar /app
 fn get_rootfs_from_docker(docker_repo: &str, docker_dir: &Path) {
-    run(
-        "docker",
-        &[
-            "run",
-            "-t",
-            "--rm",
-            "-v",
-            &format!("{}:/app", docker_dir.to_string_lossy()),
-            docker_repo,
-            "mv",
-            "base.tar",
-            "/app",
-        ],
-    )
+    let args = [
+        "run",
+        "-t",
+        "--rm",
+        "-v",
+        &format!(
+            "{}:/host",
+            docker_dir
+                .canonicalize()
+                .expect("Invalid docker dir")
+                .to_string_lossy()
+        ),
+        "--pull",
+        "always",
+        docker_repo,
+        "mv",
+        "base.tar",
+        "/host",
+    ];
+    log::info!("cmd: docker, args: {args:?}");
+    run("docker", &args)
 }
 
 fn patch_deb_rootfs(rootfs_dir: &PathBuf, repo: &Repository<'_>) {

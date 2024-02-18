@@ -1,4 +1,4 @@
-name: get debian rootfs
+name: get & push (debian 2.2 ~ 3.1 rootfs)
 
 env:
   DEBIAN_FRONTEND: noninteractive
