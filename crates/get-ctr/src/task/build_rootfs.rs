@@ -136,6 +136,7 @@ fn get_old_rootfs(
 fn get_rootfs_from_docker(docker_repo: &str, docker_dir: &Path) {
     let args = [
         "run",
+        "--platform=linux/amd64",
         "-t",
         "--rm",
         "-v",
