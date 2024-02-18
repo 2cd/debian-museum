@@ -13,7 +13,7 @@ env:
       docker run -t --rm -v $PWD:/app reg.tmoe.me:2096/debs/debootstrap:1.0.134 mv /app.deb /app
     fi
     for i in ./app.deb qemu-user-static systemd-container; do
-      yes | sudo apt-get install $i
+      sudo apt-get install -y $i
     done
 
 on:
@@ -96,7 +96,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}} --arch ${{matrix.arch}}
+      build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
     steps:
       - name: Login to REG
         uses: docker/login-action@v3
@@ -107,7 +107,9 @@ jobs:
       - name: restore cache
         run: |
           ${{env.GET_CTR_CMD}}
-          ${{env.build_cmd}} --restore-cache
+          for arch in amd64 i386; do
+            ${{env.build_cmd}} --restore-cache --arch $arch
+          done
           ls -lah
 
   # docker:

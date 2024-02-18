@@ -76,6 +76,13 @@ pub(crate) fn pack_tar_as_root<S: AsRef<OsStr>>(
 ) {
     let osstr = OsStr::new;
 
+    if let Some(par) = tar_path.parent() {
+        if !par.exists() {
+            // ignore err
+            let _ = fs::create_dir_all(par);
+        }
+    }
+
     let mut args = TinyVec::<[&OsStr; 24]>::new();
 
     let src_osdir = src_dir.as_ref();

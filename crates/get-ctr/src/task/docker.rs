@@ -91,6 +91,8 @@ pub(crate) fn save_cache(first_repo: &Repository<'_>) -> io::Result<()> {
     let tmp_dir = temp_dir().join(&base_name);
     let tar_path = tmp_dir.join("cache.tar");
 
+    pack_tar_as_root(".", &tar_path, false);
+
     const CONTENT: &str = r##"# syntax=docker/dockerfile:1
 FROM busybox:musl
 COPY cache.tar /
@@ -98,7 +100,6 @@ COPY cache.tar /
 
     let docker_file = tmp_dir.join("Dockerfile");
 
-    pack_tar_as_root(".", &tar_path, false);
     fs::write(docker_file, CONTENT)?;
 
     let osstr = OsStr::new;
