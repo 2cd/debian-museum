@@ -10,8 +10,8 @@ pub(crate) const DEB_ENV: &str = "DEBIAN_FRONTEND=noninteractive";
 
 use crate::{
     command::{
-        create_dir_all_as_root, force_remove_item_as_root, move_item_as_root, run,
-        run_as_root, run_nspawn,
+        create_dir_all_as_root, force_remove_item_as_root, get_apt_version,
+        move_item_as_root, run, run_as_root, run_nspawn,
     },
     docker::repo::Repository,
     task::{
@@ -151,7 +151,7 @@ fn get_rootfs_from_docker(docker_repo: &str, docker_dir: &Path) {
         "always",
         docker_repo,
         "mv",
-        "base.tar",
+        "/base.tar",
         "/host",
     ];
     log::info!("cmd: docker, args: {args:?}");
@@ -160,17 +160,18 @@ fn get_rootfs_from_docker(docker_repo: &str, docker_dir: &Path) {
 
 fn patch_deb_rootfs(rootfs_dir: &PathBuf, repo: &Repository<'_>) {
     // TODO: fix ubuntu16.04: apt-get purge makedev
+    let series = repo.get_series().as_str();
 
     run_nspawn(rootfs_dir, "apt-get update", false);
     dbg!(repo.get_codename());
 
     // # debian-etch: +debian-backports-keyring
-    match repo.get_series().as_str() {
+    match series {
         "etch" | "lenny" => {
             run_nspawn(
                 rootfs_dir,
-                "apt-get install --assume-yes --force-yes debian-backports-keyring \
-                    ;  exit 0",
+                "apt-get install --assume-yes --force-yes debian-backports-keyring ;
+                    exit 0",
                 false,
             );
         }
@@ -191,13 +192,17 @@ fn patch_deb_rootfs(rootfs_dir: &PathBuf, repo: &Repository<'_>) {
     //         ; exit 0",
     // );
 
+    let apt_arg = if get_apt_version() >= &2 { "" } else { "--force-yes" };
+
     run_nspawn(
         rootfs_dir,
-        "timeout 1800 apt-get dist-upgrade --assume-yes --force-yes \
-            ;  for i in apt-utils eatmydata; do \
-                    apt-get install --assume-yes --force-yes $i \
-            ;  done \
-            ;  apt-get clean",
+        format!(
+            "timeout 1800 apt-get dist-upgrade --assume-yes {apt_arg} ;
+            for i in apt-utils eatmydata; do
+                    apt-get install --assume-yes {apt_arg} $i
+            done
+            apt-get clean"
+        ),
         false,
     );
 }
@@ -217,30 +222,34 @@ fn run_debootstrap(
 ) {
     let osstr = OsStr::new;
     let mut args = TinyVec::<[&OsStr; 10]>::new();
-    let mut ex_packages_arr = TinyVec::<[&str; 24]>::new();
+    let mut ex_packages_arr = TinyVec::<[&str; 28]>::new();
 
-    ex_packages_arr.extend([
-        "postfix",
-        "postfix-tls",
-        "ubuntu-base",
-        "popularity-contest",
-        "vim",
-        "vim-common",
-        "vim-tiny",
-        "wireless-tools",
-        "ppp",
-        "pppoe",
-        "pppconfig",
-        "pppoeconf",
-        "isc-dhcp-common",
-        "isc-dhcp-client",
-        "w3m",
-        "kbd",
-        "udev",
-        "man-db",
-        "tasksel",
-        "tasksel-data",
-    ]);
+    {
+        let pkgs = [
+            "postfix",
+            "postfix-tls",
+            "ubuntu-base",
+            "popularity-contest",
+            "vim",
+            "vim-common",
+            "vim-tiny",
+            "wireless-tools",
+            "ppp",
+            "pppoe",
+            "pppconfig",
+            "pppoeconf",
+            "isc-dhcp-common",
+            "isc-dhcp-client",
+            "w3m",
+            "kbd",
+            "udev",
+            "man-db",
+            "tasksel",
+            "tasksel-data",
+            "e2fsprogs",
+        ];
+        ex_packages_arr.extend(pkgs);
+    }
 
     if !exclude_pkgs
         .first()

@@ -1,10 +1,18 @@
 use log_l10n::level::color::OwoColorize;
 
 use crate::{
-    command,
-    docker::{self, spawn_docker_build},
+    command::{self, run},
+    docker::{self, repo::Repository, spawn_docker_build},
+    task::compression::{extract_tar_as_root, pack_tar_as_root},
 };
-use std::{self, fs, iter, ops::Deref, path::Path};
+use std::{
+    self,
+    env::{self, temp_dir},
+    ffi::OsStr,
+    fs, io, iter,
+    ops::Deref,
+    path::Path,
+};
 pub(crate) fn run_docker_push(repo: &str) {
     log::info!(
         "{} {} {} {}",
@@ -75,5 +83,71 @@ pub(crate) fn run_docker_build(
     for (key, element) in reg_iter.chain(ghcr_iter) {
         tag_map.push_to_value(key, element)
     }
+    Ok(())
+}
+
+pub(crate) fn save_cache(first_repo: &Repository<'_>) -> io::Result<()> {
+    let base_name = first_repo.base_name();
+    let tmp_dir = temp_dir().join(&base_name);
+    let tar_path = tmp_dir.join("cache.tar");
+
+    const CONTENT: &str = r##"# syntax=docker/dockerfile:1
+FROM busybox:musl
+COPY cache.tar /
+"##;
+
+    let docker_file = tmp_dir.join("Dockerfile");
+
+    pack_tar_as_root(".", &tar_path, false);
+    fs::write(docker_file, CONTENT)?;
+
+    let osstr = OsStr::new;
+
+    let docker_tag = get_cache_tag(first_repo, &base_name);
+
+    let build_args = [
+        osstr("build"),
+        osstr("--tag"),
+        osstr(&docker_tag),
+        tmp_dir.as_ref(),
+    ];
+    log::info!("cmd: docker, args: {build_args:?}");
+    run("docker", &build_args, true);
+
+    let push_args = ["push", "--tag", &docker_tag].map(osstr);
+    log::info!("cmd: docker, args: {push_args:?}");
+    run("docker", &push_args, true);
+
+    Ok(())
+}
+
+fn get_cache_tag(first_repo: &Repository<'_>, base_name: &str) -> String {
+    format!(
+        "{uri}/{owner}/cache:{base_name}",
+        uri = Repository::REG_URI,
+        owner = first_repo.get_reg_date_tagged_owner(),
+    )
+}
+
+pub(crate) fn restore_cache(first_repo: &Repository<'_>) -> io::Result<()> {
+    let base_name = first_repo.base_name();
+    let docker_tag = get_cache_tag(first_repo, &base_name);
+    let args = [
+        "run",
+        "-t",
+        "--rm",
+        "-v",
+        &format!("{}:/host", env::current_dir()?.to_string_lossy()),
+        "--pull",
+        "always",
+        &docker_tag,
+        "mv",
+        "/cache.tar",
+        "/host",
+    ];
+    log::info!("cmd: docker, args: {args:?}");
+    run("docker", &args, true);
+
+    extract_tar_as_root(Path::new("cache.tar"), ".")?;
     Ok(())
 }

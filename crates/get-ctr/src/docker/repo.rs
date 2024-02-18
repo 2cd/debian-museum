@@ -561,7 +561,7 @@ impl<'r> Repository<'r> {
         .into()
     }
 
-    fn reg_date_tagged_owner(&self) -> &str {
+    pub(crate) fn get_reg_date_tagged_owner(&self) -> &str {
         match *self.get_project() {
             "debian-sid" => "debian",
             "ubuntu-dev" => "ubuntu",
@@ -582,7 +582,7 @@ impl<'r> Repository<'r> {
             ..
         } = self;
 
-        let owner = self.reg_date_tagged_owner();
+        let owner = self.get_reg_date_tagged_owner();
 
         [
             format!(
@@ -675,7 +675,7 @@ impl<'r> Repository<'r> {
         let series = self.get_series();
         let prefix = self.opt_tag_prefix();
 
-        let owner = self.reg_date_tagged_owner();
+        let owner = self.get_reg_date_tagged_owner();
 
         // REG_URI/debian/sid:tag
         // REG_URI/debian/sid:2024-01-01 OR base-2024-01-01

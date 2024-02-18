@@ -5,7 +5,12 @@ use crate::{
     },
     docker::repo::{Repository, SrcFormat},
     logger,
-    task::{build_rootfs, old_old_debian, pool::global_pool},
+    task::{
+        build_rootfs,
+        docker::{restore_cache, save_cache},
+        old_old_debian,
+        pool::global_pool,
+    },
     url::concat_url_path,
 };
 use anyhow::{bail, Context};
@@ -28,6 +33,11 @@ pub(crate) struct Cli {
     /// Version, e.g., 1.3, 2.0, 22.04
     #[arg(long, default_value = "2.1")]
     ver: String,
+
+    /// If no architecture is specified, all is used by default.
+    /// Specifying debian 1.3, 2.0, 2.1, 2.2-base architecture is not supported.
+    #[arg(long, num_args = 0..=1, default_missing_value = " ")]
+    arch: Option<String>,
 
     /// e.g. base
     #[arg(long, num_args = 0..=1, default_missing_value = " ")]
@@ -79,7 +89,14 @@ pub(crate) struct Cli {
     #[arg(long, help_heading = "Save Config")]
     release_tag: bool,
 
-    #[arg(long, help = PKG_VERSION, help_heading = "Builtin")]
+    /// pack the [workdir] to cache.tar, then build & push to REG  
+    #[arg(long, help_heading = "CI", group = "cache")]
+    save_cache: bool,
+
+    #[arg(long, help_heading = "CI", group = "cache")]
+    restore_cache: bool,
+
+    #[arg(long, help = PKG_VERSION, help_heading = "Info")]
     version: bool,
 }
 
@@ -226,7 +243,17 @@ impl Cli {
             let main_src = os.get_source();
             let main_deb_src = main_src.debootstrap_src(suite);
 
-            for tag in os.get_tag() {
+            for tag in os
+                .get_tag()
+                .iter()
+                .filter(|sub| match self.get_arch().as_deref() {
+                    Some(arch) if arch.trim().is_empty() => true,
+                    Some(arch) => [sub.get_arch(), sub.get_deb_arch()]
+                        .map(|x| x.as_str())
+                        .contains(&arch),
+                    _ => true,
+                })
+            {
                 let sub_src = tag.get_source();
                 let src_fmt = get_src_format(sub_src, main_src);
 
@@ -313,6 +340,16 @@ impl Cli {
             println!("{}{}", first.get_version(), first.opt_tag_suffix());
         };
         global_pool().join();
+
+        if *self.get_restore_cache() {
+            restore_cache(first())?;
+            exit(0)
+        }
+
+        if *self.get_save_cache() {
+            save_cache(first())?;
+            exit(0)
+        }
 
         Ok(())
     }

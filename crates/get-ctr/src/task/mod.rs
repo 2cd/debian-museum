@@ -1,6 +1,6 @@
 pub(crate) mod build_rootfs;
 mod compression;
-mod docker;
+pub(crate) mod docker;
 pub(crate) mod old_old_debian;
 pub(crate) mod pool;
 

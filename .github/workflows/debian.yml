@@ -5,6 +5,16 @@ env:
   GET_CTR_LOG: debug
   REG_USER: "robot$debian+bot_actions_2024"
   ZSTD_LV: 18
+  REG_URI: reg.tmoe.me:2096
+  GET_CTR_CMD: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-ctr:x64 cp get-ctr /host
+  INSTALL_DEPS: |
+    sudo apt-get update
+    if [[ ! -e app.deb ]]; then
+      docker run -t --rm -v $PWD:/app reg.tmoe.me:2096/debs/debootstrap:1.0.134 mv /app.deb /app
+    fi
+    for i in ./app.deb qemu-user-static systemd-container; do
+      yes | sudo apt-get install $i
+    done
 
 on:
   push:
@@ -58,74 +68,111 @@ jobs:
           #   ver: "13"
           - os: debian
             ver: "unstable"
+            arch: amd64
 
+          - os: debian
+            ver: "unstable"
+            arch: i386
     runs-on: ubuntu-latest
-    # defaults:
-    #   run:
-    #     shell: zsh -f -e {0}
     env:
-      digests_ron: digests.ron
-      digests_yaml: digests.yml
-      build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
+      build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}} --arch ${{matrix.arch}}
 
     steps:
-      - name: get `get-ctr` bin from docker
-        run: docker run -i --rm -v /usr/local/bin:/host --pull always reg.tmoe.me:2096/rs/get-ctr:x64 cp get-ctr /host
-
-      - name: install qemu-user & debootstrap
+      - name: preparations
         run: |
-          sudo apt-get update
-          for i in qemu-user-static debootstrap systemd-container; do
-            yes | sudo apt-get install $i
-          done
-
-      - name: +RELEASE_TAG env
-        run: echo RELEASE_TAG=$(${{env.build_cmd}} --release-tag) >>$GITHUB_ENV
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          ${{env.INSTALL_DEPS}}
+          ${{env.GET_CTR_CMD}}
 
       - name: Login to REG
         uses: docker/login-action@v3
         with:
-          registry: reg.tmoe.me:2096
+          registry: ${{env.REG_URI}}
           username: ${{env.REG_USER}}
           password: ${{ secrets.REG_TOKEN }}
 
-      - name: download & repack rootfs
-        run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}}
-
-      - name: build container
-        run: ${{env.build_cmd}} --build
-
-      - name: push to ghcr & reg
-        run: ${{env.build_cmd}} --push
-
-      - name: create manifest
-        run: ${{env.build_cmd}} --create-manifest --update-repo-digest
-
-      - name: generate digests.{ron,yml}
-        run: ${{env.build_cmd}} --digest ${{env.digests_ron}} --digest ${{env.digests_yaml}}
-
-      - name: create digests.md
-        run: |
-          echo '```yaml' > digests.md
-          cat tmp/${{env.digests_yaml}} >> digests.md
-          echo '```' >> digests.md
-          echo TITLE=$(${{env.build_cmd}} --title) >>$GITHUB_ENV
-
-      - name: release
-        uses: softprops/action-gh-release@v1
+      - name: download & repack rootfs & save cache
+        run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}} --save-cache
+  restore:
+    runs-on: ubuntu-latest
+    env:
+      build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}} --arch ${{matrix.arch}}
+    steps:
+      - name: Login to REG
+        uses: docker/login-action@v3
         with:
-          fail_on_unmatched_files: true
-          tag_name: ${{env.RELEASE_TAG}}
-          name: ${{env.TITLE}}
-          files: |
-            tmp/zstd/*.zst
-            tmp/${{env.digests_ron}}
-            tmp/${{env.digests_yaml}}
-          body_path: digests.md
+          registry: ${{env.REG_URI}}
+          username: ${{env.REG_USER}}
+          password: ${{ secrets.REG_TOKEN }}
+      - name: restore cache
+        run: |
+          ${{env.GET_CTR_CMD}}
+          ${{env.build_cmd}} --restore-cache
+          ls -lah
+
+  # docker:
+  #   runs-on: ubuntu-latest
+  #   # defaults:
+  #   #   run:
+  #   #     shell: zsh -f -e {0}
+  #   env:
+  #     digests_ron: digests.ron
+  #     digests_yaml: digests.yml
+  #     build_cmd: get-ctr --os ${{matrix.os}} --ver ${{matrix.ver}} --tag ${{matrix.tag}}
+
+  #   steps:
+  #     - name: get `get-ctr` bin from docker
+  #       run: ${{env.GET_CTR_CMD}}
+
+  #     - name: install qemu-user & debootstrap
+  #       run: ${{env.INSTALL_DEPS}}
+
+  #     - name: +RELEASE_TAG env
+  #       run: echo RELEASE_TAG=$(${{env.build_cmd}} --release-tag) >>$GITHUB_ENV
+
+  #     - name: Login to GHCR
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+
+  #     - name: Login to REG
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: reg.tmoe.me:2096
+  #         username: ${{env.REG_USER}}
+  #         password: ${{ secrets.REG_TOKEN }}
+
+  #     - name: download & repack rootfs
+  #       run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}}
+
+  #     - name: build container
+  #       run: ${{env.build_cmd}} --build
+
+  #     - name: push to ghcr & reg
+  #       run: ${{env.build_cmd}} --push
+
+  #     - name: create manifest
+  #       run: ${{env.build_cmd}} --create-manifest --update-repo-digest
+
+  #     - name: generate digests.{ron,yml}
+  #       run: ${{env.build_cmd}} --digest ${{env.digests_ron}} --digest ${{env.digests_yaml}}
+
+  #     - name: create digests.md
+  #       run: |
+  #         echo '```yaml' > digests.md
+  #         cat tmp/${{env.digests_yaml}} >> digests.md
+  #         echo '```' >> digests.md
+  #         echo TITLE=$(${{env.build_cmd}} --title) >>$GITHUB_ENV
+
+  #     - name: release
+  #       uses: softprops/action-gh-release@v1
+  #       with:
+  #         fail_on_unmatched_files: true
+  #         tag_name: ${{env.RELEASE_TAG}}
+  #         name: ${{env.TITLE}}
+  #         files: |
+  #           tmp/zstd/*.zst
+  #           tmp/${{env.digests_ron}}
+  #           tmp/${{env.digests_yaml}}
+  #         body_path: digests.md

@@ -19,6 +19,10 @@ deb822-format = false
 enabled = ["debian-archive/debian/ potato"]
 disabled = ["debian-archive/debian/ potato-proposed-updates"]
 
+# [[os.tag]]
+# arch = "ppc"
+# deb-arch = "powerpc"
+
 [[os.tag]]
 arch = "x86"
 deb-arch = "i386"
@@ -34,10 +38,6 @@ deb-arch = "sparc"
 [[os.tag]]
 arch = "m68k"
 deb-arch = "m68k"
-
-# [[os.tag]]
-# arch = "ppc"
-# deb-arch = "powerpc"
 
 [[os.tag]]
 arch = "armv3"

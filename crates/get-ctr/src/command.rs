@@ -25,7 +25,7 @@ pub(crate) fn spawn_cmd(cmd: &str, args: &[&str]) -> Child {
     Command::new(cmd)
         .args(args)
         .spawn()
-        .expect("Failed tp spawn command")
+        .expect("Failed to spawn command")
 }
 
 /// Blocks running process and does not catch stdout & stderr (i.e., defaults to direct output to the console)
@@ -213,6 +213,34 @@ pub(crate) fn run_nspawn<S: AsRef<OsStr>, R: AsRef<OsStr>>(
         ],
         exit_if_failure,
     )
+}
+
+pub(crate) fn get_apt_version() -> &'static u32 {
+    static V: OnceLock<u32> = OnceLock::new();
+    V.get_or_init(|| {
+        let Ok(apt_info) = Command::new("dpkg")
+            .args(["-s", "apt"])
+            .stderr(Stdio::inherit())
+            .stdout(Stdio::piped())
+            .output()
+        else {
+            return 0;
+        };
+
+        let out = String::from_utf8_lossy(&apt_info.stdout);
+        let Some(ver_line) = out
+            .lines()
+            .find(|x| x.starts_with("Version:"))
+        else {
+            return 0;
+        };
+
+        ver_line
+            .split_ascii_whitespace()
+            .next_back()
+            .and_then(|x| x.split('.').next())
+            .map_or(0, |v| v.parse().unwrap_or(0))
+    })
 }
 
 #[cfg(test)]
