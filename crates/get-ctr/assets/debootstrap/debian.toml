@@ -174,6 +174,15 @@ deb-arch = "sparc"
 [[os.tag]]
 arch = "mipsle"
 deb-arch = "mipsel"
+[os.tag.source]
+enabled = [
+    "debian-archive/debian/ sarge",
+    # sarge mipsel has no backports & volatile
+    # "debian-archive/debian-backports/ sarge-backports",
+    "debian-archive/debian-security/ sarge/updates",
+    "debian-archive/debian-volatile/ sarge/volatile-sloppy",
+    "debian-archive/debian-volatile/ sarge/volatile",
+]
 
 [[os.tag]]
 arch = "mipsbe"
