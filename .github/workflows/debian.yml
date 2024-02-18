@@ -1,4 +1,4 @@
-name: build & push (debian Wheezy, Jessie & Stretch)
+name: build & push (debian Buster, Bullseye, Bookworm & Trixie)
 
 env:
   DEBIAN_FRONTEND: noninteractive
@@ -42,12 +42,20 @@ jobs:
           #   ver: "5.0"
           # - os: debian
           #   ver: "6.0"
+          # - os: debian
+          #   ver: "7"
+          # - os: debian
+          #   ver: "8"
+          # - os: debian
+          #   ver: "9"
           - os: debian
-            ver: "7"
+            ver: "10"
           - os: debian
-            ver: "8"
+            ver: "11"
           - os: debian
-            ver: "9"
+            ver: "12"
+          - os: debian
+            ver: "13"
 
     runs-on: ubuntu-latest
     # defaults:
