@@ -93,19 +93,8 @@ jobs:
           username: ${{env.REG_USER}}
           password: ${{ secrets.REG_TOKEN }}
 
-      - name: restore cache
-        run: |
-          ${{env.GET_CTR_CMD}}
-          archs=(
-            "i386" "amd64" "arm64" "ppc64el" "mips64el" "s390x" "armhf" "riscv64" "armel" "alpha" "hppa" "m68k" "powerpc" "ppc64" "sh4" "sparc64"
-          )
-          for arch in "${archs[@]}"; do
-            ${{env.build_cmd}} --restore-cache --arch $arch
-            tree tmp
-          done
-
-      # - name: get `get-ctr` bin from docker
-      #   run: ${{env.GET_CTR_CMD}}
+      - name: get `get-ctr` bin from docker
+        run: ${{env.GET_CTR_CMD}}
 
       - name: install qemu-user & debootstrap
         run: ${{env.INSTALL_DEPS}}
@@ -121,7 +110,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: download & repack rootfs
-        run: ${{env.build_cmd}} --obtain --arch loong64
+        run: ${{env.build_cmd}} --obtain --repack --arch loong64
+
+      - name: restore cache
+        run: |
+          ${{env.GET_CTR_CMD}}
+          archs=(
+            "i386" "amd64" "arm64" "ppc64el" "mips64el" "s390x" "armhf" "riscv64" "armel" "alpha" "hppa" "m68k" "powerpc" "ppc64" "sh4" "sparc64"
+          )
+          for arch in "${archs[@]}"; do
+            ${{env.build_cmd}} --restore-cache --arch $arch
+            tree tmp
+          done
 
       - name: build container
         run: ${{env.build_cmd}} --build
