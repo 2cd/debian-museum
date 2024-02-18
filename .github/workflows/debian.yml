@@ -1,4 +1,4 @@
-name: get Bo, Hamm, Slink & Potato rootfs
+name: get debian rootfs
 
 env:
   DEBIAN_FRONTEND: noninteractive
@@ -32,6 +32,8 @@ jobs:
             ver: "2.2"
           - os: debian
             ver: "3.0"
+          - os: debian
+            ver: "3.1"
 
     runs-on: ubuntu-latest
     # defaults:
@@ -48,17 +50,6 @@ jobs:
 
       - name: install qemu-user & debootstrap
         run: |
-          sudo mv /etc/apt/sources.list /etc/apt/sources.list.bak || true
-          cat >uuu.sources<<-'EOF'
-          # Name: ubuntu 24.04 (Official)
-          Enabled: yes
-          Types: deb
-          URIs: http://archive.ubuntu.com/ubuntu/
-          Suites: devel devel-updates devel-backports devel-security
-          Components: main restricted universe multiverse
-          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-          EOF
-          sudo mv uuu.sources /etc/apt/sources.list.d/
           sudo apt-get update
           for i in qemu-user-static debootstrap; do
             yes | sudo apt-get install $i
@@ -66,9 +57,6 @@ jobs:
 
       - name: +RELEASE_TAG env
         run: echo RELEASE_TAG=$(${{env.build_cmd}} --release-tag) >>$GITHUB_ENV
-
-      - name: download & repack rootfs
-        run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -83,6 +71,9 @@ jobs:
           registry: reg.tmoe.me:2096
           username: ${{env.REG_USER}}
           password: ${{ secrets.REG_TOKEN }}
+
+      - name: download & repack rootfs
+        run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}}
 
       - name: build container
         run: ${{env.build_cmd}} --build

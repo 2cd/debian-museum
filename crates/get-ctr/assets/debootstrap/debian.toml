@@ -5,7 +5,14 @@ codename = "Potato"
 series = "potato"
 date = "2000-08"
 components = "main contrib non-free"
-deb-architectures = ["i386", "alpha", "sparc", "m68k", "powerpc", "arm"]
+deb-architectures = [
+    # "powerpc",
+    "i386",
+    "alpha",
+    "sparc",
+    "m68k",
+    "arm",
+]
 no-minbase = true
 deb822-format = false
 [os.source]
@@ -28,9 +35,9 @@ deb-arch = "sparc"
 arch = "m68k"
 deb-arch = "m68k"
 
-[[os.tag]]
-arch = "ppc"
-deb-arch = "powerpc"
+# [[os.tag]]
+# arch = "ppc"
+# deb-arch = "powerpc"
 
 [[os.tag]]
 arch = "armv3"
@@ -47,13 +54,13 @@ deb-architectures = [
     "alpha",
     "hppa",
     "i386",
-    "mipsel",
     "sparc",
     "arm",
     # "ia64",
     # "s390",
-    # "mips",
     # "powerpc",
+    # "mips",
+    # "mipsel",
     "m68k",
 ]
 no-minbase = true
@@ -85,10 +92,6 @@ arch = "x86"
 deb-arch = "i386"
 
 [[os.tag]]
-arch = "mipsle"
-deb-arch = "mipsel"
-
-[[os.tag]]
 arch = "sparc"
 deb-arch = "sparc"
 
@@ -99,6 +102,10 @@ deb-arch = "arm"
 # [[os.tag]]
 # arch = "s390"
 # deb-arch = "s390"
+
+# [[os.tag]]
+# arch = "mipsle"
+# deb-arch = "mipsel"
 
 # [[os.tag]]
 # arch = "mipsbe"
@@ -118,18 +125,20 @@ components = "main contrib non-free"
 no-minbase = true
 deb822-format = false
 deb-architectures = [
+    "arm",
     "sparc",
-    # "s390",
-    "powerpc",
-    "mipsel",
-    "mips",
-    "m68k",
-    # 
+
     # "ia64",
 
+    "s390",
+    "powerpc",
+
+    "mips",
+    "mipsel",
+
+    "m68k",
     "i386",
     "hppa",
-    "arm",
     "alpha",
 ]
 [os.source]
@@ -156,9 +165,9 @@ enabled = ["debian-archive/debian-amd64/ sarge"]
 arch = "sparc"
 deb-arch = "sparc"
 
-# [[os.tag]]
-# arch = "s390"
-# deb-arch = "s390"
+[[os.tag]]
+arch = "s390"
+deb-arch = "s390"
 
 [[os.tag]]
 arch = "ppc"

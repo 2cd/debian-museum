@@ -1,0 +1,109 @@
+#!/usr/bin/zsh -fxe
+official_url="http://archive.debian.org/debian/"
+mirror_url="https://mirrors.nju.edu.cn/debian-archive/debian"
+deb_components=$(get-deb-components deb-debootstrap)
+components=$(get-deb-components deb)
+
+build() {
+    name=$series-$arch
+
+    args=(
+        --no-check-gpg
+        # --exclude=$exclude_pkgs
+        # 
+        --components=$deb_components
+        --arch=$arch
+        # 
+        $series
+        $name
+        $mirror_url
+    )
+
+    if [[ ! -e $name ]] {
+        debootstrap $args
+    }
+
+    echo "deb $official_url $series $components" > $name/etc/apt/sources.list
+    run-apt-upgrade-in-container $name
+    pack-rootfs-to-tar $name
+}
+
+for series (
+    # potato
+    woody
+    # sarge
+    # etch
+    # lenny
+    # squeeze
+    # wheezy
+    # jessie
+    # stretch
+    # buster
+    # bullseye
+    # bookworm
+    # trixie
+    ) {
+    
+    case $series {
+        ("potato") 
+            for arch (
+                ## "i386"
+                ### "powerpc"
+                "alpha"
+                "sparc"
+                "m68k"
+                "arm"
+            ) {
+                build
+            } ;;
+        ("woody")
+            for arch (
+                ## "i386"
+                ## "ia64"
+                ## "s390"
+                "powerpc"
+                "mips"
+                "mipsel"
+                # "alpha"
+                # "hppa"
+                # "sparc"
+                # "arm"
+                # "m68k"
+            ) {
+                build
+            } ;;
+        ("sarge")
+            for arch (
+                # "ia64"
+                # "s390"
+                "powerpc"
+                "mipsel"
+                "mips"
+                "arm"
+                "sparc"
+                "m68k"
+                "hppa"
+                "alpha"
+                "i386"
+            ) {
+                build
+            } ;;
+        ("etch")
+            for arch (
+                # "amd64"
+                # "i386"
+                # "arm"
+                # "alpha"
+                # "sparc"
+                "powerpc"
+                "mipsel"
+                "mips"
+                # "hppa"
+                # "m68k"
+                # "ia64"
+                # "s390"
+            ) {
+                build
+            } ;;
+    }
+}

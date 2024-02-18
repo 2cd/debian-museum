@@ -68,17 +68,23 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
         let series = repo.get_series().as_str();
         let deb_arch = repo.get_deb_arch();
 
+        let get_rootfs = |arch, series| -> Result<(), anyhow::Error> {
+            get_old_rootfs(docker_dir, &rootfs_dir, arch, series)
+        };
+
         // #[cfg(not(debug_assertions))]
         if !rootfs_dir.exists() || !tar_path.exists() {
             match (deb_arch, series) {
                 (Some(arch @ "amd64"), s) if OLD_AMD64.contains(&s) => {
-                    get_old_rootfs(docker_dir, &rootfs_dir, arch, s)?
+                    get_rootfs(arch, s)?
+                }
+                (Some(arch), s) if ["warty", "hoary"].contains(&s) => {
+                    get_rootfs(arch, s)?
                 }
                 (Some(arch), s)
-                    if ["i386", "powerpc", "sparc"].contains(arch)
-                        && ["warty", "hoary"].contains(&s) =>
+                    if arch != &"i386" && ["potato", "woody"].contains(&s) =>
                 {
-                    get_old_rootfs(docker_dir, &rootfs_dir, arch, s)?
+                    get_rootfs(arch, s)?
                 }
                 _ => {
                     let mut ex_pkgs = TinyVec::<[&str; 1]>::new();
