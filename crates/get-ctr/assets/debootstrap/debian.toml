@@ -164,10 +164,9 @@ enabled = ["debian-archive/debian-amd64/ sarge"]
 arch = "sparc"
 deb-arch = "sparc"
 
-[[os.tag]]
-arch = "s390"
-deb-arch = "s390"
-
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
 # [[os.tag]]
 # arch = "ppc"
 # deb-arch = "powerpc"
@@ -1030,9 +1029,10 @@ deb-arch = "armel"
 
 [[os]]
 name = "debian"
-# version = "unstable"
 # inf is infinite and can be parsed as a number, whereas unstable cannot.
-version = "inf"
+# version = "inf"
+
+version = "unstable"
 codename = "Sid"
 series = "sid"
 components = "main contrib non-free non-free-firmware"

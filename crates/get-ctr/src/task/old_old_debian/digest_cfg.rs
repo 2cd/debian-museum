@@ -231,12 +231,13 @@ fn archive_file_cfg(
         .build();
 
     let nspawn_env = match r.get_series().as_str() {
-        s if DISTROS_THAT_REQUIRE_XTERM.contains(&s) => "-E TERM=xterm",
+        // `-E xx ` retains a space at the end
+        s if DISTROS_THAT_REQUIRE_XTERM.contains(&s) => "-E TERM=xterm ",
         _ => "",
     };
 
     let gh_repo = match r.get_project() {
-        &"debian" => "debian-museum",
+        &"debian" | &"debian-sid" => "debian-museum",
         // &"ubuntu"
         _ => "ubuntu-museum",
     };
@@ -272,7 +273,7 @@ fn archive_file_cfg(
     apt install systemd-container qemu-user-static
 
     # run nspawn as root (i.e., +sudo/+doas)
-    systemd-nspawn -D {tag_name} -E LANG=$LANG {nspawn_env}
+    systemd-nspawn -D {tag_name} {nspawn_env}-E LANG=$LANG
 
 "##,
         );

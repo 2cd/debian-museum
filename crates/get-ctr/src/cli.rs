@@ -4,6 +4,7 @@ use crate::{
         disk::DiskV1,
     },
     docker::repo::{Repository, SrcFormat},
+    logger,
     task::{build_rootfs, old_old_debian, pool::global_pool},
     url::concat_url_path,
 };
@@ -181,18 +182,26 @@ impl Cli {
 
     /// debian 2.2 ~ sid
     fn handle_debian(&self) -> anyhow::Result<()> {
-        self.handle_modern_os("debian")
+        let project = match self.get_ver().as_str() {
+            "sid" | "unstable" | "inf" => "debian-sid",
+            _ => "debian",
+        };
+        self.handle_modern_os(project)
     }
 
     /// handles all ubuntu versions
     fn handle_ubuntu(&self) -> anyhow::Result<()> {
-        self.handle_modern_os("ubuntu")
+        let project = match self.get_ver().as_str() {
+            "dev" | "devel" | "inf" => "ubuntu-dev",
+            _ => "ubuntu",
+        };
+        self.handle_modern_os(project)
     }
 
     fn handle_modern_os(&self, project: &str) -> anyhow::Result<()> {
         log::debug!("parsing the {project} (ron config)");
         let ron_str = match project {
-            "debian" => debootstrap::DEBIAN_RON,
+            "debian" | "debian-sid" => debootstrap::DEBIAN_RON,
             _ => debootstrap::UBUNTU_RON,
         };
 
@@ -224,17 +233,26 @@ impl Cli {
                     _ => bail!("Empty Debootstrap Source"),
                 };
 
+                let repo_version = match project {
+                    "debian-sid" | "ubuntu-dev" => "unstable",
+                    // "ubuntu-dev" => "devel",
+                    _ => os
+                        .get_version()
+                        .split_ascii_whitespace()
+                        .next()
+                        .expect("Invalid Version"),
+                };
+                let title_date = match os.get_date() {
+                    s if !s.is_empty() => s,
+                    _ => logger::today(),
+                };
+
                 let repo = Repository::builder()
                     .arch(tag.get_arch())
                     .codename(os.get_codename())
                     .series(os.get_series())
-                    .title_date(os.get_date())
-                    .version(
-                        os.get_version()
-                            .split_ascii_whitespace()
-                            .next()
-                            .expect("Invalid Version"),
-                    )
+                    .title_date(title_date)
+                    .version(repo_version)
                     .no_minbase(*os.get_no_minbase())
                     .deb822(*os.get_deb822_format())
                     .debootstrap_src(deb_src)

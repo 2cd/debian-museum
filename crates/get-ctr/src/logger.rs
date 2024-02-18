@@ -5,7 +5,16 @@ use log_l10n::{
     level::color::OwoColorize,
     logger::{before_init, env_logger},
 };
-use std::{borrow::Cow, env};
+use std::{borrow::Cow, env, sync::OnceLock};
+
+pub(crate) fn today() -> &'static str {
+    static D: OnceLock<String> = OnceLock::new();
+    D.get_or_init(|| {
+        time::OffsetDateTime::now_utc()
+            .date()
+            .to_string()
+    })
+}
 
 pub(crate) fn init() {
     let pkg = get_pkg_name!();
