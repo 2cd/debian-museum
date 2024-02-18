@@ -120,8 +120,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: download & repack rootfs
-      #   run: ${{env.build_cmd}} --obtain --repack --zstd-level ${{env.ZSTD_LV}}
+      - name: download & repack rootfs
+        run: ${{env.build_cmd}} --obtain --arch loong64
 
       - name: build container
         run: ${{env.build_cmd}} --build
