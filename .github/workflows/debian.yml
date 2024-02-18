@@ -48,6 +48,8 @@ jobs:
 
       - name: install qemu-user & debootstrap
         run: |
+          ls -lah /etc/apt/sources.list.d/
+          sudo sed 's@jammy@nobel@g' -i /etc/apt/sources.list
           sudo apt-get update
           for i in qemu-user-static debootstrap; do
             yes | sudo apt-get install $i
