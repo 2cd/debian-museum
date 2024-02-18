@@ -185,10 +185,7 @@ pub(crate) fn move_item_as_root<S: AsRef<OsStr>, D: AsRef<OsStr>>(src: S, dst: D
     run_as_root("mv", &[OsStr::new("-f"), src.as_ref(), dst.as_ref()], true);
 }
 
-// pub(crate) fn copy_dir_as_root<S: AsRef<OsStr>, D: AsRef<OsStr>>(src: S, dst: D) {
-//     run_as_root("cp", &[OsStr::new("-rf"), src.as_ref(), dst.as_ref()]);
-// }
-
+// ~= sudo fs::create_dir_all(dst)
 pub(crate) fn create_dir_all_as_root<D: AsRef<OsStr>>(dst: D) {
     run_as_root("mkdir", &[OsStr::new("-p"), dst.as_ref()], true);
 }

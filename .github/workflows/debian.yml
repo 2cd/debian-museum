@@ -1,4 +1,4 @@
-name: get & push (debian 2.2 ~ 3.1 rootfs)
+name: get & push (debian etch & lenny)
 
 env:
   DEBIAN_FRONTEND: noninteractive
@@ -28,13 +28,16 @@ jobs:
           # - os: debian
           #   ver: "2.2"
           #   tag: base
+          # - os: debian
+          #   ver: "2.2"
+          # - os: debian
+          #   ver: "3.0"
+          # - os: debian
+          #   ver: "3.1"
           - os: debian
-            ver: "2.2"
+            ver: "4.0"
           - os: debian
-            ver: "3.0"
-          - os: debian
-            ver: "3.1"
-          # potato & woody need ready-made i386 rootfs
+            ver: "5.0"
 
     runs-on: ubuntu-latest
     # defaults:

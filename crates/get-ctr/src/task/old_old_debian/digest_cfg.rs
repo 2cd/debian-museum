@@ -265,8 +265,11 @@ fn archive_file_cfg(
     cd tmp
     curl -LO '{url_str}'
 
-    # run gnutar or bsdtar as root (e.g., doas tar -xvf file.tar.zst)
+    # run gnutar or bsdtar (libarchive-tools) as root (e.g., doas tar -xvf file.tar.zst)
     tar -C {tag_name} -xf {zstd_filename:?}
+
+    # run apt as root (i.e., +sudo/+doas)
+    apt install systemd-container qemu-user-static
 
     # run nspawn as root (i.e., +sudo/+doas)
     systemd-nspawn -D {tag_name} -E LANG=$LANG {nspawn_env}
