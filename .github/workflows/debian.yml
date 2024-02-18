@@ -51,7 +51,7 @@ jobs:
       - name: install qemu-user & debootstrap
         run: |
           sudo apt-get update
-          for i in qemu-user-static debootstrap; do
+          for i in qemu-user-static debootstrap systemd-container; do
             yes | sudo apt-get install $i
           done
 
