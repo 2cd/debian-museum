@@ -72,6 +72,7 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                 (Some(arch @ "amd64"), s) if OLD_AMD64.contains(&s) => {
                     get_rootfs(arch, s)?
                 }
+                (Some(arch @ "loong64"), s @ "sid") => get_rootfs(arch, s)?,
                 (Some(arch), s) if ["warty", "hoary"].contains(&s) => {
                     get_rootfs(arch, s)?
                 }
