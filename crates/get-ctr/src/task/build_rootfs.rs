@@ -73,9 +73,7 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                 (Some(arch), s) if ["warty", "hoary"].contains(&s) => {
                     get_rootfs(arch, s)?
                 }
-                (Some(arch), s)
-                    if arch != &"i386" && ["potato", "woody"].contains(&s) =>
-                {
+                (Some(arch), s) if ["potato", "woody"].contains(&s) => {
                     get_rootfs(arch, s)?
                 }
                 _ => {
@@ -146,13 +144,13 @@ fn get_rootfs_from_docker(docker_repo: &str, docker_dir: &Path) {
         "/host",
     ];
     log::info!("cmd: docker, args: {args:?}");
-    run("docker", &args)
+    run("docker", &args, true);
 }
 
 fn patch_deb_rootfs(rootfs_dir: &PathBuf, repo: &Repository<'_>) {
     // TODO: fix ubuntu16.04: apt-get purge makedev
 
-    run_nspawn(rootfs_dir, "apt-get update; exit 0");
+    run_nspawn(rootfs_dir, "apt-get update", false);
     dbg!(repo.get_codename());
 
     // # debian-etch: +debian-backports-keyring
@@ -162,6 +160,7 @@ fn patch_deb_rootfs(rootfs_dir: &PathBuf, repo: &Repository<'_>) {
                 rootfs_dir,
                 "apt-get install --assume-yes --force-yes debian-backports-keyring \
                     ;  exit 0",
+                false,
             );
         }
         _ => {}
@@ -187,8 +186,8 @@ fn patch_deb_rootfs(rootfs_dir: &PathBuf, repo: &Repository<'_>) {
             ;  for i in apt-utils eatmydata; do \
                     apt-get install --assume-yes --force-yes $i \
             ;  done \
-            ;  apt-get clean \
-            ;  exit 0",
+            ;  apt-get clean",
+        false,
     );
 }
 
@@ -262,7 +261,20 @@ fn run_debootstrap(
     args.push(rootfs_dir.as_ref());
     args.push(osstr(deb_src.get_url().as_str()));
 
-    run_as_root("/usr/sbin/debootstrap", &args);
+    run_as_root("/usr/sbin/debootstrap", &args, true);
+
+    let log_file = rootfs_dir.join("debootstrap/debootstrap.log");
+
+    if log_file.exists() {
+        log::debug!(
+            "log_file: {}, log_path: {log_file:?}",
+            fs::read_to_string(&log_file).unwrap_or_default()
+        );
+        panic!(
+            "Failed to build: {} (dir: {rootfs_dir:?}) with debootstrap",
+            repo.get_series()
+        )
+    }
 }
 
 /// - if deb822:              mirrors/mirror.sources -> rootfs/etc/apt/sources.list.d/

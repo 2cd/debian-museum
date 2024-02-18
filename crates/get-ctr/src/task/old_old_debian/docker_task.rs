@@ -118,7 +118,7 @@ where
         }
 
         log::debug!("cmd: {}, args: {:#?}", "docker".green(), args.cyan());
-        command::run("docker", &args);
+        command::run("docker", &args, true);
         // -----------
         let digest = push_docker_manifest(repo)?;
         update_repo_digest_map(&mut repo_digest_map, digest_map_key, digest)
@@ -275,7 +275,7 @@ where
             };
 
             log::info!("{} {} {}", "docker".green(), "pull".yellow(), repo.blue());
-            command::run("docker", &["pull", repo]);
+            command::run("docker", &["pull", repo], true);
 
             let args = ["inspect", "--format", r##"{{json .RepoDigests}}"##, repo];
             log::info!("cmd: {}, args: {:#?}", "docker".green(), args.blue());

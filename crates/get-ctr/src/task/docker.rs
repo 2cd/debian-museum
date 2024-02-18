@@ -13,7 +13,7 @@ pub(crate) fn run_docker_push(repo: &str) {
         "--all-tags".cyan(),
         repo.blue()
     );
-    command::run("docker", &["push", "--all-tags", repo])
+    command::run("docker", &["push", "--all-tags", repo], true);
 }
 
 pub(crate) fn run_docker_build(

@@ -34,6 +34,7 @@ jobs:
             ver: "3.0"
           - os: debian
             ver: "3.1"
+          # potato & woody need ready-made i386 rootfs
 
     runs-on: ubuntu-latest
     # defaults:

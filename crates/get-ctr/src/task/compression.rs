@@ -62,6 +62,7 @@ pub(crate) fn extract_tar_as_root<D: AsRef<Path>>(
             osstr("-xf"),
             tar_path.as_ref(),
         ],
+        true,
     );
 
     Ok(())
@@ -109,12 +110,12 @@ pub(crate) fn pack_tar_as_root<S: AsRef<OsStr>>(
 
     args.extend([osstr("-cf"), tar_path.as_ref(), osstr(".")]);
 
-    run_as_root("tar", &args);
+    run_as_root("tar", &args, true);
 
     let sys_dir = Path::new(src_osdir).join("sys");
 
     if sys_dir.join("kernel").exists() {
-        run_as_root("umount", &[osstr("-lf"), sys_dir.as_os_str()])
+        run_as_root("umount", &[osstr("-lf"), sys_dir.as_os_str()], true);
     }
 
     force_remove_item_as_root(src_osdir);

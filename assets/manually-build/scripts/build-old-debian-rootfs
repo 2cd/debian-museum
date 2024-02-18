@@ -30,7 +30,7 @@ build() {
 
 for series (
     potato
-    # woody
+    woody
     # sarge
     # etch
     # lenny
@@ -47,23 +47,23 @@ for series (
     case $series {
         ("potato") 
             for arch (
-                ## "i386"
-                ### "powerpc"
+                "i386"
+                ## "powerpc"
                 # "arm"
                 # "alpha"
                 # "sparc"
-                "m68k"
+                # "m68k"
             ) {
                 build
             } ;;
         ("woody")
             for arch (
-                ## "i386"
+                "i386"
                 ## "ia64"
                 ## "s390"
-                "powerpc"
-                "mips"
-                "mipsel"
+                # "powerpc"
+                # "mips"
+                # "mipsel"
                 # "alpha"
                 # "hppa"
                 # "sparc"

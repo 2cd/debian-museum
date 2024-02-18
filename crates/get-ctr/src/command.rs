@@ -18,7 +18,7 @@ pub(crate) fn run_curl(url: &Url, fname: &str) {
         file = fname.magenta(),
         url = url.yellow()
     );
-    run("curl", &["-L", "-o", fname, url.as_str()]);
+    run("curl", &["-L", "-o", fname, url.as_str()], true);
 }
 
 pub(crate) fn spawn_cmd(cmd: &str, args: &[&str]) -> Child {
@@ -29,7 +29,7 @@ pub(crate) fn spawn_cmd(cmd: &str, args: &[&str]) -> Child {
 }
 
 /// Blocks running process and does not catch stdout & stderr (i.e., defaults to direct output to the console)
-pub(crate) fn run<A, S>(cmd: S, args: &[A])
+pub(crate) fn run<A, S>(cmd: S, args: &[A], exit_if_failure: bool) -> ExitStatus
 where
     A: AsRef<OsStr>,
     S: AsRef<OsStr>,
@@ -45,30 +45,44 @@ where
     };
 
     // 1st run:
-    if !status().success() {
-        error!(
-            "Failed to run : {:?} ({:?} ...)",
-            cmd.as_ref(),
-            args.first().map(|x| x.as_ref())
-        );
-        eprintln!("Retrying ...");
-        // 2nd run:
-        if !status().success() {
-            eprintln!("Retrying ...");
-            // 3rd run:
-            exit_if_failure(status())
-        }
+    let status_1st = status();
+    if status_1st.success() {
+        return status_1st;
     }
+
+    error!(
+        "Failed to run : {:?} ({:?} ...)",
+        cmd.as_ref(),
+        args.first().map(|x| x.as_ref())
+    );
+    eprintln!("Retrying ...");
+    // 2nd run:
+    let status_2nd = status();
+    if status_1st.success() {
+        return status_2nd;
+    }
+
+    eprintln!("Retrying ...");
+    // 3rd run:
+    let status_3rd = status();
+    if exit_if_failure {
+        check_status_and_exit(status_3rd)
+    }
+    status_3rd
 }
 
-fn exit_if_failure(status: ExitStatus) {
+fn check_status_and_exit(status: ExitStatus) {
     if !status.success() {
         exit(status.into_raw())
     }
 }
 
 /// If the current uid is not 0 (non-root user), sudo and doas are automatically detected and a new process are run synchronously and blockingly.
-pub(crate) fn run_as_root<S, A>(cmd: S, args: &[A])
+pub(crate) fn run_as_root<S, A>(
+    cmd: S,
+    args: &[A],
+    exit_if_failure: bool,
+) -> ExitStatus
 where
     // I: IntoIterator<Item = S>,
     A: AsRef<OsStr>,
@@ -77,7 +91,7 @@ where
     let uid = unsafe { libc::getuid() };
     log::debug!("uid: {uid}");
     if uid == 0 {
-        return run(cmd, args);
+        return run(cmd, args, exit_if_failure);
     }
 
     let root_cmd = static_root_cmd();
@@ -91,7 +105,7 @@ where
     }
 
     info!("cmd: {root_cmd}, args: {new_args:?}");
-    run(OsStr::new(root_cmd.as_ref()), &new_args);
+    run(OsStr::new(root_cmd.as_ref()), &new_args, exit_if_failure)
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -163,12 +177,12 @@ pub(crate) fn force_remove_item_as_root<P: AsRef<Path>>(path: P) {
     }
 
     // run_as_root("chmod", &[osstr("-R"), osstr("777"), p.as_ref()]);
-    run_as_root("rm", &[osstr("-rf"), p.as_ref()]);
+    run_as_root("rm", &[osstr("-rf"), p.as_ref()], true);
 }
 
 /// ~= sudo fs::rename(src, dst)
 pub(crate) fn move_item_as_root<S: AsRef<OsStr>, D: AsRef<OsStr>>(src: S, dst: D) {
-    run_as_root("mv", &[OsStr::new("-f"), src.as_ref(), dst.as_ref()]);
+    run_as_root("mv", &[OsStr::new("-f"), src.as_ref(), dst.as_ref()], true);
 }
 
 // pub(crate) fn copy_dir_as_root<S: AsRef<OsStr>, D: AsRef<OsStr>>(src: S, dst: D) {
@@ -176,12 +190,13 @@ pub(crate) fn move_item_as_root<S: AsRef<OsStr>, D: AsRef<OsStr>>(src: S, dst: D
 // }
 
 pub(crate) fn create_dir_all_as_root<D: AsRef<OsStr>>(dst: D) {
-    run_as_root("mkdir", &[OsStr::new("-p"), dst.as_ref()]);
+    run_as_root("mkdir", &[OsStr::new("-p"), dst.as_ref()], true);
 }
 
 pub(crate) fn run_nspawn<S: AsRef<OsStr>, R: AsRef<OsStr>>(
     rootfs_dir: R,
     sh_cmd: S,
+    exit_if_failure: bool,
 ) {
     #[allow(unused_variables)]
     let osstr = OsStr::new;
@@ -199,6 +214,7 @@ pub(crate) fn run_nspawn<S: AsRef<OsStr>, R: AsRef<OsStr>>(
             osstr("-c"),
             sh_cmd.as_ref(),
         ],
+        exit_if_failure,
     );
 }
 
