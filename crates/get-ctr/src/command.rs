@@ -197,7 +197,7 @@ pub(crate) fn run_nspawn<S: AsRef<OsStr>, R: AsRef<OsStr>>(
     rootfs_dir: R,
     sh_cmd: S,
     exit_if_failure: bool,
-) {
+) -> ExitStatus {
     #[allow(unused_variables)]
     let osstr = OsStr::new;
 
@@ -215,7 +215,7 @@ pub(crate) fn run_nspawn<S: AsRef<OsStr>, R: AsRef<OsStr>>(
             sh_cmd.as_ref(),
         ],
         exit_if_failure,
-    );
+    )
 }
 
 #[cfg(test)]
