@@ -76,6 +76,11 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                 (Some(arch), s) if ["potato", "woody"].contains(&s) => {
                     get_rootfs(arch, s)?
                 }
+                (Some(arch), s @ "sarge")
+                    if ["mips", "mipsel", "powerpc"].contains(arch) =>
+                {
+                    get_rootfs(arch, s)?
+                }
                 _ => {
                     let mut ex_pkgs = TinyVec::<[&str; 1]>::new();
                     match series {

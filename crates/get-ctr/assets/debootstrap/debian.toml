@@ -129,10 +129,9 @@ deb-architectures = [
     "sparc",
 
     # "ia64",
+    # "s390",
 
-    "s390",
     "powerpc",
-
     "mips",
     "mipsel",
 
@@ -169,9 +168,9 @@ deb-arch = "sparc"
 arch = "s390"
 deb-arch = "s390"
 
-[[os.tag]]
-arch = "ppc"
-deb-arch = "powerpc"
+# [[os.tag]]
+# arch = "ppc"
+# deb-arch = "powerpc"
 
 [[os.tag]]
 arch = "mipsle"
