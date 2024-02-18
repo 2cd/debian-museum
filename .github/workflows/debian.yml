@@ -115,8 +115,8 @@ jobs:
           ${{env.GET_CTR_CMD}}
           for arch in amd64 i386; do
             ${{env.build_cmd}} --restore-cache --arch $arch
+            ls -lah tmp
           done
-          ls -lah
 
   # docker:
   #   runs-on: ubuntu-latest
