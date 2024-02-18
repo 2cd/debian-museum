@@ -177,11 +177,11 @@ deb-arch = "mipsel"
 [os.tag.source]
 enabled = [
     "debian-archive/debian/ sarge",
+    "debian-archive/debian-security/ sarge/updates",
     # sarge mipsel has no backports & volatile
     # "debian-archive/debian-backports/ sarge-backports",
-    "debian-archive/debian-security/ sarge/updates",
-    "debian-archive/debian-volatile/ sarge/volatile-sloppy",
-    "debian-archive/debian-volatile/ sarge/volatile",
+    # "debian-archive/debian-volatile/ sarge/volatile-sloppy",
+    # "debian-archive/debian-volatile/ sarge/volatile",
 ]
 
 [[os.tag]]
