@@ -1,4 +1,4 @@
-name: get & push (debian sarge, lenny, squeeze)
+name: build & push (debian Wheezy, Jessie & Stretch)
 
 env:
   DEBIAN_FRONTEND: noninteractive
@@ -32,16 +32,22 @@ jobs:
           #   ver: "2.2"
           # - os: debian
           #   ver: "3.0"
-          - os: debian
-            ver: "3.1"
+          # - os: debian
+          #   ver: "3.1"
           # - os: debian
           #   ver: "4.0"
           # - os: debian
           #   ver: "5.0"
+          # - os: debian
+          #   ver: "5.0"
+          # - os: debian
+          #   ver: "6.0"
           - os: debian
-            ver: "5.0"
+            ver: "7"
           - os: debian
-            ver: "6.0"
+            ver: "8"
+          - os: debian
+            ver: "9"
 
     runs-on: ubuntu-latest
     # defaults:
