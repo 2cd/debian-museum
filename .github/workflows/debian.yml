@@ -48,8 +48,8 @@ jobs:
 
       - name: install qemu-user & debootstrap
         run: |
-          sudo mv /etc/apt/sources.list /etc/apt/sources.list.bak
-          sudo cat >/etc/apt/sources.list.d/uuu.sources<<-'EOF'
+          sudo mv /etc/apt/sources.list /etc/apt/sources.list.bak || true
+          cat >uuu.sources<<-'EOF'
           # Name: ubuntu 24.04 (Official)
           Enabled: yes
           Types: deb
@@ -58,6 +58,7 @@ jobs:
           Components: main restricted universe multiverse
           Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
           EOF
+          doas mv uuu.sources /etc/apt/sources.list.d/
           sudo apt-get update
           for i in qemu-user-static debootstrap; do
             yes | sudo apt-get install $i
