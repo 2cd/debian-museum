@@ -58,7 +58,7 @@ jobs:
           Components: main restricted universe multiverse
           Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
           EOF
-          doas mv uuu.sources /etc/apt/sources.list.d/
+          sudo mv uuu.sources /etc/apt/sources.list.d/
           sudo apt-get update
           for i in qemu-user-static debootstrap; do
             yes | sudo apt-get install $i
