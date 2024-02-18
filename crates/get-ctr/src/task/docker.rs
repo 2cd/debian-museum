@@ -115,7 +115,7 @@ COPY cache.tar /
     log::info!("cmd: docker, args: {build_args:?}");
     run("docker", &build_args, true);
 
-    let push_args = ["push", "--tag", &docker_tag].map(osstr);
+    let push_args = ["push", &docker_tag].map(osstr);
     log::info!("cmd: docker, args: {push_args:?}");
     run("docker", &push_args, true);
 
