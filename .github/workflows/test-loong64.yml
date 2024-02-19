@@ -68,6 +68,7 @@ jobs:
           EOF
           sudo mv uuu.sources /etc/apt/sources.list.d/
           ${{env.INSTALL_DEPS}}
+          sudo apt-get dist-upgrade -y
           ${{env.GET_CTR_CMD}}
 
       - name: Login to REG
