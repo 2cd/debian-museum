@@ -21,7 +21,7 @@ on:
     # branches:
     #   - master
     paths:
-      - ".github/workflows/debian.yml"
+      - ".github/workflows/test-loong64.yml"
 
 jobs:
   build:
