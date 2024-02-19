@@ -61,7 +61,7 @@ jobs:
           Enabled: yes
           Types: deb
           URIs: http://azure.archive.ubuntu.com/ubuntu/
-          Suites: xenial xenial-updates xenial-backports xenial-security xenial-proposed
+          Suites: devel devel-updates devel-backports devel-security devel-proposed
           Components: main restricted universe multiverse
           Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
           Trusted: yes
