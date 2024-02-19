@@ -163,6 +163,7 @@ deb-architectures = [
     "sparc",
     "powerpc",
     # "ia64",
+    "lpia",
     "i386",
     "hppa",
     "amd64",
@@ -172,6 +173,10 @@ deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
 
 [[os.tag]]
 arch = "sparc"
@@ -210,12 +215,17 @@ deb-architectures = [
     "i386",
     "hppa",
     "amd64",
+    "lpia",
 ]
 no-minbase = true
 deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
 
 [[os.tag]]
 arch = "sparc"
@@ -248,13 +258,14 @@ codename = "Gutsy Gibbon"
 series = "gutsy"
 date = "2007-10-18"
 deb-architectures = [
-    "armel",
-    "sparc",
-    "powerpc",
+    # "sparc",
     # "ia64",
+    "powerpc",
+    "lpia",
     "i386",
     "hppa",
     "amd64",
+    "lpia",
 ]
 no-minbase = false
 deb822-format = false
@@ -263,24 +274,28 @@ deb822-format = false
 src = "ubuntu-old-releases"
 
 [[os.tag]]
-arch = "armv4t"
-deb-arch = "armel"
+arch = "lpia"
+deb-arch = "lpia"
 
-[[os.tag]]
-arch = "sparc"
-deb-arch = "sparc"
-
-[[os.tag]]
-arch = "ppc"
-deb-arch = "powerpc"
+# [[os.tag]]
+# arch = "sparc"
+# deb-arch = "sparc"
 
 #[[os.tag]]
 #arch = "ia64"
 #deb-arch = "ia64"
 
 [[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
 arch = "x86"
 deb-arch = "i386"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
 
 [[os.tag]]
 arch = "hppa"
@@ -307,12 +322,17 @@ deb-architectures = [
     "i386",
     "hppa",
     "amd64",
+    "lpia",
 ]
 no-minbase = false
 deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
 
 [[os.tag]]
 arch = "armv7a"
@@ -362,12 +382,17 @@ deb-architectures = [
 
     "i386",
     "amd64",
+    "lpia",
 ]
 no-minbase = false
 deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
 
 [[os.tag]]
 arch = "armv4t"
@@ -413,12 +438,17 @@ deb-architectures = [
     "hppa",
     "armel",
     "amd64",
+    "lpia",
 ]
 no-minbase = false
 deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
 
 [[os.tag]]
 arch = "sparc"
@@ -458,6 +488,7 @@ deb-architectures = [
     "sparc",
     "powerpc",
     # "ia64",
+    "lpia",
     "i386",
     "armel",
     "amd64",
@@ -467,6 +498,10 @@ deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
 
 [[os.tag]]
 arch = "sparc"

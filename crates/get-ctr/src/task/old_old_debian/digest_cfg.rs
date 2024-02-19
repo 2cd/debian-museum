@@ -212,7 +212,7 @@ fn archive_file_cfg(
 
     let file_size_cmt = format!(
         r#"Ideally:
-    zstd size => download size (i.e. Consumes {readable_size} of traffic)
+    zstd size => download size (i.e., Consumes {readable_size} of traffic)
     tar size => uncompressed size (Actually, the extracted content is >= {tar_readable})
     zstd + tar size ~= space occupation for initial installation
         (i.e., Requires at least {tar_and_zstd_size} of disk storage space, but actually needs more)

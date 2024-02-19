@@ -10,17 +10,17 @@ Inconsistency detected by ld.so: rtld.c: 1192: dl_main: Assertion `(void *) ph->
 
 ## Preparations
 
-runs-on: Debian Stretch (ELTS)
-user: root (uid = 0)
-depends:
-    - systemd-container
-    - debootstrap
-    - curl
+- runs-on: Debian Stretch (ELTS)
+- user: root (uid = 0)
+- depends:
+  - systemd-container
+  - debootstrap
+  - curl
+- shell: zsh
 <!-- recommends:
     - qemu-user-static -->
-shell: zsh
 
-### add script-dir to path
+### add scripts-dir to path
 
 ```zsh
 # Allows the use of `#` in interactive zsh
@@ -36,8 +36,6 @@ path=(
 ```
 
 ## wheezy-elts-amd64
-
-build rootfs
 
 ```zsh
 series=wheezy

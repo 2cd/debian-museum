@@ -119,10 +119,14 @@ pub(crate) fn pack_tar_as_root<S: AsRef<OsStr>>(
 
     run_as_root("tar", &args, true);
 
-    let sys_dir = Path::new(src_osdir).join("sys");
+    let internal_dir = |s| Path::new(src_osdir).join(s);
+
+    let sys_dir = internal_dir("sys");
+    let proc_dir = internal_dir("proc");
 
     if sys_dir.join("kernel").exists() {
-        run_as_root("umount", &[osstr("-lf"), sys_dir.as_os_str()], true);
+        run_as_root("umount", &[osstr("-lf"), sys_dir.as_ref()], false);
+        run_as_root("umount", &[osstr("-lf"), proc_dir.as_ref()], false);
     }
 
     force_remove_item_as_root(src_osdir);

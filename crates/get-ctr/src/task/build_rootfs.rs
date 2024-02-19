@@ -10,8 +10,8 @@ pub(crate) const DEB_ENV: &str = "DEBIAN_FRONTEND=noninteractive";
 
 use crate::{
     command::{
-        create_dir_all_as_root, force_remove_item_as_root, get_apt_version,
-        move_item_as_root, run, run_as_root, run_nspawn,
+        create_dir_all_as_root, force_remove_item_as_root, move_item_as_root, run,
+        run_as_root, run_nspawn,
     },
     docker::repo::Repository,
     task::{
@@ -72,11 +72,11 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                 (Some(arch @ "amd64"), s) if OLD_AMD64.contains(&s) => {
                     get_rootfs(arch, s)?
                 }
-                (Some(arch @ "loong64"), s @ "sid") => get_rootfs(arch, s)?,
-                (Some(arch), s) if ["warty", "hoary"].contains(&s) => {
-                    get_rootfs(arch, s)?
-                }
-                (Some(arch), s) if ["potato", "woody"].contains(&s) => {
+                // (Some(arch @ "loong64"), s @ "sid") => get_rootfs(arch, s)?,
+                (Some(arch), s)
+                    if ["warty", "hoary", "gutsy", "potato", "woody"]
+                        .contains(&s) =>
+                {
                     get_rootfs(arch, s)?
                 }
                 (Some(arch), s @ "jessie") if JESSIE_NO_LTS_ARCHS.contains(arch) => {
@@ -152,6 +152,7 @@ fn get_rootfs_from_docker(docker_repo: &str, docker_dir: &Path) {
         "always",
         docker_repo,
         "mv",
+        "-f",
         "/base.tar",
         "/host",
     ];
@@ -159,52 +160,85 @@ fn get_rootfs_from_docker(docker_repo: &str, docker_dir: &Path) {
     run("docker", &args, true);
 }
 
-fn patch_deb_rootfs(rootfs_dir: &PathBuf, repo: &Repository<'_>) {
-    // TODO: fix ubuntu16.04: apt-get purge makedev
+fn patch_deb_rootfs(rootfs_dir: &Path, repo: &Repository<'_>) {
     let series = repo.get_series().as_str();
+    let year = match repo.get_title_date() {
+        Some(s) => s
+            .split('-')
+            .next()
+            .and_then(|y| y.parse::<u64>().ok())
+            .unwrap_or(2020),
+        None => 2020,
+    };
 
-    run_nspawn(rootfs_dir, "apt-get update", false);
-    dbg!(repo.get_codename());
+    log::debug!(
+        "codename: {}, arch: {}",
+        repo.get_codename(),
+        repo.get_deb_arch()
+            .unwrap_or("Unknown")
+    );
+    run_nspawn(rootfs_dir, "apt-get update", false, &["LANG=C.UTF-8"]);
 
     // # debian-etch: +debian-backports-keyring
     match series {
         "etch" | "lenny" => {
             run_nspawn(
                 rootfs_dir,
-                "apt-get install --assume-yes --force-yes debian-backports-keyring ;
-                    exit 0",
+                "apt-get install --assume-yes --force-yes debian-backports-keyring",
                 false,
+                &["LANG=C"],
+            );
+        }
+        "xenial" => {
+            run_nspawn(
+                rootfs_dir,
+                // "sed '1a exit 0' -i /var/lib/dpkg/info/makedev.postinst",
+                "apt-get autoremove --purge --assume-yes makedev",
+                false,
+                &[""],
             );
         }
         _ => {}
     }
 
-    // run_nspawn(
-    //     rootfs_dir,
-    //     "apt-get install --assume-yes --force-yes locales \
-    //         ; for i in C en_US zh_CN; do \
-    //             localedef \
-    //                 --force \
-    //                 --inputfile $i \
-    //                 --charmap UTF-8 \
-    //                 $i.UTF-8 \
-    //         ; done \
-    //         ; apt-get purge --assume-yes --force-yes locales \
-    //         ; exit 0",
-    // );
+    let apt_arg = if year >= 2010 { "" } else { "--force-yes" };
 
-    let apt_arg = if get_apt_version() >= &2 { "" } else { "--force-yes" };
+    // apt-get install --assume-yes {apt_arg} locales
+
+    if rootfs_dir
+        .join("usr/share/i18n/locales/en_US")
+        .exists()
+    {
+        run_nspawn(
+            rootfs_dir,
+            "
+            for i in en_US zh_CN; do
+                localedef \
+                    --force \
+                    --inputfile $i \
+                    --charmap UTF-8 \
+                    $i.UTF-8
+            done
+            ",
+            false,
+            &["LANG=C"],
+        );
+    }
 
     run_nspawn(
         rootfs_dir,
         format!(
-            "timeout 1800 apt-get dist-upgrade --assume-yes {apt_arg} ;
-            for i in apt-utils eatmydata; do
-                    apt-get install --assume-yes {apt_arg} $i
+            "apt-get dist-upgrade --assume-yes {apt_arg} ;
+            for i in gpgv apt-utils eatmydata whiptail; do
+                apt-get install --assume-yes {apt_arg} $i
             done
             apt-get clean"
         ),
         false,
+        &[
+            "LANG=C",
+            // "container=lxc",
+        ],
     );
 }
 
@@ -223,31 +257,61 @@ fn run_debootstrap(
 ) {
     let osstr = OsStr::new;
     let mut args = TinyVec::<[&OsStr; 10]>::new();
-    let mut ex_packages_arr = TinyVec::<[&str; 28]>::new();
+    let mut ex_packages_arr = TinyVec::<[&str; 32]>::new();
 
     {
+        // > aptitude search '?priority(required)'
+        // ubuntu-minimal:
+        // adduser, alsa-base, alsa-utils, apt, apt-utils, aptitude, base-files, base-passwd, bash, bsdutils, bzip2, console-setup, console-tools, coreutils, dash, debconf, debianutils, dhcp3-client, diff, dpkg, e2fsprogs, eject, ethtool, findutils, gettext-base, gnupg, grep, gzip, hostname, ifupdown, initramfs-tools, iproute, iputils-ping, less, libc6-i686, libfribidi0, locales, login, lsb-release, makedev, mawk, mii-diag, mktemp, module-init-tools, mount, ncurses-base, ncurses-bin, net-tools, netbase, netcat, ntpdate, passwd, pciutils, pcmciautils, perl-base, procps, python, python-minimal, sed, startup-tasks, sudo, sysklogd, system-services, tar, tasksel, tzdata, ubuntu-keyring, udev, upstart, upstart-compat-sysv, upstart-logd, usbutils, util-linux, util-linux-locales, vim-tiny, wireless-tools, wpasupplicant
+
         let pkgs = [
-            "postfix",
-            "postfix-tls",
+            "ubuntu-minimal",
             "ubuntu-base",
-            "popularity-contest",
+            // "popularity-contest",
+            // "postfix",
+            // "postfix-tls",
+            // "wireless-tools",
+            // "wpasupplicant",
+            // "ppp",
+            // "pppoe",
+            // "pppconfig",
+            // "pppoeconf",
+            // "dhcp3-client",
+            // // "dhcp3-common",
+            // "console-terminus",
+            // "console-setup",
+            // "console-tools",
+            // "kbd",
+            // "usbutils",
+            // "initramfs-tools",
+            // "volumeid",
+            // "w3m",
+            // "e2fsprogs",
+            // ----
+            // "adduser",
+            "cpio",
+            "dmidecode",
+            "fdisk",
+            "ifupdown",
+            "iproute2",
+            "iputils-ping",
+            "isc-dhcp-common",
+            "isc-dhcp-client",
+            "kmod",
+            "less",
+            "logrotate",
+            "nano",
+            "nftables",
+            "procps",
+            "udev",
             "vim",
             "vim-common",
             "vim-tiny",
-            "wireless-tools",
-            "ppp",
-            "pppoe",
-            "pppconfig",
-            "pppoeconf",
-            "isc-dhcp-common",
-            "isc-dhcp-client",
-            "w3m",
-            "kbd",
             "udev",
             "man-db",
             "tasksel",
             "tasksel-data",
-            "e2fsprogs",
+            // "makedev",
         ];
         ex_packages_arr.extend(pkgs);
     }

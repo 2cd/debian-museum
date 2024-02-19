@@ -40,6 +40,7 @@ pub(crate) struct Repository<'r> {
 
     tag: Option<&'r str>,
 
+    /// old old debian floppy file creation date
     #[builder(default = "1900-01-01")]
     date: &'r str,
 

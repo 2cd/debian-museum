@@ -7,7 +7,7 @@ for series (
     dapper
     edgy
     feisty
-    # # gutsy
+    ## gutsy
     hardy
     intrepid
     jaunty
@@ -18,11 +18,12 @@ for series (
     oneiric
     ) {
     arch=amd64
-    # arch=powerpc
     # arch=sparc
+    # arch=hppa
+    # arch=powerpc
 
     name=$series-$arch
-    exclude_pkgs="postfix,postfix-tls,ubuntu-base,popularity-contest,vim,vim-common,wireless-tools,ppp,pppconfig,pppoeconf,w3m,kbd,udev,man-db"
+    exclude_pkgs="ubuntu-minimal,ubuntu-base,postfix,postfix-tls,popularity-contest,vim,vim-common,wireless-tools,ppp,pppconfig,pppoeconf,w3m,kbd,udev,man-db"
 
     args=(
         --no-check-gpg

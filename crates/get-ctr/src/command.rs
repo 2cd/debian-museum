@@ -8,7 +8,10 @@ use std::{
     process::{exit, Child, Command, ExitStatus, Stdio},
     sync::OnceLock,
 };
+use tinyvec::TinyVec;
 use url::Url;
+
+use crate::task::build_rootfs;
 
 pub(crate) fn run_curl(url: &Url, fname: &str) {
     info!(
@@ -194,53 +197,28 @@ pub(crate) fn run_nspawn<S: AsRef<OsStr>, R: AsRef<OsStr>>(
     rootfs_dir: R,
     sh_cmd: S,
     exit_if_failure: bool,
+    envs: &[&str],
 ) -> ExitStatus {
     #[allow(unused_variables)]
     let osstr = OsStr::new;
 
-    run_as_root(
-        "systemd-nspawn",
-        &[
-            osstr("-D"),
-            rootfs_dir.as_ref(),
-            osstr("-E"),
-            osstr(crate::task::build_rootfs::DEB_ENV),
-            // osstr("-E"),
-            // osstr("LANG=en_US.UTF-8"),
-            osstr("sh"),
-            osstr("-c"),
-            sh_cmd.as_ref(),
-        ],
-        exit_if_failure,
-    )
-}
+    let mut args = TinyVec::<[&OsStr; 16]>::new();
 
-pub(crate) fn get_apt_version() -> &'static u32 {
-    static V: OnceLock<u32> = OnceLock::new();
-    V.get_or_init(|| {
-        let Ok(apt_info) = Command::new("dpkg")
-            .args(["-s", "apt"])
-            .stderr(Stdio::inherit())
-            .stdout(Stdio::piped())
-            .output()
-        else {
-            return 0;
-        };
+    args.push(osstr("-D"));
+    args.push(rootfs_dir.as_ref());
+    args.extend(["-E", build_rootfs::DEB_ENV].map(osstr));
 
-        let out = String::from_utf8_lossy(&apt_info.stdout);
-        let Some(ver_line) = out
-            .lines()
-            .find(|x| x.starts_with("Version:"))
-        else {
-            return 0;
-        };
+    for e in envs
+        .iter()
+        .filter(|x| !x.trim().is_empty())
+    {
+        args.extend(["-E", e].map(osstr));
+    }
 
-        ver_line
-            .split_ascii_whitespace()
-            .next_back()
-            .and_then(|x| x.split('.').next())
-            .map_or(0, |v| v.parse().unwrap_or(0))
-    })
+    args.extend(["sh", "-c"].map(osstr));
+    args.push(sh_cmd.as_ref());
+
+    run_as_root("systemd-nspawn", &args, exit_if_failure)
 }
 
 #[cfg(test)]
