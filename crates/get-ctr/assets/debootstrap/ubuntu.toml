@@ -1750,7 +1750,7 @@ name = "Ubuntu"
 version = "24.04 LTS"
 codename = "Noble Numbat"
 series = "noble"
-date = "2024-04-25"
+# date = "2024-04-25"
 deb-architectures = [
     "s390x",
     "riscv64",
