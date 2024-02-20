@@ -210,7 +210,7 @@ impl Cli {
     /// handles all ubuntu versions
     fn handle_ubuntu(&self) -> anyhow::Result<()> {
         let (project, date_tagged) = match self.get_ver().as_str() {
-            "dev" | "devel" => ("ubuntu-dev", true),
+            "devel" | "unstable" => ("ubuntu-dev", true),
             _ => ("ubuntu", false),
         };
         self.handle_modern_os(project, date_tagged)

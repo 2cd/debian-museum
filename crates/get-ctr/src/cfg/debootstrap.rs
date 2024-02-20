@@ -4,6 +4,8 @@ use serde_with::skip_serializing_none;
 use typed_builder::TypedBuilder;
 use url::Url;
 
+pub(crate) const SCRIPT_DIR: &str = "/usr/share/debootstrap/scripts/";
+
 use crate::{
     cfg::{components, mirror},
     url::find_mirror_url,

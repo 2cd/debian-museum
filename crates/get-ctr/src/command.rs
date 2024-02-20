@@ -1,3 +1,4 @@
+use anyhow::Context;
 use core::fmt::Display;
 use log::{error, info};
 use log_l10n::level::color::OwoColorize;
@@ -29,6 +30,40 @@ pub(crate) fn spawn_cmd(cmd: &str, args: &[&str]) -> Child {
         .args(args)
         .spawn()
         .expect("Failed to spawn command")
+}
+
+pub(crate) fn run_and_get_stdout<A, S>(cmd: S, args: &[A]) -> anyhow::Result<String>
+where
+    A: AsRef<OsStr>,
+    S: AsRef<OsStr>,
+{
+    let out = || {
+        Command::new(&cmd)
+            .args(args)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::inherit())
+            .output()
+    };
+
+    let stdout = match out() {
+        Err(e) => {
+            log::error!("Error: {e}, Retrying ...");
+            out()
+                .with_context(|| {
+                    log::error!(
+                        "Unable to get output from {:?} ({:?} ...)",
+                        cmd.as_ref(),
+                        args.first().map(|x| x.as_ref())
+                    );
+                    "output error"
+                })?
+                .stdout
+        }
+        Ok(o) => o.stdout,
+    };
+
+    let out_str = String::from_utf8_lossy(&stdout).into_owned();
+    Ok(out_str)
 }
 
 /// Blocks running process and does not catch stdout & stderr (i.e., defaults to direct output to the console)

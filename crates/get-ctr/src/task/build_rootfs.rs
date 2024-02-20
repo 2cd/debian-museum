@@ -1,17 +1,22 @@
 use std::{
+    env,
     ffi::OsStr,
     fs, io,
     path::{Path, PathBuf},
+    sync::OnceLock,
 };
 
 use anyhow::bail;
+use serde::Deserialize;
 use tinyvec::TinyVec;
+use url::Url;
 pub(crate) const DEB_ENV: &str = "DEBIAN_FRONTEND=noninteractive";
 
 use crate::{
+    cfg::debootstrap,
     command::{
         create_dir_all_as_root, force_remove_item_as_root, move_item_as_root, run,
-        run_as_root, run_nspawn,
+        run_and_get_stdout, run_as_root, run_nspawn,
     },
     docker::repo::Repository,
     task::{
@@ -95,7 +100,7 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                         }
                         _ => {}
                     };
-                    run_debootstrap(deb_src, repo, &rootfs_dir, &ex_pkgs)
+                    run_debootstrap(deb_src, repo, &rootfs_dir, &ex_pkgs)?;
                 }
             }
         }
@@ -254,41 +259,22 @@ fn run_debootstrap(
     repo: &Repository<'_>,
     rootfs_dir: &std::path::PathBuf,
     exclude_pkgs: &[&str],
-) {
+) -> anyhow::Result<()> {
     let osstr = OsStr::new;
     let mut args = TinyVec::<[&OsStr; 10]>::new();
     let mut ex_packages_arr = TinyVec::<[&str; 32]>::new();
 
     {
-        // > aptitude search '?priority(required)'
         // ubuntu-minimal:
         // adduser, alsa-base, alsa-utils, apt, apt-utils, aptitude, base-files, base-passwd, bash, bsdutils, bzip2, console-setup, console-tools, coreutils, dash, debconf, debianutils, dhcp3-client, diff, dpkg, e2fsprogs, eject, ethtool, findutils, gettext-base, gnupg, grep, gzip, hostname, ifupdown, initramfs-tools, iproute, iputils-ping, less, libc6-i686, libfribidi0, locales, login, lsb-release, makedev, mawk, mii-diag, mktemp, module-init-tools, mount, ncurses-base, ncurses-bin, net-tools, netbase, netcat, ntpdate, passwd, pciutils, pcmciautils, perl-base, procps, python, python-minimal, sed, startup-tasks, sudo, sysklogd, system-services, tar, tasksel, tzdata, ubuntu-keyring, udev, upstart, upstart-compat-sysv, upstart-logd, usbutils, util-linux, util-linux-locales, vim-tiny, wireless-tools, wpasupplicant
 
         let pkgs = [
+            // aptitude search '?priority(required)'
+            // aptitude search '?priority(important)'
+            // Packages with `important` priority can be excluded.
+            //
             "ubuntu-minimal",
             "ubuntu-base",
-            // "popularity-contest",
-            // "postfix",
-            // "postfix-tls",
-            // "wireless-tools",
-            // "wpasupplicant",
-            // "ppp",
-            // "pppoe",
-            // "pppconfig",
-            // "pppoeconf",
-            // "dhcp3-client",
-            // // "dhcp3-common",
-            // "console-terminus",
-            // "console-setup",
-            // "console-tools",
-            // "kbd",
-            // "usbutils",
-            // "initramfs-tools",
-            // "volumeid",
-            // "w3m",
-            // "e2fsprogs",
-            // ----
-            // "adduser",
             "cpio",
             "dmidecode",
             "fdisk",
@@ -347,7 +333,18 @@ fn run_debootstrap(
         args.extend(["--include", pkgs].map(osstr));
     }
 
-    args.push(osstr(deb_src.get_suite()));
+    let suite = deb_src.get_suite().as_str();
+
+    let real_name = match suite {
+        "devel" => get_the_real_name_of_ubuntu_devel(deb_src.get_url()),
+        _ => suite,
+    };
+
+    let os_name = repo.get_osname();
+    fix_script_link(real_name, os_name)?;
+
+    args.push(osstr(real_name));
+
     args.push(rootfs_dir.as_ref());
     args.push(osstr(deb_src.get_url().as_str()));
 
@@ -364,7 +361,73 @@ fn run_debootstrap(
             "Failed to build: {} (dir: {rootfs_dir:?}) with debootstrap",
             repo.get_series()
         )
+    };
+
+    Ok(())
+}
+
+/// Release File Sample:
+///
+/// ```
+/// Archive: noble
+/// Version: 24.04
+/// Component: main
+/// Origin: Ubuntu
+/// Label: Ubuntu
+/// Architecture: source
+/// ```
+#[derive(Deserialize, Debug)]
+struct ReleaseUUU {
+    #[serde(rename = "Archive")]
+    archive: String,
+}
+
+/// When using devel as `suite`, the build may fail. So we need to get its real name, e.g., nobel
+fn get_the_real_name_of_ubuntu_devel(url: &Url) -> &'static str {
+    static N: OnceLock<String> = OnceLock::new();
+
+    N.get_or_init(|| {
+        // ubuntu/dists/devel/main/source/Release
+        let release_file_url = url
+            .join("dists/devel/main/source/Release")
+            .expect("Failed to join release url");
+
+        let out = run_and_get_stdout("curl", &["-L", release_file_url.as_str()])
+            .expect("Failed to get the real name of ubuntu devel suite");
+
+        serde_yaml::from_str::<ReleaseUUU>(&out)
+            .expect("Failed to deser the main/source/Release as yaml")
+            .archive
+    })
+}
+
+/// If the script file does not exist in either "/usr/share/debootstrap/scripts/" or 'env::var_os("DEBOOTSTRAP_DIR")/scripts' then the corresponding symbolic link will be created.
+fn fix_script_link(suite: &str, os_name: &str) -> Result<(), io::Error> {
+    let env_script_exists =
+        get_debootstrap_script_dir_env().is_some_and(|x| x.join(suite).exists());
+
+    let script = Path::new(debootstrap::SCRIPT_DIR).join(suite);
+
+    if !env_script_exists && !script.exists() {
+        let src = match os_name {
+            "Ubuntu" => "gutsy",
+            // &"Debian" => "sid",
+            _ => "sid",
+        };
+        log::info!("Creating the symlink:\t src: {src}, dst: {suite}");
+        std::os::unix::fs::symlink(src, suite)?;
+        move_item_as_root(suite, script);
     }
+
+    Ok(())
+}
+
+fn get_debootstrap_script_dir_env() -> Option<&'static Path> {
+    static D: OnceLock<Option<PathBuf>> = OnceLock::new();
+    D.get_or_init(|| {
+        env::var_os("DEBOOTSTRAP_DIR").map(|x| PathBuf::from(x).join("scripts"))
+    })
+    .as_deref()
 }
 
 /// - if deb822:              mirrors/mirror.sources -> rootfs/etc/apt/sources.list.d/

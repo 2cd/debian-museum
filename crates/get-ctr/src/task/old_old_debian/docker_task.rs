@@ -1,5 +1,5 @@
 use crate::{
-    command,
+    command::{self, run_and_get_stdout},
     docker::{
         repo::Repository,
         repo_map::{MainRepo, RepoMap},
@@ -14,14 +14,9 @@ use crate::{
     },
 };
 use ahash::{HashMapExt, HashSetExt};
-use anyhow::bail;
+use anyhow::{bail, Context};
 use log_l10n::level::color::OwoColorize;
-use std::{
-    collections::BTreeSet,
-    fs, io,
-    path::Path,
-    process::{Command, Stdio},
-};
+use std::{collections::BTreeSet, fs, io, path::Path};
 use tinyvec::TinyVec;
 
 pub(crate) type MainRepoDigests = TinyVec<[String; 4]>;
@@ -172,13 +167,10 @@ fn push_docker_manifest(org_repo: &str) -> Result<String, anyhow::Error> {
         org_repo.blue()
     );
 
-    let cmd = Command::new("docker")
-        .args(["manifest", "push", "--purge", org_repo])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
-        .output()?;
+    let out =
+        run_and_get_stdout("docker", &["manifest", "push", "--purge", org_repo])
+            .context("Unable to get output from `docker manifest` command")?;
 
-    let out = String::from_utf8_lossy(&cmd.stdout);
     let mut arr = [""; 2];
     let repo = rsplit_colon(org_repo, &mut arr);
     let repo_digest = format!("{repo}@{}", out.trim());
@@ -290,14 +282,14 @@ where
 
             let args = ["inspect", "--format", r##"{{json .RepoDigests}}"##, repo];
             log::info!("cmd: {}, args: {:#?}", "docker".green(), args.blue());
-            let cmd = Command::new("docker")
-                .args(args)
-                .stdout(Stdio::piped())
-                .stderr(Stdio::inherit())
-                .output()?;
 
-            let json_arr = String::from_utf8_lossy(&cmd.stdout);
-            log::debug!("cmd.output: {json_arr}");
+            let json_arr =
+                run_and_get_stdout("docker", &args).with_context(|| {
+                    format!(
+                        "Unable to get output from `docker inspect {repo}` command"
+                    )
+                })?;
+
             let new_fname = repo_digests_filename(fname);
             log::info!("writing to: {new_fname}");
 
