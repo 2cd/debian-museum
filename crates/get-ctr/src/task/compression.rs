@@ -1,5 +1,5 @@
 use crate::{
-    command::{force_remove_item_as_root, run_as_root},
+    command::{force_remove_item_as_root, run, run_as_root},
     task::pool,
 };
 use log::{debug, info};
@@ -46,6 +46,14 @@ pub(crate) fn extract_tar_as_root<D: AsRef<Path>>(
     tar_path: &Path,
     dst_dir: D,
 ) -> io::Result<()> {
+    extract_tar(tar_path, dst_dir, true)
+}
+
+pub(crate) fn extract_tar<D: AsRef<Path>>(
+    tar_path: &Path,
+    dst_dir: D,
+    as_root: bool,
+) -> io::Result<()> {
     let dst = dst_dir.as_ref();
     if !dst.exists() {
         fs::create_dir_all(dst)?;
@@ -54,16 +62,17 @@ pub(crate) fn extract_tar_as_root<D: AsRef<Path>>(
     #[allow(unused_variables)]
     let osstr = OsStr::new;
 
-    run_as_root(
-        "tar",
-        &[
-            osstr("--directory"),
-            dst.as_ref(),
-            osstr("-xf"),
-            tar_path.as_ref(),
-        ],
-        true,
-    );
+    let args = [
+        osstr("--directory"),
+        dst.as_ref(),
+        osstr("-xf"),
+        tar_path.as_ref(),
+    ];
+
+    match as_root {
+        true => run_as_root("tar", &args, true),
+        _ => run("tar", &args, true),
+    };
 
     Ok(())
 }

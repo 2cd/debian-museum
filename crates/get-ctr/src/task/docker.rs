@@ -3,7 +3,7 @@ use log_l10n::level::color::OwoColorize;
 use crate::{
     command::{self, run},
     docker::{self, repo::Repository, spawn_docker_build},
-    task::compression::{extract_tar_as_root, pack_tar_as_root},
+    task::compression::{extract_tar, pack_tar_as_root},
 };
 use std::{
     self,
@@ -150,6 +150,6 @@ pub(crate) fn restore_cache(first_repo: &Repository<'_>) -> io::Result<()> {
     log::info!("cmd: docker, args: {args:?}");
     run("docker", &args, true);
 
-    extract_tar_as_root(Path::new("cache.tar"), ".")?;
+    extract_tar(Path::new("cache.tar"), ".", false)?;
     Ok(())
 }
