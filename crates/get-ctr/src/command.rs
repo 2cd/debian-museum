@@ -199,7 +199,6 @@ pub(crate) fn run_nspawn<S: AsRef<OsStr>, R: AsRef<OsStr>>(
     exit_if_failure: bool,
     envs: &[&str],
 ) -> ExitStatus {
-    #[allow(unused_variables)]
     let osstr = OsStr::new;
 
     let mut args = TinyVec::<[&OsStr; 16]>::new();

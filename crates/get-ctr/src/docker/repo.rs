@@ -216,7 +216,7 @@ impl SrcFormat {
 pub(crate) fn create_src_list_link(mirror_dir: &Path) -> io::Result<()> {
     let src_link = mirror_dir.join("sources.list");
 
-    // link.exits() returns false when the link file points to a file that does not exist.
+    // link.exists() returns false when the link file points to a file that does not exist.
     if src_link.is_symlink() || src_link.exists() {
         fs::remove_file(&src_link)?;
     }
