@@ -19,3 +19,4 @@ flamegraph.svg
 !/Readme.*
 !/crates
 !/Cargo.toml
+!/src

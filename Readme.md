@@ -8,6 +8,10 @@ Running the ubuntu `{warty / hoary}` (arch: i386 (x86))  containers results in t
 Inconsistency detected by ld.so: rtld.c: 1192: dl_main: Assertion `(void *) ph->p_vaddr == _rtld_local._dl_sysinfo_dso' failed!
 ```
 
+To solve this problem, we need to use an older system (with an older kernel).
+
+Building rootfs for Debian Wheezy amd64(x64) can be done with Debian Stretch amd64(x64), but building Ubuntu Warty i386(x86) (4.10, 2004-10, the first publicly released version of ubuntu) requires a very, very old system.
+
 ## Preparations
 
 - runs-on: Debian Stretch (ELTS)
@@ -17,8 +21,10 @@ Inconsistency detected by ld.so: rtld.c: 1192: dl_main: Assertion `(void *) ph->
   - debootstrap
   - curl
 - shell: zsh
-<!-- recommends:
-    - qemu-user-static -->
+<!--
+- recommends:
+  - qemu-user-static 
+-->
 
 ### add scripts-dir to path
 
@@ -26,11 +32,11 @@ Inconsistency detected by ld.so: rtld.c: 1192: dl_main: Assertion `(void *) ph->
 # Allows the use of `#` in interactive zsh
 setopt interactive_comments
 
-curl -LO "https://github.com/2cd/debian-museum/archive/refs/heads/dev.tar.gz"
-tar -xf dev.tar.gz
+curl -LO "https://github.com/2cd/debian-museum/archive/refs/heads/ci.tar.gz"
+tar -xf ci.tar.gz
 
 path=(
-    $PWD/debian-museum-dev/assets/manually-build/scripts
+    $PWD/debian-museum-ci/src
     $path
 )
 ```
