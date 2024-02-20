@@ -171,6 +171,9 @@ pub(crate) struct MainTag {
 pub(crate) struct OS {
     name: String,
     codename: String,
+
+    #[builder(setter(strip_option))]
+    series: Option<String>,
     version: String,
 
     docker: Docker,

@@ -1,5 +1,13 @@
-mod debian_archive;
-pub(crate) use debian_archive::static_mirrors as static_debian_archive_mirrors;
+pub(crate) mod debian;
+pub(crate) mod debian_archive;
+pub(crate) mod debian_debug;
+pub(crate) mod debian_elts;
+pub(crate) mod debian_ports;
+pub(crate) mod debian_security;
+
+pub(crate) mod ubuntu;
+pub(crate) mod ubuntu_old;
+pub(crate) mod ubuntu_ports;
 
 use getset::Getters;
 use serde::{Deserialize, Serialize};
@@ -20,8 +28,20 @@ pub(crate) enum MirrorVariant {
     #[display(fmt = "debian-elts")]
     DebianELTS,
 
+    #[display(fmt = "debian-debug")]
+    DebianDebug,
+
+    #[display(fmt = "debian-security")]
+    DebianSecurity,
+
+    #[display(fmt = "ubuntu-ports")]
     UbuntuPorts,
+
+    #[display(fmt = "ubuntu")]
     Ubuntu,
+
+    #[display(fmt = "ubuntu-old")]
+    UbuntuOld,
 }
 
 impl Default for MirrorVariant {
@@ -41,6 +61,10 @@ pub(crate) struct Mirror<'m> {
     url: &'m str,
 
     variant: MirrorVariant,
+}
+
+pub(crate) const fn include_pkgs() -> &'static str {
+    "ca-certificates,apt-transport-https"
 }
 
 #[cfg(test)]

@@ -5,9 +5,14 @@ use std::{path::Path, process::Child};
 pub(crate) mod repo;
 pub(crate) mod repo_map;
 // pub(crate) mod
-pub(crate) const DOCKER_FILE_CONTENT: &str = include_str!(concat!(
+pub(crate) const DOCKER_FILE_OLD_CONTENT: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/assets/old_old_debian/Dockerfile"
+));
+
+pub(crate) const DOCKER_FILE_FOR_NEW_DISTROS: &str = include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/assets/debootstrap/Dockerfile"
 ));
 
 pub(crate) const DOCKER_IGNORE_CONTENT: &str =

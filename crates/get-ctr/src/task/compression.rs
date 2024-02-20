@@ -1,4 +1,7 @@
-use crate::{command::run_as_root, task::pool};
+use crate::{
+    command::{force_remove_item_as_root, run, run_as_root},
+    task::pool,
+};
 use log::{debug, info};
 use repack::compression::{Operation, Upack};
 use std::{
@@ -39,9 +42,17 @@ pub(crate) fn spawn_zstd_thread(
     })
 }
 
+pub(crate) fn extract_tar_as_root<D: AsRef<Path>>(
+    tar_path: &Path,
+    dst_dir: D,
+) -> io::Result<()> {
+    extract_tar(tar_path, dst_dir, true)
+}
+
 pub(crate) fn extract_tar<D: AsRef<Path>>(
     tar_path: &Path,
     dst_dir: D,
+    as_root: bool,
 ) -> io::Result<()> {
     let dst = dst_dir.as_ref();
     if !dst.exists() {
@@ -51,49 +62,63 @@ pub(crate) fn extract_tar<D: AsRef<Path>>(
     #[allow(unused_variables)]
     let osstr = OsStr::new;
 
-    run_as_root(
-        "tar",
-        &[
-            osstr("--directory"),
-            dst.as_ref(),
-            osstr("-xf"),
-            tar_path.as_ref(),
-        ],
-    );
+    let args = [
+        osstr("--directory"),
+        dst.as_ref(),
+        osstr("-xf"),
+        tar_path.as_ref(),
+    ];
+
+    match as_root {
+        true => run_as_root("tar", &args, true),
+        _ => run("tar", &args, true),
+    };
 
     Ok(())
 }
 
-pub(crate) fn pack_tar<S: AsRef<OsStr>>(
+/// Invokes the `tar` command as root and packages the `src_dir` to `tar_path`.
+pub(crate) fn pack_tar_as_root<S: AsRef<OsStr>>(
     src_dir: S,
     tar_path: &Path,
     exclude_dev: bool,
-) -> io::Result<()> {
-    #[allow(unused_variables)]
+) {
     let osstr = OsStr::new;
+
+    if let Some(par) = tar_path.parent() {
+        if !par.exists() {
+            // ignore err
+            let _ = fs::create_dir_all(par);
+        }
+    }
 
     let mut args = TinyVec::<[&OsStr; 24]>::new();
 
     let src_osdir = src_dir.as_ref();
 
     // doas tar --posix --directory src_dir --exclude=... -cf tar_path .
-    args.extend([
-        osstr("--posix"),
-        osstr("--directory"),
-        src_osdir,
-        osstr(r##"--exclude=proc/*"##),
-        osstr(r#"--exclude=sys/*"#),
-        osstr(r#"--exclude=tmp/*"#),
-        osstr(r#"--exclude=var/tmp/*"#),
-        osstr(r#"--exclude=run/*"#),
-        osstr(r#"--exclude=mnt/*"#),
-        osstr(r#"--exclude=media/*"#),
-        osstr(r#"--exclude=var/cache/apt/pkgcache.bin"#),
-        osstr(r#"--exclude=var/cache/apt/srcpkgcache.bin"#),
-        osstr(r#"--exclude=var/cache/apt/archives/*deb"#),
-        osstr(r#"--exclude=var/cache/apt/archives/partial/*"#),
-        // osstr(r#"--exclude=var/cache/apt/archives/lock"#),
-    ]);
+    args.extend(["--posix", "--directory"].map(osstr));
+    args.push(src_osdir);
+    args.extend(
+        [
+            r"--exclude=proc/*",
+            r"--exclude=sys/*",
+            r"--exclude=tmp/*",
+            r"--exclude=var/tmp/*",
+            r"--exclude=run/*",
+            r"--exclude=mnt/*",
+            r"--exclude=media/*",
+            r"--exclude=boot/*",
+            r"--exclude=var/cache/apt/pkgcache.bin",
+            r"--exclude=var/cache/apt/srcpkgcache.bin",
+            r"--exclude=var/cache/apt/archives/*deb",
+            r"--exclude=var/cache/apt/archives/partial/*",
+            r"--exclude=var/cache/archive-copier/*",
+            r"--exclude=var/lib/apt/lists/*.*",
+            // r#"--exclude=var/cache/apt/archives/lock"#,
+        ]
+        .map(osstr),
+    );
 
     if exclude_dev {
         args.push(osstr(r#"--exclude=dev/*"#));
@@ -101,16 +126,17 @@ pub(crate) fn pack_tar<S: AsRef<OsStr>>(
 
     args.extend([osstr("-cf"), tar_path.as_ref(), osstr(".")]);
 
-    run_as_root("tar", &args);
+    run_as_root("tar", &args, true);
 
-    // At least two levels of directories are required to avoid deleting the root directory.
-    if Path::new(src_osdir)
-        .components()
-        .count()
-        >= 2
-    {
-        run_as_root("rm", &[osstr("-rf"), src_osdir]);
+    let internal_dir = |s| Path::new(src_osdir).join(s);
+
+    let sys_dir = internal_dir("sys");
+    let proc_dir = internal_dir("proc");
+
+    if sys_dir.join("kernel").exists() {
+        run_as_root("umount", &[osstr("-lf"), sys_dir.as_ref()], false);
+        run_as_root("umount", &[osstr("-lf"), proc_dir.as_ref()], false);
     }
 
-    Ok(())
+    force_remove_item_as_root(src_osdir);
 }

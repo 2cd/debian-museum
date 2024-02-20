@@ -1,0 +1,1867 @@
+[[os]]
+name = "Ubuntu"
+version = "4.10"
+codename = "Warty Warthog"
+series = "warty"
+date = "2004-10-20"
+deb-architectures = ["amd64", "i386", "powerpc"]
+no-minbase = true
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+# enabled = [
+#     "ubuntu-old-releases/ubuntu warty",
+#     "ubuntu-old-releases/ubuntu warty-updates",
+#     "ubuntu-old-releases/ubuntu warty-security",
+#     "ubuntu-old-releases/ubuntu warty-backports",
+# ]
+# disabled = ["ubuntu-old-releases/ubuntu warty-proposed"]
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "5.04"
+codename = "Hoary Hedgehog"
+series = "hoary"
+date = "2005-04-08"
+deb-architectures = [
+    # "ia64",
+    "sparc",
+    "i386",
+    "amd64",
+    "powerpc",
+]
+no-minbase = true
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+# [[os.tag]]
+# arch = "ia64"
+# deb-arch = "ia64"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os]]
+name = "Ubuntu"
+version = "5.10"
+codename = "Breezy Badger"
+series = "breezy"
+date = "2005-10-12"
+deb-architectures = [
+    # "ia64",
+    "powerpc",
+    "sparc",
+    "amd64",
+    "i386",
+]
+# variant = "buildd"
+no-minbase = true
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os]]
+name = "Ubuntu"
+version = "6.06 LTS"
+codename = "Dapper Drake"
+series = "dapper"
+date = "2006-06-01"
+deb-architectures = [
+    "amd64",
+    "i386",
+    "powerpc",
+    "sparc",
+    # "ia64",
+    "hppa",
+]
+no-minbase = true
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+[[os]]
+name = "Ubuntu"
+version = "6.10"
+codename = "Edgy Eft"
+series = "edgy"
+date = "2006-10-26"
+deb-architectures = [
+    "sparc",
+    "powerpc",
+    # "ia64",
+    "lpia",
+    "i386",
+    "hppa",
+    "amd64",
+]
+no-minbase = true
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "7.04"
+codename = "Feisty Fawn"
+series = "feisty"
+date = "2007-04-19"
+deb-architectures = [
+    "sparc",
+    "powerpc",
+    # "ia64",
+    "i386",
+    "hppa",
+    "amd64",
+    "lpia",
+]
+no-minbase = true
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "7.10"
+codename = "Gutsy Gibbon"
+series = "gutsy"
+date = "2007-10-18"
+deb-architectures = [
+    # "sparc",
+    # "ia64",
+    "powerpc",
+    "lpia",
+    "i386",
+    "hppa",
+    "amd64",
+    "lpia",
+]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
+
+# [[os.tag]]
+# arch = "sparc"
+# deb-arch = "sparc"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "8.04 LTS"
+codename = "Hardy Heron"
+series = "hardy"
+date = "2008-04-24"
+deb-architectures = [
+    "armhf",
+    "armel",
+    "sparc",
+    "powerpc",
+
+    # "ia64",
+
+    "i386",
+    "hppa",
+    "amd64",
+    "lpia",
+]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "8.10"
+codename = "Intrepid Ibex"
+series = "intrepid"
+date = "2008-10-30"
+deb-architectures = [
+    "armel",
+    "hppa",
+    "sparc",
+    "powerpc",
+
+    # "ia64",
+
+    "i386",
+    "amd64",
+    "lpia",
+]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "9.04"
+codename = "Jaunty Jackalope"
+series = "jaunty"
+date = "2009-04-23"
+deb-architectures = [
+    "sparc",
+    "powerpc",
+
+    # "ia64",
+
+    "i386",
+    "hppa",
+    "armel",
+    "amd64",
+    "lpia",
+]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "9.10"
+codename = "Karmic Koala"
+series = "karmic"
+date = "2009-10-29"
+deb-architectures = [
+    "sparc",
+    "powerpc",
+    # "ia64",
+    "lpia",
+    "i386",
+    "armel",
+    "amd64",
+]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "lpia"
+deb-arch = "lpia"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "10.04 LTS"
+codename = "Lucid Lynx"
+series = "lucid"
+date = "2010-04-29"
+deb-architectures = [
+    "armhf",
+    "sparc",
+    "powerpc",
+
+    # "ia64",
+
+    "i386",
+    "armel",
+    "amd64",
+]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "10.10"
+codename = "Maverick Meerkat"
+series = "maverick"
+date = "2010-10-10"
+deb-architectures = ["armhf", "powerpc", "i386", "armel", "amd64"]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "11.04"
+codename = "Natty Narwhal"
+series = "natty"
+date = "2011-04-28"
+deb-architectures = ["armhf", "powerpc", "i386", "armel", "amd64"]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "11.10"
+codename = "Oneiric Ocelot"
+series = "oneiric"
+date = "2011-10-13"
+deb-architectures = ["armhf", "powerpc", "i386", "armel", "amd64"]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "12.04 LTS"
+codename = "Precise Pangolin"
+series = "precise"
+date = "2012-04-26"
+deb-architectures = ["powerpc", "i386", "armhf", "armel", "amd64"]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "12.10"
+codename = "Quantal Quetzal"
+series = "quantal"
+date = "2012-10-18"
+deb-architectures = ["powerpc", "i386", "armhf", "armel", "amd64"]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "13.04"
+codename = "Raring Ringtail"
+series = "raring"
+date = "2013-04-25"
+deb-architectures = ["powerpc", "i386", "armhf", "amd64"]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "13.10"
+codename = "Saucy Salamander"
+series = "saucy"
+date = "2013-10-17"
+deb-architectures = ["powerpc", "i386", "armhf", "amd64", "arm64"]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os]]
+name = "Ubuntu"
+version = "14.04 LTS"
+codename = "Trusty Tahr"
+series = "trusty"
+date = "2014-04-17"
+deb-architectures = ["ppc64el", "powerpc", "i386", "armhf", "arm64", "amd64"]
+no-minbase = false
+deb822-format = false
+# src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+src = "ubuntu"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+src = "ubuntu"
+
+[[os]]
+name = "Ubuntu"
+version = "14.10"
+codename = "Utopic Unicorn"
+series = "utopic"
+date = "2014-10-23"
+deb-architectures = ["ppc64el", "powerpc", "i386", "armhf", "arm64", "amd64"]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "15.04"
+codename = "Vivid Vervet"
+series = "vivid"
+date = "2015-04-23"
+deb-architectures = ["ppc64el", "powerpc", "i386", "armhf", "arm64", "amd64"]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "15.10"
+codename = "Wily Werewolf"
+series = "wily"
+date = "2015-10-22"
+deb-architectures = ["i386", "ppc64el", "armhf", "amd64", "arm64", "powerpc"]
+no-minbase = false
+deb822-format = false
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os]]
+name = "Ubuntu"
+version = "16.04 LTS"
+codename = "Xenial Xerus"
+series = "xenial"
+date = "2016-04-21"
+deb-architectures = [
+    "s390x",
+    "ppc64el",
+    "powerpc",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+# src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+src = "ubuntu"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+src = "ubuntu"
+
+[[os]]
+name = "Ubuntu"
+version = "16.10"
+codename = "Yakkety Yak"
+series = "yakkety"
+date = "2016-10-13"
+deb-architectures = [
+    "s390x",
+    "ppc64el",
+    "powerpc",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "17.04"
+codename = "Zesty Zapus"
+series = "zesty"
+date = "2017-04-13"
+deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
+no-minbase = false
+deb822-format = true
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "17.10"
+codename = "Artful Aardvark"
+series = "artful"
+date = "2017-10-19"
+deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
+no-minbase = false
+deb822-format = true
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "18.04 LTS"
+codename = "Bionic Beaver"
+series = "bionic"
+date = "2018-04-26"
+deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
+no-minbase = false
+deb822-format = true
+# src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+src = "ubuntu"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+src = "ubuntu"
+
+[[os]]
+name = "Ubuntu"
+version = "18.10"
+codename = "Cosmic Cuttlefish"
+series = "cosmic"
+date = "2018-10-18"
+deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
+no-minbase = false
+deb822-format = true
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "19.04"
+codename = "Disco Dingo"
+series = "disco"
+date = "2019-04-18"
+deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
+no-minbase = false
+deb822-format = true
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "19.10"
+codename = "Eoan Ermine"
+series = "eoan"
+date = "2019-10-17"
+deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
+no-minbase = false
+deb822-format = true
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "20.04 LTS"
+codename = "Focal Fossa"
+series = "focal"
+date = "2020-04-23"
+deb-architectures = [
+    "s390x",
+    "riscv64",
+    "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+# src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+src = "ubuntu"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+src = "ubuntu"
+
+[[os]]
+name = "Ubuntu"
+version = "20.10"
+codename = "Groovy Gorilla"
+series = "groovy"
+date = "2020-10-22"
+deb-architectures = [
+    "s390x",
+    "riscv64",
+    "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "21.04"
+codename = "Hirsute Hippo"
+series = "hirsute"
+date = "2021-04-22"
+deb-architectures = [
+    "s390x",
+    "riscv64",
+    "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "21.10"
+codename = "Impish Indri"
+series = "impish"
+date = "2021-10-14"
+deb-architectures = [
+    "s390x",
+    "riscv64",
+    "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "22.04 LTS"
+codename = "Jammy Jellyfish"
+series = "jammy"
+date = "2022-04-21"
+deb-architectures = [
+    "s390x",
+    "riscv64",
+    "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+# src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+src = "ubuntu"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+src = "ubuntu"
+
+[[os]]
+name = "Ubuntu"
+version = "22.10"
+codename = "Kinetic Kudu"
+series = "kinetic"
+date = "2022-10-20"
+deb-architectures = [
+    "s390x",
+    "riscv64",
+    "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+
+[os.source]
+src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os]]
+name = "Ubuntu"
+version = "23.04"
+codename = "Lunar Lobster"
+series = "lunar"
+date = "2023-04-20"
+deb-architectures = [
+    "s390x",
+    "riscv64",
+    "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+# src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+src = "ubuntu"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+src = "ubuntu"
+
+[[os]]
+name = "Ubuntu"
+version = "23.10"
+codename = "Mantic Minotaur"
+series = "mantic"
+date = "2023-10-12"
+deb-architectures = [
+    "s390x",
+    "riscv64",
+    "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = false
+# src = "ubuntu-old-releases"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+src = "ubuntu"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+src = "ubuntu"
+
+[[os]]
+name = "Ubuntu"
+version = "24.04 LTS"
+codename = "Noble Numbat"
+series = "noble"
+date = "2024-04-25"
+deb-architectures = [
+    "s390x",
+    "riscv64",
+    "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+src = "ubuntu"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+src = "ubuntu"
+
+# --------------------
+[[os]]
+name = "Ubuntu"
+version = "unstable"
+codename = "Development Branch"
+series = "devel"
+# date = ""
+deb-architectures = [
+    "s390x",
+    "riscv64",
+    "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
+no-minbase = false
+deb822-format = true
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+src = "ubuntu"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+[os.tag.source]
+src = "ubuntu-ports"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+src = "ubuntu"

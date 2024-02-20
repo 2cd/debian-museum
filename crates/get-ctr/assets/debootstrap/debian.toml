@@ -1,0 +1,1222 @@
+[[os]]
+name = "Debian"
+version = "2.2"
+codename = "Potato"
+series = "potato"
+date = "2000-08"
+components = "main contrib non-free"
+deb-architectures = [
+    # "powerpc",
+    "i386",
+    "alpha",
+    "sparc",
+    "m68k",
+    "arm",
+]
+no-minbase = true
+deb822-format = false
+[os.source]
+enabled = ["debian-archive/debian/ potato"]
+disabled = ["debian-archive/debian/ potato-proposed-updates"]
+
+# [[os.tag]]
+# arch = "ppc"
+# deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "alpha"
+deb-arch = "alpha"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "m68k"
+deb-arch = "m68k"
+
+[[os.tag]]
+arch = "armv3"
+deb-arch = "arm"
+
+[[os]]
+name = "Debian"
+version = "3.0"
+codename = "Woody"
+series = "woody"
+date = "2002-07"
+components = "main contrib non-free"
+deb-architectures = [
+    "alpha",
+    "hppa",
+    "i386",
+    "sparc",
+    "arm",
+    # "ia64",
+    # "s390",
+    # "powerpc",
+    # "mips",
+    # "mipsel",
+    "m68k",
+]
+no-minbase = true
+deb822-format = false
+[os.source]
+enabled = [
+    "debian-archive/debian/ woody",
+    "debian-archive/debian-security/ woody/updates",
+]
+
+# [[os.tag]]
+# arch = "ppc"
+# deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "alpha"
+deb-arch = "alpha"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+# [[os.tag]]
+# arch = "ia64"
+# deb-arch = "ia64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "armv3"
+deb-arch = "arm"
+
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
+
+# [[os.tag]]
+# arch = "mipsle"
+# deb-arch = "mipsel"
+
+# [[os.tag]]
+# arch = "mipsbe"
+# deb-arch = "mips"
+
+[[os.tag]]
+arch = "m68k"
+deb-arch = "m68k"
+
+[[os]]
+name = "Debian"
+version = "3.1"
+codename = "Sarge"
+series = "sarge"
+date = "2005-06"
+components = "main contrib non-free"
+no-minbase = true
+deb822-format = false
+deb-architectures = [
+    "arm",
+    "sparc",
+
+    # "ia64",
+    # "s390",
+
+    "powerpc",
+    "mips",
+    "mipsel",
+
+    "m68k",
+    "i386",
+    "hppa",
+    "alpha",
+]
+[os.source]
+enabled = [
+    "debian-archive/debian/ sarge",
+    "debian-archive/debian-backports/ sarge-backports",
+    "debian-archive/debian-security/ sarge/updates",
+    "debian-archive/debian-volatile/ sarge/volatile-sloppy",
+    "debian-archive/debian-volatile/ sarge/volatile",
+]
+disabled = ["debian-archive/debian/ sarge-proposed-updates"]
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+enabled = ["debian-archive/debian-amd64/ sarge"]
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
+# [[os.tag]]
+# arch = "ppc"
+# deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "mipsle"
+deb-arch = "mipsel"
+[os.tag.source]
+enabled = [
+    "debian-archive/debian/ sarge",
+    "debian-archive/debian-security/ sarge/updates",
+    # sarge mipsel has no backports & volatile
+    # "debian-archive/debian-backports/ sarge-backports",
+    # "debian-archive/debian-volatile/ sarge/volatile-sloppy",
+    # "debian-archive/debian-volatile/ sarge/volatile",
+]
+
+[[os.tag]]
+arch = "mipsbe"
+deb-arch = "mips"
+
+[[os.tag]]
+arch = "m68k"
+deb-arch = "m68k"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+[[os.tag]]
+arch = "armv3"
+deb-arch = "arm"
+
+[[os.tag]]
+arch = "alpha"
+deb-arch = "alpha"
+
+[[os]]
+name = "Debian"
+version = "4.0"
+codename = "Etch"
+series = "etch"
+date = "2007-04"
+components = "main contrib non-free"
+deb-architectures = [
+    "arm",
+    "amd64",
+    "alpha",
+    "sparc",
+    # "s390",
+    "powerpc",
+    "mipsel",
+    "mips",
+
+    # "ia64",
+
+    "i386",
+    "hppa",
+    # ---
+    "m68k",
+]
+no-minbase = false
+deb822-format = false
+[os.source]
+enabled = [
+    "debian-archive/debian/ etch",
+    "debian-archive/debian-backports/ etch-backports",
+]
+# W: GPG error: http://archive.debian.org etch/updates Release: 
+# The following signatures were invalid: KEYEXPIRED 
+# W: GPG error: http://archive.debian.org etch/volatile-sloppy Release: The following signatures were invalid: KEYEXPIRED 
+# W: GPG error: http://archive.debian.org etch/volatile Release: The following signatures were invalid: KEYEXPIRED 
+disabled = [
+    "debian-archive/debian-security/ etch/updates",
+    "debian-archive/debian-volatile/ etch/volatile-sloppy",
+    "debian-archive/debian-volatile/ etch/volatile",
+    "debian-archive/debian/ etch-proposed-updates",
+]
+
+[[os.tag]]
+arch = "m68k"
+deb-arch = "m68k"
+[os.tag.source]
+enabled = ["debian-archive/debian/ etch-m68k"]
+
+[[os.tag]]
+arch = "armv3"
+deb-arch = "arm"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "alpha"
+deb-arch = "alpha"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "mipsle"
+deb-arch = "mipsel"
+
+[[os.tag]]
+arch = "mipsbe"
+deb-arch = "mips"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+[[os]]
+name = "Debian"
+version = "5.0"
+codename = "Lenny"
+series = "lenny"
+date = "2009-02"
+components = "main contrib non-free"
+deb-architectures = [
+    "sparc",
+    # "s390",
+    "powerpc",
+    "mipsel",
+    "mips",
+
+    # "ia64",
+
+    "i386",
+    "hppa",
+    "armel",
+    "arm",
+    "amd64",
+    "alpha",
+]
+no-minbase = false
+deb822-format = false
+[os.source]
+enabled = [
+    "debian-archive/debian/ lenny",
+    "debian-archive/debian-security/ lenny/updates",
+]
+# W: GPG error: http://archive.debian.org lenny Release: The following signatures were invalid: KEYEXPIRED 1520281423 KEYEXPIRED 1337087218
+# W: GPG error: http://archive.debian.org lenny/updates Release: The following signatures were invalid: KEYEXPIRED 1356982504
+# W: GPG error: http://archive.debian.org lenny/volatile-sloppy Release: The following signatures were invalid: KEYEXPIRED 1358963195
+# W: GPG error: http://archive.debian.org lenny/volatile Release: The following signatures were invalid: KEYEXPIRED 1358963195
+# W: GPG error: http://archive.debian.org lenny-backports Release: The following signatures were invalid: KEYEXPIRED 1520281423
+# W: GPG error: http://archive.debian.org lenny-backports-sloppy Release: The following signatures were invalid: KEYEXPIRED 1520281423
+disabled = [
+    "debian-archive/debian-backports/ lenny-backports",
+    "debian-archive/debian-backports/ lenny-backports-sloppy",
+    "debian-archive/debian-volatile/ lenny/volatile-sloppy",
+    "debian-archive/debian-volatile/ lenny/volatile",
+]
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "mipsle"
+deb-arch = "mipsel"
+
+[[os.tag]]
+arch = "mipsbe"
+deb-arch = "mips"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "armv3"
+deb-arch = "arm"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "alpha"
+deb-arch = "alpha"
+
+[[os]]
+name = "Debian"
+version = "6.0"
+codename = "Squeeze"
+series = "squeeze"
+date = "2011-02"
+components = "main contrib non-free"
+deb-architectures = [
+    "sparc",
+    # "s390",
+    "powerpc",
+    "mipsel",
+    "mips",
+
+    # "ia64",
+
+    "i386",
+    "armel",
+    "amd64",
+]
+no-minbase = false
+deb822-format = false
+# x86/x64 + squeeze-lts
+[os.source]
+enabled = [
+    "debian-archive/debian/ squeeze",
+    "debian-archive/debian-security/ squeeze/updates",
+]
+# W: GPG error: http://archive.debian.org squeeze Release: The following signatures were invalid: KEYEXPIRED 1520281423 KEYEXPIRED 1501892461
+# W: GPG error: http://archive.debian.org squeeze-lts Release: The following signatures were invalid: KEYEXPIRED 1587841717
+# W: GPG error: http://archive.debian.org squeeze/updates Release: The following signatures were invalid: KEYEXPIRED 1520281423
+# W: GPG error: http://archive.debian.org squeeze-backports Release: The following signatures were invalid: KEYEXPIRED 1587841717
+# W: GPG error: http://archive.debian.org squeeze-backports-sloppy Release: The following signatures were invalid: KEYEXPIRED 1587841717
+disabled = [
+    "debian-archive/debian-backports/ squeeze-backports",
+    "debian-archive/debian-backports/ squeeze-backports-sloppy",
+    "debian-archive/debian/ squeeze-proposed-updates",
+]
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+enabled = [
+    "debian-archive/debian/ squeeze",
+    "debian-archive/debian/ squeeze-lts",
+    "debian-archive/debian-security/ squeeze/updates",
+]
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+enabled = [
+    "debian-archive/debian/ squeeze",
+    "debian-archive/debian/ squeeze-lts",
+    "debian-archive/debian-security/ squeeze/updates",
+]
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "mipsle"
+deb-arch = "mipsel"
+
+[[os.tag]]
+arch = "mipsbe"
+deb-arch = "mips"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+
+[[os]]
+name = "Debian"
+version = "7"
+codename = "Wheezy"
+series = "wheezy"
+date = "2013-05"
+components = "main contrib non-free"
+deb-architectures = [
+    "amd64",
+    "i386",
+    "armhf",
+    "powerpc",
+    "sparc",
+    "s390x",
+
+    # "s390",
+    # "ia64",
+
+    "mipsel",
+    "mips",
+    "armel",
+]
+no-minbase = false
+deb822-format = false
+[os.source]
+enabled = [
+    "debian-archive/debian/ wheezy",
+    "debian-archive/debian/ wheezy-backports",
+    "debian-archive/debian/ wheezy-backports-sloppy",
+    "debian-archive/debian-security/ wheezy/updates",
+]
+disabled = ["debian-archive/debian/ wheezy-proposed-updates"]
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+enabled = ["debian-elts-official/ wheezy"]
+disabled = [
+    "debian-archive/debian/ wheezy",
+    "debian-archive/debian/ wheezy-backports",
+    "debian-archive/debian/ wheezy-backports-sloppy",
+    "debian-archive/debian-security/ wheezy/updates",
+    "debian-archive/debian/ wheezy-proposed-updates",
+]
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+enabled = ["debian-elts-official/ wheezy"]
+disabled = [
+    "debian-archive/debian/ wheezy",
+    "debian-archive/debian/ wheezy-backports",
+    "debian-archive/debian/ wheezy-backports-sloppy",
+    "debian-archive/debian-security/ wheezy/updates",
+    "debian-archive/debian/ wheezy-proposed-updates",
+]
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+
+[[os.tag]]
+arch = "sparc"
+deb-arch = "sparc"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+
+[[os.tag]]
+arch = "mipsle"
+deb-arch = "mipsel"
+
+[[os.tag]]
+arch = "mipsbe"
+deb-arch = "mips"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+# [[os.tag]]
+# arch = "s390"
+# deb-arch = "s390"
+
+[[os]]
+name = "Debian"
+version = "8"
+codename = "Jessie"
+series = "jessie"
+date = "2015-04"
+components = "main contrib non-free"
+deb-architectures = [
+    "i386",
+    "s390x",
+    "amd64",
+    "mipsel",
+    "armel",
+    "mips",
+    "powerpc",
+    "ppc64el",
+    "armhf",
+    "arm64",
+]
+no-minbase = false
+# debian-8-elts::apt = 1.0.9.8.7
+deb822-format = false
+[os.source]
+enabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+    "debian-archive/debian-security/ jessie/updates",
+]
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+enabled = ["debian-elts/ jessie"]
+disabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+    "debian-archive/debian-security/ jessie/updates",
+]
+
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+enabled = ["debian-elts/ jessie"]
+disabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+    "debian-archive/debian-security/ jessie/updates",
+]
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+enabled = ["debian-elts/ jessie"]
+disabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+    "debian-archive/debian-security/ jessie/updates",
+]
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+[os.tag.source]
+enabled = ["debian-elts/ jessie"]
+disabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+    "debian-archive/debian-security/ jessie/updates",
+]
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+[os.tag.source]
+enabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
+
+[[os.tag]]
+arch = "mipsle"
+deb-arch = "mipsel"
+[os.tag.source]
+enabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
+
+[[os.tag]]
+arch = "mipsbe"
+deb-arch = "mips"
+[os.tag.source]
+enabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+[os.tag.source]
+enabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+[os.tag.source]
+enabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+[os.tag.source]
+enabled = [
+    "debian-archive/debian/ jessie",
+    "debian-archive/debian/ jessie-backports",
+    "debian-archive/debian/ jessie-backports-sloppy",
+]
+
+[[os]]
+name = "Debian"
+version = "9"
+codename = "Stretch"
+series = "stretch"
+date = "2017-06"
+components = "main contrib non-free"
+deb-architectures = [
+    "armhf",
+    "amd64",
+    "i386",
+    "arm64",
+    "ppc64el",
+    "mips64el",
+    "mipsel",
+    "s390x",
+    "mips",
+    "armel",
+]
+no-minbase = false
+deb822-format = true
+[os.source]
+enabled = [
+    "debian-archive/debian/ stretch",
+    "debian-archive/debian/ stretch-backports",
+    "debian-archive/debian/ stretch-backports-sloppy",
+    "debian-archive/debian-security/ stretch/updates",
+]
+disabled = ["debian-archive/debian/ stretch-proposed-updates"]
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+[os.tag.source]
+enabled = ["debian-elts/ stretch"]
+disabled = [
+    "debian-archive/debian/ stretch",
+    "debian-archive/debian/ stretch-backports",
+    "debian-archive/debian/ stretch-backports-sloppy",
+    "debian-archive/debian-security/ stretch/updates",
+    "debian-archive/debian/ stretch-proposed-updates",
+]
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+[os.tag.source]
+enabled = ["debian-elts/ stretch"]
+disabled = [
+    "debian-archive/debian/ stretch",
+    "debian-archive/debian/ stretch-backports",
+    "debian-archive/debian/ stretch-backports-sloppy",
+    "debian-archive/debian-security/ stretch/updates",
+    "debian-archive/debian/ stretch-proposed-updates",
+]
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+enabled = ["debian-elts/ stretch"]
+disabled = [
+    "debian-archive/debian/ stretch",
+    "debian-archive/debian/ stretch-backports",
+    "debian-archive/debian/ stretch-backports-sloppy",
+    "debian-archive/debian-security/ stretch/updates",
+    "debian-archive/debian/ stretch-proposed-updates",
+]
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "mips64le"
+deb-arch = "mips64el"
+
+[[os.tag]]
+arch = "mipsle"
+deb-arch = "mipsel"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "mipsbe"
+deb-arch = "mips"
+
+[[os.tag]]
+arch = "armv4t"
+deb-arch = "armel"
+
+[[os]]
+name = "Debian"
+version = "10"
+codename = "Buster"
+series = "buster"
+date = "2019-07"
+components = "main contrib non-free"
+deb-architectures = [
+    "i386",
+    "armhf",
+    "amd64",
+    "ppc64el",
+    "s390x",
+    "armel",
+    "arm64",
+    "mips64el",
+    "mips",
+    "mipsel",
+]
+no-minbase = false
+deb822-format = true
+[os.source]
+enabled = [
+    "debian/ buster",
+    "debian/ buster-backports",
+    "debian/ buster-backports-sloppy",
+    "debian/ buster-updates",
+    "debian-security/ buster/updates",
+]
+disabled = ["debian/ buster-proposed-updates", "debian-debug/ buster-debug"]
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "armv5te"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "mips64le"
+deb-arch = "mips64el"
+
+[[os.tag]]
+arch = "mipsbe"
+deb-arch = "mips"
+
+[[os.tag]]
+arch = "mipsle"
+deb-arch = "mipsel"
+
+[[os]]
+name = "Debian"
+version = "11"
+codename = "Bullseye"
+series = "bullseye"
+date = "2021-08"
+components = "main contrib non-free"
+deb-architectures = [
+    "i386",
+    "amd64",
+    "ppc64el",
+    "armhf",
+    "arm64",
+    "mips64el",
+    "mipsel",
+    "s390x",
+    "armel",
+]
+no-minbase = false
+deb822-format = true
+[os.source]
+enabled = [
+    "debian/ bullseye",
+    "debian/ bullseye-backports",
+    "debian/ bullseye-backports-sloppy",
+    "debian/ bullseye-updates",
+    "debian-security/ bullseye-security",
+]
+disabled = ["debian/ bullseye-proposed-updates", "debian-debug/ bullseye-debug"]
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "mips64le"
+deb-arch = "mips64el"
+
+[[os.tag]]
+arch = "mipsle"
+deb-arch = "mipsel"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "armv5te"
+deb-arch = "armel"
+
+[[os]]
+name = "Debian"
+version = "12"
+codename = "Bookworm"
+series = "bookworm"
+date = "2023-06"
+components = "main contrib non-free non-free-firmware"
+deb-architectures = [
+    "arm64",
+    "i386",
+    "amd64",
+    "ppc64el",
+    "armhf",
+    "mips64el",
+    "mipsel",
+    "armel",
+    "s390x",
+]
+no-minbase = false
+deb822-format = true
+[os.source]
+enabled = [
+    "debian/ bookworm",
+    "debian/ bookworm-backports",
+    "debian/ bookworm-backports-sloppy",
+    "debian/ bookworm-updates",
+    "debian-security/ bookworm-security",
+]
+disabled = ["debian/ bookworm-proposed-updates", "debian-debug/ bookworm-debug"]
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "mips64le"
+deb-arch = "mips64el"
+
+[[os.tag]]
+arch = "mipsle"
+deb-arch = "mipsel"
+
+[[os.tag]]
+arch = "armv5te"
+deb-arch = "armel"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os]]
+name = "Debian"
+version = "13"
+codename = "Trixie"
+series = "trixie"
+# date = ""
+components = "main contrib non-free non-free-firmware"
+deb-architectures = [
+    "i386",
+    "arm64",
+    "amd64",
+    "ppc64el",
+    "mips64el",
+    "armhf",
+    "s390x",
+    "armel",
+]
+no-minbase = false
+deb822-format = true
+[os.source]
+enabled = [
+    "debian/ trixie",
+    "debian/ trixie-backports",
+    "debian/ trixie-updates",
+    "debian-security/ trixie-security",
+]
+disabled = ["debian/ trixie-proposed-updates", "debian-debug/ trixie-debug"]
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "mips64le"
+deb-arch = "mips64el"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "armv5te"
+deb-arch = "armel"
+
+[[os]]
+name = "Debian"
+
+# inf is infinite and can be parsed as a number, whereas unstable cannot.
+# version = "inf"
+version = "unstable"
+codename = "Sid"
+series = "sid"
+components = "main contrib non-free non-free-firmware"
+deb-architectures = [
+    "i386",
+    "amd64",
+    "arm64",
+    "ppc64el",
+    "mips64el",
+    "s390x",
+    "armhf",
+    "riscv64",
+    "armel",
+    # -----
+    "alpha",
+    "hppa",
+    # "ia64",
+    # "x32",
+
+    "loong64",
+    "m68k",
+    "powerpc",
+    "ppc64",
+    "sh4",
+    "sparc64",
+]
+no-minbase = false
+deb822-format = true
+[os.source]
+enabled = ["debian/ sid"]
+disabled = ["debian/ experimental", "debian-debug/ sid-debug"]
+
+#[[os.tag]]
+#arch = "ia64"
+#deb-arch = "ia64"
+# [os.tag.source]
+# enabled = ["debian-ports/ sid"]
+# disabled = ["debian-ports/ experimental"]
+# [[os.tag]]
+# arch = "x32"
+# deb-arch = "x32"
+# [os.tag.source]
+# enabled = ["debian-ports/ sid"]
+# disabled = ["debian-ports/ experimental"]
+
+# ------
+# ------
+# ------
+
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
+
+[[os.tag]]
+arch = "mips64le"
+deb-arch = "mips64el"
+
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+
+[[os.tag]]
+arch = "rv64gc"
+deb-arch = "riscv64"
+
+[[os.tag]]
+arch = "armv5te"
+deb-arch = "armel"
+
+
+[[os.tag]]
+arch = "alpha"
+deb-arch = "alpha"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
+
+[[os.tag]]
+arch = "loong64"
+deb-arch = "loong64"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
+
+[[os.tag]]
+arch = "m68k"
+deb-arch = "m68k"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
+
+[[os.tag]]
+arch = "ppc"
+deb-arch = "powerpc"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
+
+[[os.tag]]
+arch = "ppc64"
+deb-arch = "ppc64"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
+
+[[os.tag]]
+arch = "sparc64"
+deb-arch = "sparc64"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
+
+[[os.tag]]
+arch = "sh4"
+deb-arch = "sh4"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]

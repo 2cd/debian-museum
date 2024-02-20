@@ -23,6 +23,10 @@ use std::{
 };
 use url::Url;
 
+pub(crate) const DISTROS_THAT_REQUIRE_XTERM: [&str; 8] = [
+    "bo", "hamm", "slink", "potato", "woody", "sarge", "etch", "warty",
+];
+
 // create_digest
 pub(crate) fn create_digest_cfg<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
     repos: I,
@@ -81,7 +85,7 @@ fn create_digest_file(
     dst_file: &Path,
 ) -> Result<(), anyhow::Error> {
     let yaml =
-        || -> anyhow::Result<String> { Ok(serde_yaml::to_string(&digest_cfg)?) };
+        || -> serde_yaml::Result<String> { serde_yaml::to_string(&digest_cfg) };
 
     let create_parent = || -> io::Result<()> {
         match dst_file.parent() {
@@ -119,6 +123,7 @@ fn create_digest_file(
                 &digest_cfg,
                 PrettyConfig::default()
                     .enumerate_arrays(true)
+                    // .depth_limit(1)
                     .extensions(Extensions::IMPLICIT_SOME),
             )?;
             fs::write(dst_file, ron)?;
@@ -207,7 +212,7 @@ fn archive_file_cfg(
 
     let file_size_cmt = format!(
         r#"Ideally:
-    zstd size => download size (i.e. Consumes {readable_size} of traffic)
+    zstd size => download size (i.e., Consumes {readable_size} of traffic)
     tar size => uncompressed size (Actually, the extracted content is >= {tar_readable})
     zstd + tar size ~= space occupation for initial installation
         (i.e., Requires at least {tar_and_zstd_size} of disk storage space, but actually needs more)
@@ -225,38 +230,59 @@ fn archive_file_cfg(
         .tar_readable(tar_readable)
         .build();
 
-    let zstd_mirror = [("github", "github.com/2cd/debian-museum/releases/download")]
-        .map(|(name, u)| {
-            let (tag_prefix, tag) = match r.get_tag() {
-                Some(t) => ("-", *t),
-                None => ("", ""),
-            };
+    let nspawn_env = match r.get_series().as_str() {
+        // `-E xx ` retains a space at the end
+        s if DISTROS_THAT_REQUIRE_XTERM.contains(&s) => "-E TERM=xterm ",
+        _ => "",
+    };
 
-            let url_str = format!(
-                "https://{u}/{}{tag_prefix}{tag}/{}",
-                r.get_version(),
-                zstd_filename.to_string_lossy()
-            );
-            let cmt = format!(
-                r##"Usage:
+    let gh_repo = match r.get_project() {
+        &"debian" | &"debian-sid" => "debian-museum",
+        // &"ubuntu"
+        _ => "ubuntu-museum",
+    };
+
+    // github.com/2cd/debian-museum/releases/download
+    let gh_url = format!(
+        "github.com/{owner}/{gh_repo}/releases/download",
+        owner = r.get_owner()
+    );
+
+    let zstd_mirror = [("github", gh_url)].map(|(name, u)| {
+        let (tag_prefix, tag) = match r.get_tag() {
+            Some(t) => ("-", *t),
+            None => ("", ""),
+        };
+
+        let url_str = format!(
+            "https://{u}/{}{tag_prefix}{tag}/{}",
+            r.get_version(),
+            zstd_filename.to_string_lossy()
+        );
+
+        let cmt = format!(
+            r##"Usage:
     mkdir -p ./tmp/{tag_name}
     cd tmp
     curl -LO '{url_str}'
 
-    # run gnutar or bsdtar as root (e.g., doas tar -xvf file.tar.zst)
+    # run gnutar or bsdtar (libarchive-tools) as root (e.g., doas tar -xvf file.tar.zst)
     tar -C {tag_name} -xf {zstd_filename:?}
 
+    # run apt as root (i.e., +sudo/+doas)
+    apt install systemd-container qemu-user-static
+
     # run nspawn as root (i.e., +sudo/+doas)
-    systemd-nspawn -D {tag_name} -E TERM=xterm -E LANG=en_US.UTF-8
+    systemd-nspawn -D {tag_name} {nspawn_env}-E LANG=$LANG
 
 "##,
-            );
-            FileMirror::builder()
-                .name(name)
-                .cmt(cmt)
-                .url(Url::parse(&url_str).expect("Invalid URL"))
-                .build()
-        });
+        );
+        FileMirror::builder()
+            .name(name)
+            .cmt(cmt)
+            .url(Url::parse(&url_str).expect("Invalid URL"))
+            .build()
+    });
     let archive_file = digest::ArchiveFile::builder()
         .name(zstd_filename)
         .digest(zstd_digests)
@@ -356,18 +382,13 @@ pub(crate) fn init_root_cfg(
         .mirror(mirrors)
         .cmt(cmt)
         .build();
+
     digest_os_config[0] = digest::OS::builder()
-        .codename(r.get_codename())
-        .name(r.get_project().to_owned())
+        .codename(r.get_codename().to_owned())
+        .series(r.get_series())
+        .name(r.get_osname().to_owned())
         .version(r.get_version().to_owned())
         .docker(os_docker)
         .build();
     Ok(())
 }
-
-// pub(crate) fn generate_title<'a, I>(repos: I, path: &Path) -> anyhow::Result<()>
-// where
-//     I: IntoIterator<Item = &'a Repository<'a>>,
-// {
-//     Ok(())
-// }

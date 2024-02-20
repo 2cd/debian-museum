@@ -1,25 +1,22 @@
 use crate::{
-    command,
+    command::{self, run_and_get_stdout},
     docker::{
         repo::Repository,
         repo_map::{MainRepo, RepoMap},
-        DOCKER_FILE_CONTENT, DOCKER_IGNORE_CONTENT,
+        DOCKER_FILE_FOR_NEW_DISTROS, DOCKER_FILE_OLD_CONTENT, DOCKER_IGNORE_CONTENT,
     },
     task::{
         docker::{run_docker_build, run_docker_push},
-        old_old_debian::{self, deser_ron, TarFile},
+        old_old_debian::{
+            self, deser_ron, digest_cfg::DISTROS_THAT_REQUIRE_XTERM, TarFile,
+        },
         pool::wait_process,
     },
 };
 use ahash::{HashMapExt, HashSetExt};
-use anyhow::bail;
+use anyhow::{bail, Context};
 use log_l10n::level::color::OwoColorize;
-use std::{
-    collections::BTreeSet,
-    fs, io,
-    path::Path,
-    process::{Command, Stdio},
-};
+use std::{collections::BTreeSet, fs, io, path::Path};
 use tinyvec::TinyVec;
 
 pub(crate) type MainRepoDigests = TinyVec<[String; 4]>;
@@ -67,11 +64,22 @@ fn get_repo_map_from_ron(
     Ok((map, docker_ron))
 }
 
+/// Splits `xx/yy:latest` and returns xx/yy.
+///
+/// `url:port/xx:latest` must be split from right to left.
 fn rsplit_colon<'a>(s: &'a str, arr: &mut [&'a str; 2]) -> &'a str {
     s.rsplitn(2, ':')
         .enumerate()
         .for_each(|(i, x)| unsafe { *arr.get_unchecked_mut(i) = x });
     arr.reverse();
+
+    if arr[0].is_empty() {
+        if arr[1].is_empty() {
+            panic!("Invalid repo: {s}")
+        }
+        return arr[1];
+    }
+
     arr[0]
 }
 
@@ -116,7 +124,7 @@ where
         }
 
         log::debug!("cmd: {}, args: {:#?}", "docker".green(), args.cyan());
-        command::run("docker", &args);
+        command::run("docker", &args, true);
         // -----------
         let digest = push_docker_manifest(repo)?;
         update_repo_digest_map(&mut repo_digest_map, digest_map_key, digest)
@@ -131,7 +139,7 @@ where
 }
 
 fn update_repo_digest_map<'a>(
-    repo_digest_map: &mut ahash::HashMap<&'a str, TinyVec<[String; 4]>>,
+    repo_digest_map: &mut ahash::HashMap<&'a str, MainRepoDigests>,
     key: &'a str,
     digest_element: String,
 ) {
@@ -159,13 +167,10 @@ fn push_docker_manifest(org_repo: &str) -> Result<String, anyhow::Error> {
         org_repo.blue()
     );
 
-    let cmd = Command::new("docker")
-        .args(["manifest", "push", "--purge", org_repo])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
-        .output()?;
+    let out =
+        run_and_get_stdout("docker", &["manifest", "push", "--purge", org_repo])
+            .context("Unable to get output from `docker manifest` command")?;
 
-    let out = String::from_utf8_lossy(&cmd.stdout);
     let mut arr = [""; 2];
     let repo = rsplit_colon(org_repo, &mut arr);
     let repo_digest = format!("{repo}@{}", out.trim());
@@ -197,7 +202,9 @@ where
             ..
         } = r.base_tar_name()?;
 
-        create_docker_file(docker_dir, tar_fname)?;
+        let is_new = !matches!(r.get_series().as_str(), s if DISTROS_THAT_REQUIRE_XTERM.contains(&s));
+
+        create_docker_file(docker_dir, tar_fname, is_new)?;
 
         run_docker_build(r, &mut children, docker_dir, &mut tag_map)?;
         treeset.insert(r.oci_platform());
@@ -220,14 +227,22 @@ where
 }
 
 /// Replaces "base.tar" in the default DOCKER_FILE_CONTENT with tar_fname(e.g., 2.2_potato_x86_base_2001-06-14.tar), and finally write.
-fn create_docker_file(docker_dir: &Path, tar_fname: &str) -> Result<(), io::Error> {
+fn create_docker_file(
+    docker_dir: &Path,
+    tar_fname: &str,
+    new: bool,
+) -> Result<(), io::Error> {
     let docker_file = docker_dir.join("Dockerfile");
     log::debug!("docker_file: {:?}", docker_file);
 
     log::debug!("creating the Dockerfile");
+
+    let docker_file_content =
+        if new { DOCKER_FILE_FOR_NEW_DISTROS } else { DOCKER_FILE_OLD_CONTENT };
+
     fs::write(
         &docker_file,
-        DOCKER_FILE_CONTENT.replace("base.tar", tar_fname),
+        docker_file_content.replace("base.tar", tar_fname),
     )?;
 
     let docker_ignore = docker_dir.join(".dockerignore");
@@ -263,23 +278,22 @@ where
             };
 
             log::info!("{} {} {}", "docker".green(), "pull".yellow(), repo.blue());
-            command::run("docker", &["pull", repo]);
+            command::run("docker", &["pull", repo], true);
 
             let args = ["inspect", "--format", r##"{{json .RepoDigests}}"##, repo];
             log::info!("cmd: {}, args: {:#?}", "docker".green(), args.blue());
-            let cmd = Command::new("docker")
-                .args(args)
-                .stdout(Stdio::piped())
-                .stderr(Stdio::inherit())
-                .output()?;
 
-            let json_arr = String::from_utf8_lossy(&cmd.stdout);
-            log::debug!("cmd.output: {json_arr}");
-
-            let cfg = serde_yaml::from_str::<MainRepoDigests>(json_arr.trim())?;
+            let json_arr =
+                run_and_get_stdout("docker", &args).with_context(|| {
+                    format!(
+                        "Unable to get output from `docker inspect {repo}` command"
+                    )
+                })?;
 
             let new_fname = repo_digests_filename(fname);
             log::info!("writing to: {new_fname}");
+
+            let cfg = serde_yaml::from_str::<MainRepoDigests>(json_arr.trim())?;
             fs::write(docker_dir.join(new_fname), ron::to_string(&cfg)?)?
         }
     }

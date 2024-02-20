@@ -1,6 +1,6 @@
 use crate::cfg::{
     self,
-    mirror::{static_debian_archive_mirrors, Mirror, MirrorVariant},
+    mirror::{debian_archive, Mirror},
 };
 use std::{env, sync::OnceLock};
 use url::{ParseError, Url};
@@ -14,11 +14,11 @@ fn is_cn() -> bool {
 
 pub(crate) fn find_mirror_url(
     mirrors: &[Mirror],
-    variant: MirrorVariant,
+    // variant: MirrorVariant,
 ) -> UrlResult {
     let m = mirrors
         .iter()
-        .filter(|x| x.get_variant() == &variant)
+        // .filter(|x| x.get_variant() == &variant)
         .find(|x| match x.get_region() {
             None if is_cn() => false,
             Some("CN") => is_cn(),
@@ -33,16 +33,15 @@ pub(crate) fn find_mirror_url(
 
 pub(crate) fn debian_archive() -> UrlResult {
     log::debug!("finding the mirror url from static debian archive mirrors.");
-    find_mirror_url(
-        static_debian_archive_mirrors(),
-        MirrorVariant::DebianArchive,
-    )
+    find_mirror_url(&debian_archive::deb_mirrors())
+    // , MirrorVariant::DebianArchive
 }
 
 pub(crate) fn add_slash(x: &str) -> &str {
     if x.ends_with('/') {
         return "";
     }
+
     "/"
 }
 
