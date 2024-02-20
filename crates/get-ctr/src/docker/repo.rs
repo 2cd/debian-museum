@@ -380,20 +380,24 @@ fn get_debian_mirrors(site_left: &str) -> [mirror::Mirror<'_>; 2] {
 
 fn ubuntu_one_line_style(suite: &str, url: &str) -> String {
     let components = components::UBUNTU;
+    let deb_vendor = match suite {
+        "warty" => "",
+        _ => "[trusted=yes] ",
+    };
 
     format!(
         r##"
-deb [trusted=yes] {url} {suite} {components}
-# deb-src [trusted=yes] {url} {suite} {components}
+deb {deb_vendor}{url} {suite} {components}
+# deb-src {deb_vendor}{url} {suite} {components}
 
-deb [trusted=yes] {url} {suite}-updates {components}
-# deb-src [trusted=yes] {url} {suite}-updates {components}
+deb {deb_vendor}{url} {suite}-updates {components}
+# deb-src {deb_vendor}{url} {suite}-updates {components}
 
-deb [trusted=yes] {url} {suite}-backports {components}
-# deb-src [trusted=yes] {url} {suite}-backports {components}
+deb {deb_vendor}{url} {suite}-backports {components}
+# deb-src {deb_vendor}{url} {suite}-backports {components}
 
-deb [trusted=yes] {url} {suite}-security {components}
-# deb-src [trusted=yes] {url} {suite}-security {components}
+deb {deb_vendor}{url} {suite}-security {components}
+# deb-src {deb_vendor}{url} {suite}-security {components}
 
 # --------
 # Disabled
