@@ -1,21 +1,20 @@
-name: build & push (Debian-Sid)
-# auto-task.build-time = 2024-02-20 04:53:46.579903159+00:00
-on: { "push": { "paths": [".github/workflows/sid.yml"] } }
+name: build & push (Debian-Bookworm)
+on: {"schedule": [{"cron": '12 12 12,24 * *'}]}
 
 env:
   DEBIAN_FRONTEND: noninteractive
   GET_CTR_LOG: debug
   ZSTD_LV: 18
   OS: debian
-  VER: unstable
-  ARCHS: ${{vars.SID_ARCHS}}
-  BUILD_CMD: ${{vars.SID_CMD}}
+  VER: bookworm
+  ARCHS: ${{vars.BOOKWORM_ARCHS}}
+  BUILD_CMD: ${{vars.BOOKWORM_CMD}}
 
 jobs:
   build:
     strategy:
       fail-fast: true
-      matrix: ${{fromJson(vars.SID_MATRIX)}}
+      matrix: ${{fromJson(vars.BOOKWORM_MATRIX)}}
     runs-on: ubuntu-latest
 
     steps:

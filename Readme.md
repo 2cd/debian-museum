@@ -1,17 +1,24 @@
 # Build
 
-- For OLD OLD x64:
-    Debian Trixie (kernel: 6.x, arch: amd64 (x64)) cannot build rootfs for debian-wheezy & ubuntu-oneiric and lower versions of amd64 (x64) with debootstrap.
-- For OLD OLD x86:
-    Running the ubuntu `{warty / hoary}` (arch: i386 (x86))  containers results in the following error:
+## Known issues
+
+- OLD OLD x64:
+
+Debian Trixie (kernel: 6.x, arch: amd64 (x64)) cannot build rootfs for **Debian-Wheezy**, **Ubuntu-Oneiric** & **lower** versions of amd64 (x64) with `debootstrap`.
+
+> Since the configuration of the software packages in the container is required when building the container, it can also be said that **CANNOT RUN**.
+
+- OLD OLD x86:  
+
+Running the Ubuntu `{Warty / Hoary}` (arch: i386 (x86))  containers results in the following error:
 
 ```sh
 Inconsistency detected by ld.so: rtld.c: 1192: dl_main: Assertion `(void *) ph->p_vaddr == _rtld_local._dl_sysinfo_dso' failed!
 ```
 
-To solve these problems, we need to use an older system (with an older kernel).
+To solve these issues, we need to use an older system (with an older kernel).
 
-Building rootfs for Debian Wheezy amd64(x64) can be done with Debian Stretch amd64(x64), but building Ubuntu Warty i386(x86) (4.10, 2004-10, the first publicly released version of ubuntu) requires a very, very old system.
+Building rootfs for Debian Wheezy amd64(x64) can be done with Debian Stretch amd64(x64), but building/running Ubuntu Warty i386(x86) (4.10, 2004-10, the first publicly released version of ubuntu) requires a very, very old system.
 
 ## Preparations
 

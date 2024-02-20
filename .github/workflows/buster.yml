@@ -1,21 +1,20 @@
-name: build & push (Debian-Sid)
-# auto-task.build-time = 2024-02-20 04:53:46.579903159+00:00
-on: { "push": { "paths": [".github/workflows/sid.yml"] } }
+name: build & push (Debian-Buster)
+on: {"schedule": [{"cron": '10 10 10 6 *'}]}
 
 env:
   DEBIAN_FRONTEND: noninteractive
   GET_CTR_LOG: debug
   ZSTD_LV: 18
   OS: debian
-  VER: unstable
-  ARCHS: ${{vars.SID_ARCHS}}
-  BUILD_CMD: ${{vars.SID_CMD}}
+  VER: buster
+  ARCHS: ${{vars.BUSTER_ARCHS}}
+  BUILD_CMD: ${{vars.BUSTER_CMD}}
 
 jobs:
   build:
     strategy:
       fail-fast: true
-      matrix: ${{fromJson(vars.SID_MATRIX)}}
+      matrix: ${{fromJson(vars.BUSTER_MATRIX)}}
     runs-on: ubuntu-latest
 
     steps:
