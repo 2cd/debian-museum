@@ -1,7 +1,5 @@
 name: build & push (Debian-Trixie)
-# on: {"schedule": [{"cron": '13 13 */13 * *'}]}
-on: { "push": { "paths": [".github/workflows/trixie.yml"] } }
-
+on: {"schedule": [{"cron": '13 13 */13 * *'}]}
 
 env:
   DEBIAN_FRONTEND: noninteractive
