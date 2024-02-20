@@ -1,0 +1,142 @@
+#!/usr/bin/zsh -fxe
+official_url="http://archive.debian.org/debian/"
+mirror_url="https://mirrors.nju.edu.cn/debian-archive/debian"
+
+deb_components=$(get-deb-components deb-debootstrap)
+components=$(get-deb-components deb)
+
+build() {
+    name=$series-$arch
+    src_list=$name/etc/apt/sources.list
+
+    args=(
+        --no-check-gpg
+        --exclude=man-db,isc-dhcp-client,isc-dhcp-common
+        # 
+        --components=$deb_components
+        --arch=$arch
+        # 
+        $series
+        $name
+        $mirror_url
+    )
+
+    if [[ ! -e $name ]] {
+        debootstrap $args
+    }
+
+    case $series {
+        ("jessie") 
+    > $src_list<<-'EOF'
+# | version | codename     | created    | release    | eol        | eol-lts    | eol-elts   |
+# | ------- | ------------ | ---------- | ---------- | ---------- | ---------- | ---------- |
+# | 8       | Jessie       | 2013-05-04 | 2015-04-26 | 2018-06-17 | 2020-06-30 | 2025-06-30 |
+#
+deb http://archive.debian.org/debian/ jessie main contrib non-free
+deb http://archive.debian.org/debian/ jessie-backports main contrib non-free
+deb http://archive.debian.org/debian/ jessie-backports-sloppy main contrib non-free
+# deb http://archive.debian.org/debian-security/ jessie/updates main contrib non-free
+# Debian ELTS
+# deb http://deb.freexian.com/extended-lts/ jessie main contrib non-free
+EOF
+        ;;
+        (*) echo "deb $official_url $series $components" > $src_list ;;
+    }
+    run-apt-upgrade-in-container $name
+    install-pkgs-in-container $name apt-utils
+    pack-rootfs-to-tar $name
+}
+
+for series (
+    # potato
+    # woody
+    # sarge
+    # etch
+    # lenny
+    # squeeze
+    # wheezy
+    jessie
+    # stretch
+    # buster
+    # bullseye
+    # bookworm
+    # trixie
+    ) {
+    
+    case $series {
+        ("potato") 
+            for arch (
+                "i386"
+                ## "powerpc"
+                # "arm"
+                # "alpha"
+                # "sparc"
+                # "m68k"
+            ) {
+                build
+            } ;;
+        ("woody")
+            for arch (
+                "i386"
+                ## "ia64"
+                ## "s390"
+                # "powerpc"
+                # "mips"
+                # "mipsel"
+                # "alpha"
+                # "hppa"
+                # "sparc"
+                # "arm"
+                # "m68k"
+            ) {
+                build
+            } ;;
+        ("sarge")
+            for arch (
+                # "ia64"
+                # "powerpc"
+                # "s390"
+                # "mipsel"
+                # "mips"
+                # "arm"
+                # "sparc"
+                # "m68k"
+                # "hppa"
+                # "alpha"
+                # "i386"
+            ) {
+                build
+            } ;;
+        ("etch")
+            for arch (
+                # "amd64"
+                # "i386"
+                # "arm"
+                # "alpha"
+                # "sparc"
+                "powerpc"
+                "mipsel"
+                "mips"
+                # "hppa"
+                # "ia64"
+                # "s390"
+            ) {
+                build
+            } ;;
+            ("jessie")
+            for arch (
+                # "i386"
+                # "amd64"
+                # "armhf"
+                # "armel"
+                # "arm64"
+                "s390x"
+                # "mipsel"
+                # "mips"
+                # "powerpc"
+                # "ppc64el"
+            ) {
+                build
+            } ;;
+    }
+}
