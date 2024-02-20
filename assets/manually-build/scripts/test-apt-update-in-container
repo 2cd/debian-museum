@@ -1,2 +1,0 @@
-#!/bin/sh -x
-systemd-nspawn -D "$1" -E LANG=en_US.UTF-8 apt-get update
