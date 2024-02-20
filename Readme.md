@@ -26,17 +26,18 @@ Building rootfs for Debian Wheezy amd64(x64) can be done with Debian Stretch amd
   - qemu-user-static 
 -->
 
-### add scripts-dir to path
+### add script dir to path
 
 ```zsh
 # Allows the use of `#` in interactive zsh
 setopt interactive_comments
 
-curl -LO "https://github.com/2cd/debian-museum/archive/refs/heads/ci.tar.gz"
-tar -xf ci.tar.gz
+branch=build
+curl -LO "https://github.com/2cd/debian-museum/archive/refs/heads/$branch.tar.gz"
+tar -xvf $branch.tar.gz
 
 path=(
-    $PWD/debian-museum-ci/src
+    $PWD/debian-museum-$branch/src
     $path
 )
 ```
