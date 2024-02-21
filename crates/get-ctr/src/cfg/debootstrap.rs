@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use getset::Getters;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -180,7 +182,7 @@ pub(crate) struct OS {
     deb822_format: bool,
 
     #[serde(rename = "deb-architectures")]
-    deb_architectures: Vec<String>,
+    deb_architectures: BTreeSet<String>,
 
     tag: Vec<Tag>,
 

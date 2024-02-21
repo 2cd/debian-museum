@@ -260,12 +260,11 @@ date = "2007-10-18"
 deb-architectures = [
     # "sparc",
     # "ia64",
-    "powerpc",
     "lpia",
+    "powerpc",
     "i386",
     "hppa",
     "amd64",
-    "lpia",
 ]
 no-minbase = false
 deb822-format = false
