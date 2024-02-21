@@ -39,9 +39,9 @@ date = "2005-04-08"
 deb-architectures = [
     # "ia64",
     "sparc",
+    "powerpc",
     "i386",
     "amd64",
-    "powerpc",
 ]
 no-minbase = true
 deb822-format = false
@@ -164,7 +164,6 @@ deb-architectures = [
     "powerpc",
     # "ia64",
     # "hppa",
-    "lpia",
     "i386",
     "amd64",
 ]
@@ -173,10 +172,6 @@ deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
-
-[[os.tag]]
-arch = "lpia"
-deb-arch = "lpia"
 
 [[os.tag]]
 arch = "sparc"
