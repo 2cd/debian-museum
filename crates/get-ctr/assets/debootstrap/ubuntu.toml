@@ -579,16 +579,12 @@ version = "11.04"
 codename = "Natty Narwhal"
 series = "natty"
 date = "2011-04-28"
-deb-architectures = ["armhf", "powerpc", "i386", "armel", "amd64"]
+deb-architectures = ["powerpc", "i386", "armel", "amd64"]
 no-minbase = false
 deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
-
-[[os.tag]]
-arch = "armv7a"
-deb-arch = "armhf"
 
 [[os.tag]]
 arch = "ppc"
@@ -612,16 +608,12 @@ version = "11.10"
 codename = "Oneiric Ocelot"
 series = "oneiric"
 date = "2011-10-13"
-deb-architectures = ["armhf", "powerpc", "i386", "armel", "amd64"]
+deb-architectures = ["powerpc", "i386", "armel", "amd64"]
 no-minbase = false
 deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
-
-[[os.tag]]
-arch = "armv7a"
-deb-arch = "armhf"
 
 [[os.tag]]
 arch = "ppc"
@@ -1078,20 +1070,27 @@ version = "17.10"
 codename = "Artful Aardvark"
 series = "artful"
 date = "2017-10-19"
-deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
+deb-architectures = [
+    # "s390x",
+    # "ppc64el",
+    "i386",
+    "armhf",
+    "arm64",
+    "amd64",
+]
 no-minbase = false
 deb822-format = true
 
 [os.source]
 src = "ubuntu-old-releases"
 
-[[os.tag]]
-arch = "s390x"
-deb-arch = "s390x"
+# [[os.tag]]
+# arch = "s390x"
+# deb-arch = "s390x"
 
-[[os.tag]]
-arch = "ppc64le"
-deb-arch = "ppc64el"
+# [[os.tag]]
+# arch = "ppc64le"
+# deb-arch = "ppc64el"
 
 [[os.tag]]
 arch = "x86"
