@@ -1,19 +1,78 @@
 #!/bin/zsh -fe
+# ------------
 cd ${0:h}/workflows
 log_lv=$UPDATE_YML_LOG
-tmpl=sid.yml
-
-local -A ver_map=(
-    buster 10
-    bullseye 11
-    bookworm 12
-    trixie 13
-    # forky 14
-)
-# --------------
+OS=$1
+# ------------
 error() {
     print >&2 -P "%B%F{red}[ERROR]%b%f $*"
 }
+panic() {
+    error $*
+    exit 1
+}
+case $OS {
+    (debian) tmpl="sid.yml";;
+    (ubuntu) tmpl="devel.yml" ;;
+    (debian|ubuntu) ;;
+    (*) panic The first argument can only be debian or ubuntu.
+}
+# ------------
+if [[ $OS == debian ]] {
+    local -A ver_map=(
+        buster   "10"
+        bullseye "11"
+        bookworm "12"
+        trixie   "13"
+        # forky  "14"
+    )
+}
+
+if [[ $OS == ubuntu ]] {
+    local -A ver_map=(
+        warty    "4.10"
+        # hoary    "5.04"
+        # breezy   "5.10"
+        # dapper   "6.06"
+        # edgy     "6.10"
+        # feisty   "7.04"
+        # gutsy    "7.10"
+        # hardy    "8.04"
+        # intrepid "8.10"
+        # jaunty   "9.04"
+        # karmic   "9.10"
+        # lucid    "10.04"
+        # maverick "10.10"
+        # natty    "11.04"
+        # oneiric  "11.10"
+        # precise  "12.04"
+        # quantal  "12.10"
+        # raring   "13.04"
+        # saucy    "13.10"
+        # trusty   "14.04"
+        # utopic   "14.10"
+        # vivid    "15.04"
+        # wily     "15.10"
+        # xenial   "16.04"
+        # yakkety  "16.10"
+        # zesty    "17.04"
+        # artful   "17.10"
+        # bionic   "18.04"
+        # cosmic   "18.10"
+        # disco    "19.04"
+        # eoan     "19.10"
+        # focal    "20.04"
+        # groovy   "20.10"
+        # hirsute  "21.04"
+        # impish   "21.10"
+        # jammy    "22.04"
+        # kinetic  "22.10"
+        # lunar    "23.04"
+        # mantic   "23.10"
+        # noble    "24.04"
+    )
+}
+# --------------
 info() {
     print >&2 -P "%F{cyan}[INFO]%f $*"
 }
@@ -24,7 +83,6 @@ debug() {
     }
     print >&2 -Pr "%F{blue}[DEBUG]%f $*"
 }
-
 io::Error::not_found() {
     error "I/O Error, '$1' was not found."
 }
@@ -37,35 +95,17 @@ if ((year == 0)) {
     year=2024
 }
 
-
 for series ver (${(kv)ver_map}) {
     info "%F{blue}key%f:" $series "\t%F{blue}value%f:" $ver
-
     title_case=$series
     title_case[1]=${(U)series[1]}
     debug title_case: $title_case
 
+    new_file=$ver-$series.yml
+
     args=(
         --regexp-extended
-
-        # /sid.yml -> /$series.yml (e.g., /bookworm.yml)
-        --expression
-        "s@/sid(\.yml)@/$series\1@g"
-
-
-        # Debian-Sid -> Debian-${series.to_title_case()} (e.g., Debian-Bookworm.yml)
-        --expression
-        "s@(Debian)-Sid@\1-$title_case@g"
-
-        # .SID_ -> .${series.to_upper_case()}_ (e.g., .BOOKWORM_)
-        --expression
-        "s@(\.)SID_@\1${(U)series}_@g"
-
-        # VER: unstable -> VER: $series
-        --expression
-        "s@(^\s+VER:)\s*unstable\$@\1 $series@g"
-
-        # delete line 
+        # delete line
         --expression
         '/auto-task.build-time\s+=/d'
 
@@ -73,23 +113,46 @@ for series ver (${(kv)ver_map}) {
         '/on:\s*\{\s*("push"|"schedule"):/d'
     )
 
+    case $OS {
+        (debian)
+        args+=(
+            # /sid.yml -> /$new_file.yml (e.g., /12-bookworm.yml)
+            --expression
+            "s@/sid(\.yml)@/$new_file\1@g"
+
+            # Debian-Sid -> Debian-${series.to_title_case()} (e.g., Debian-Bookworm.yml)
+            --expression
+            "s@(Debian)-Sid@\1-$title_case@g"
+
+            # .SID_ -> .${series.to_upper_case()}_ (e.g., .BOOKWORM_)
+            --expression
+            "s@(\.)SID_@\1${(U)series}_@g"
+        );;
+        (ubuntu)
+        args+=(
+            # /dev.yml -> /$ver-$series.yml (e.g., /22.04-jammy.yml)
+            --expression
+            "s@/devel\.yml@/$new_file@g"
+
+            # Ubuntu-Devel -> Ubuntu-${series.to_title_case()} (e.g., Ubuntu-Jammy.yml)
+            --expression
+            "s@(Ubuntu)-Devel@\1-$title_case@g"
+
+            # .DEVEL_ -> .${series.to_upper_case()}_ (e.g., .JAMMY_)
+            --expression
+            "s@(\.)DEVEL_@\1${(U)series}_@g"
+            );;
+    }
 
     unset cron
     case $series {
-        # BUSTER_CMD = get-ctr --os debian --ver 10
-        # BUSTER_MATRIX = {"arch":["i386","amd64","arm64","ppc64el","mips64el","mipsel", "mips", "s390x","armhf", "armel"]}
-        # BUSTER_ARCHS = "i386" "amd64" "arm64" "ppc64el" "mips64el" "mipsel" "mips" "s390x" "armhf" "armel"
-
         # release: 2019-07;  eol: 2022-09;  eol-lts: 2024-06;  eol-elts: 2029-06
-        (buster) 
+        (buster)
         case $year {
             (2024) cron='10 10 10 6 *' ;;
         }
         ;;
 
-        # BULLSEYE_CMD = get-ctr --os debian --ver 11
-        # BULLSEYE_MATRIX = {"arch":["i386","amd64","arm64","ppc64el","mips64el","mipsel", "s390x","armhf","armel"]}
-        # BULLSEYE_ARCHS = "i386"  "amd64"  "arm64"  "ppc64el"  "mips64el"  "mipsel"  "s390x"  "armhf"  "armel"
         # 2021; 2024; 2026
         (bullseye)
             case $year {
@@ -98,9 +161,6 @@ for series ver (${(kv)ver_map}) {
             }
         ;;
 
-        # BOOKWORM_CMD = get-ctr --os debian --ver 12
-        # BOOKWORM_MATRIX = {"arch":["i386","amd64","arm64","ppc64el","mips64el","mipsel", "s390x","armhf","armel"]}
-        # BOOKWORM_ARCHS = "i386" "amd64" "arm64" "ppc64el" "mips64el" "mipsel" "s390x" "armhf" "armel"
         # 2023; 2026; 2028
         (bookworm)
             case $year {
@@ -111,10 +171,6 @@ for series ver (${(kv)ver_map}) {
             }
         ;;
 
-        # TRIXIE_CMD = get-ctr --os debian --ver 13
-        # +riscv64?
-        # TRIXIE_MATRIX = {"arch":["i386","amd64","arm64","ppc64el","mips64el","s390x","armhf","armel"]}
-        # TRIXIE_ARCHS = "i386" "amd64" "arm64" "ppc64el" "mips64el" "s390x" "armhf" "armel"
         # 2025; 2028; 2030
         (trixie)
             case $year {
@@ -125,7 +181,7 @@ for series ver (${(kv)ver_map}) {
             }
         ;;
 
-        # 2027; 2030; 2032 
+        # 2027; 2030; 2032
         # (forky)
         #     if ((year <= 2025)) {
         #         error "Until 2025-06, you should be using sid, not forky."
@@ -139,16 +195,15 @@ for series ver (${(kv)ver_map}) {
         # args.push()
         args+=(
             --expression
-            "1a\on: {\"schedule\": [{\"cron\": '$cron'}]}"
+            "1a\on: { \"schedule\": [ { \"cron\": '$cron' } ] }"
         )
     }
 
     if ! (($+cron)) {
         args+=(
             --expression
-            # 
             # "on":{"push":{"paths":[".github\/workflows\/sid.yml"]}}
-            "1a\on: {\"push\":{\"paths\":[\".github/workflows/${series}.yml\"]}}"
+            "1a\on: { \"push\": { \"paths\": [ \".github/workflows/$new_file\" ] } }"
         )
     }
 
@@ -156,9 +211,9 @@ for series ver (${(kv)ver_map}) {
         io::Error::not_found $tmpl
         exit 1
     }
-    # Template file 
+    # Template file
     args+=$tmpl
 
     debug "%F{green}sed %f$args"
-    sed $args > $series.yml
+    sed $args > $new_file
 }
