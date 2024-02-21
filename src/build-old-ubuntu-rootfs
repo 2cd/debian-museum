@@ -3,73 +3,79 @@
 for series (
     # warty
     # hoary
-    # breezy
-    # dapper
-    # edgy
-    # feisty
-    ## gutsy
-    # hardy
-    # intrepid
+    breezy
+    dapper
+    edgy
+    feisty
+    # gutsy
+    hardy
+    intrepid
     jaunty
-    # karmic
-    # lucid
-    # maverick
-    # natty
-    # oneiric
-    # artful
+    karmic
+    lucid
+    maverick
+    natty
+    oneiric
+    artful
     ) {
-    # arch=amd64
-    arch=sparc
-    # arch=hppa
-    # arch=powerpc
-    # arch=i386
-    # arch=arm64
-    # arch=lpia
-    # arch=s390x
-    # arch=ppc64el
-    # arch=armhf
 
-    name=$series-$arch
-    exclude_pkgs="ubuntu-minimal,ubuntu-base,cpio,dmidecode,fdisk,ifupdown,iproute2,iputils-ping,isc-dhcp-common,isc-dhcp-client,kmod,less,logrotate,nano,nftables,procps,udev,vim,vim-common,vim-tiny,man-db,tasksel,tasksel-data"
+    for arch (
+        amd64
+        # sparc
+        # hppa
+        # powerpc
+        # i386
+        # arm64
+        # lpia
+        # s390x
+        # ppc64el
+        # armhf
+        # armel
+    ) {
 
-    args=(
-        # --include=mawk,libc6
-        --exclude=$exclude_pkgs
-        --no-check-gpg
-        --components=$(get-deb-components uuu-debootstrap)
-        --arch=$arch
-    )
 
-    case $series {
-        (warty | hoary | breezy | dapper | edgy | feisty) ;;
-        # gutsy+: minbase
-        (*) args+="--variant=minbase" ;;
+        name=$series-$arch
+        exclude_pkgs="ubuntu-minimal,ubuntu-base,cpio,dmidecode,fdisk,ifupdown,iproute2,iputils-ping,isc-dhcp-common,isc-dhcp-client,kmod,less,logrotate,nano,nftables,procps,udev,vim,vim-common,vim-tiny,man-db,tasksel,tasksel-data"
+
+        args=(
+            # --include=mawk,libc6
+            --exclude=$exclude_pkgs
+            --no-check-gpg
+            --components=$(get-deb-components uuu-debootstrap)
+            --arch=$arch
+        )
+
+        case $series {
+            (warty | hoary | breezy | dapper | edgy | feisty) ;;
+            # gutsy+: minbase
+            (*) args+="--variant=minbase" ;;
+        }
+
+        args+=(
+            $series
+            $name
+            $(create-uuu-old-src-list --mirror --get-url)
+        )
+
+        if [[ ! -e $name ]] {
+            debootstrap $args
+        }
+
+        uuu_list_args=(
+            --series $series
+            --rootfs-dir $name
+        )
+
+        # update_src_list $mirror_url
+        create-uuu-old-src-list --mirror-http $uuu_list_args
+
+        run-apt-upgrade-in-container $name
+
+        # update_src_list $official_url
+        create-uuu-old-src-list $uuu_list_args
+
+        test-apt-update-in-container $name
+
+        pack-rootfs-to-tar $name
     }
-
-    args+=(
-        $series
-        $name
-        $(create-uuu-old-src-list --mirror --get-url)
-    )
-
-    if [[ ! -e $name ]] {
-        debootstrap $args
-    }
-
-    uuu_list_args=(
-        --series $series
-        --rootfs-dir $name
-    )
-
-    # update_src_list $mirror_url
-    create-uuu-old-src-list --mirror-http $uuu_list_args
-
-    run-apt-upgrade-in-container $name
-
-    # update_src_list $official_url
-    create-uuu-old-src-list $uuu_list_args
-
-    test-apt-update-in-container $name
-
-    pack-rootfs-to-tar $name
 }

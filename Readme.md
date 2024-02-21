@@ -8,7 +8,7 @@ Debian Trixie (kernel: 6.x, arch: amd64 (x64)) cannot build rootfs for **Debian-
 
 > Since the configuration of the software packages in the container is required when building the container, it can also be said that **CANNOT RUN**.
 
-- OLD OLD x86:  
+- OLD OLD x86:
 
 Running the Ubuntu `{Warty / Hoary}` (arch: i386 (x86))  containers results in the following error:
 
@@ -31,7 +31,7 @@ Building rootfs for Debian Wheezy amd64(x64) can be done with Debian Stretch amd
 - shell: zsh
 <!--
 - recommends:
-  - qemu-user-static 
+  - qemu-user-static
 -->
 
 ### add script dir to path
@@ -61,7 +61,7 @@ url="https://deb.freexian.com/extended-lts/"
 
 args=(
     --include="freexian-archive-keyring,apt-utils,eatmydata"
-    # 
+    #
     # The command executed in the sub-shell is equivalent to: ["main", "contrib", "non-free"].join(',') => "main,contrib,non-free"
     --components=$(get-deb-components deb-debootstrap)
 
@@ -144,7 +144,7 @@ official_url='http://archive.debian.org'
 args=(
     --include="apt-utils"
     --exclude="apt-transport-https"
-    # 
+    #
     --no-check-gpg
     --components=$(get-deb-components deb-debootstrap)
     --arch=$arch
@@ -246,7 +246,7 @@ official_url="http://archive.debian.org/debian-amd64/"
 
 args=(
     # --exclude=apt-transport-https
-    # 
+    #
     --no-check-gpg
     --components=$(get-deb-components deb-debootstrap)
     --arch=$arch
@@ -266,7 +266,7 @@ pack-rootfs-to-tar $name
 
 ## ubuntu
 
-<!-- 
+<!--
 4.10 & 5.04
 
 patch
