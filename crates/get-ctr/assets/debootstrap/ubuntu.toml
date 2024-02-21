@@ -297,8 +297,6 @@ codename = "Hardy Heron"
 series = "hardy"
 date = "2008-04-24"
 deb-architectures = [
-    "armhf",
-    "armel",
     "sparc",
     "powerpc",
 
@@ -318,14 +316,6 @@ src = "ubuntu-old-releases"
 [[os.tag]]
 arch = "lpia"
 deb-arch = "lpia"
-
-[[os.tag]]
-arch = "armv7a"
-deb-arch = "armhf"
-
-[[os.tag]]
-arch = "armv4t"
-deb-arch = "armel"
 
 [[os.tag]]
 arch = "sparc"
