@@ -283,10 +283,6 @@ arch = "x86"
 deb-arch = "i386"
 
 [[os.tag]]
-arch = "lpia"
-deb-arch = "lpia"
-
-[[os.tag]]
 arch = "hppa"
 deb-arch = "hppa"
 

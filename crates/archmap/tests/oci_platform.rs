@@ -30,6 +30,7 @@ fn new_map() -> io::Result<()> {
         ("i586", "linux/386"),
         ("i686", "linux/386"),
         ("ia64", "linux/ia64"),
+        ("lpia", "linux/386"),
         ("loong64", "linux/loong64"),
         ("loongarch64", "linux/loong64"),
         ("m68k", "linux/m68k"),
