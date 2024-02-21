@@ -91,6 +91,9 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                 (Some(arch), s @ "artful") if !["amd64", "i386"].contains(arch) => {
                     get_rootfs(arch, s)?
                 }
+                (Some(arch), s @ "intrepid") if ["sparc", "hppa"].contains(arch) => {
+                    get_rootfs(arch, s)?
+                }
                 (Some(arch), s @ "jaunty")
                     if ["sparc", "powerpc", "hppa"].contains(arch) =>
                 {

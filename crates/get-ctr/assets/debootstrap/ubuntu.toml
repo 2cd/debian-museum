@@ -1065,27 +1065,20 @@ version = "17.10"
 codename = "Artful Aardvark"
 series = "artful"
 date = "2017-10-19"
-deb-architectures = [
-    # "s390x",
-    # "ppc64el",
-    "i386",
-    "armhf",
-    "arm64",
-    "amd64",
-]
+deb-architectures = ["s390x", "ppc64el", "i386", "armhf", "arm64", "amd64"]
 no-minbase = false
 deb822-format = true
 
 [os.source]
 src = "ubuntu-old-releases"
 
-# [[os.tag]]
-# arch = "s390x"
-# deb-arch = "s390x"
+[[os.tag]]
+arch = "s390x"
+deb-arch = "s390x"
 
-# [[os.tag]]
-# arch = "ppc64le"
-# deb-arch = "ppc64el"
+[[os.tag]]
+arch = "ppc64le"
+deb-arch = "ppc64el"
 
 [[os.tag]]
 arch = "x86"
