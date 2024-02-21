@@ -204,23 +204,18 @@ codename = "Feisty Fawn"
 series = "feisty"
 date = "2007-04-19"
 deb-architectures = [
-    "sparc",
     "powerpc",
+    "sparc",
     # "ia64",
+    # "hppa",
     "i386",
-    "hppa",
     "amd64",
-    "lpia",
 ]
 no-minbase = true
 deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
-
-[[os.tag]]
-arch = "lpia"
-deb-arch = "lpia"
 
 [[os.tag]]
 arch = "sparc"
@@ -238,9 +233,9 @@ deb-arch = "powerpc"
 arch = "x86"
 deb-arch = "i386"
 
-[[os.tag]]
-arch = "hppa"
-deb-arch = "hppa"
+# [[os.tag]]
+# arch = "hppa"
+# deb-arch = "hppa"
 
 [[os.tag]]
 arch = "x64"
