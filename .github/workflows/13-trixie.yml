@@ -1,4 +1,4 @@
-name: build & push (Debian-Trixie)
+name: build & push (Debian-Trixie, 13)
 on: { "schedule": [ { "cron": '13 13 */13 * *' } ] }
 
 env:

@@ -1,4 +1,4 @@
-name: build & push (Debian-Sid)
+name: build & push (Debian-Sid, Unstable)
 # auto-task.build-time = 2024-02-20 04:53:46.579903159+00:00
 on: { "push": { "paths": [".github/workflows/sid.yml"] } }
 
