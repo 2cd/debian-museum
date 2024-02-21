@@ -99,6 +99,11 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                 {
                     get_rootfs(arch, s)?
                 }
+                (Some(arch), s @ "karmic")
+                    if ["sparc", "powerpc", "armel"].contains(arch) =>
+                {
+                    get_rootfs(arch, s)?
+                }
                 (Some(arch), s @ "jessie") if JESSIE_NO_LTS_ARCHS.contains(arch) => {
                     get_rootfs(arch, s)?
                 }
