@@ -77,8 +77,8 @@ series = "breezy"
 date = "2005-10-12"
 deb-architectures = [
     # "ia64",
+    # "sparc",
     "powerpc",
-    "sparc",
     "amd64",
     "i386",
 ]
@@ -97,9 +97,9 @@ src = "ubuntu-old-releases"
 arch = "ppc"
 deb-arch = "powerpc"
 
-[[os.tag]]
-arch = "sparc"
-deb-arch = "sparc"
+# [[os.tag]]
+# arch = "sparc"
+# deb-arch = "sparc"
 
 [[os.tag]]
 arch = "x64"
@@ -163,9 +163,9 @@ deb-architectures = [
     "sparc",
     "powerpc",
     # "ia64",
+    # "hppa",
     "lpia",
     "i386",
-    "hppa",
     "amd64",
 ]
 no-minbase = true
@@ -194,9 +194,9 @@ deb-arch = "powerpc"
 arch = "x86"
 deb-arch = "i386"
 
-[[os.tag]]
-arch = "hppa"
-deb-arch = "hppa"
+# [[os.tag]]
+# arch = "hppa"
+# deb-arch = "hppa"
 
 [[os.tag]]
 arch = "x64"
@@ -1699,7 +1699,7 @@ deb-architectures = [
     "amd64",
 ]
 no-minbase = false
-deb822-format = false
+deb822-format = true
 # src = "ubuntu-old-releases"
 
 [[os.tag]]

@@ -19,18 +19,8 @@ fn main() -> anyhow::Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use ron::ser::PrettyConfig;
-    use serde::Serialize;
-    use typed_builder::TypedBuilder;
-
     // use super::*;
-    use crate::{
-        cfg::{
-            debootstrap::{self, DEBIAN_RON, UBUNTU_RON},
-            disk::DiskV1,
-        },
-        command::run,
-    };
+    use crate::cfg::{debootstrap, disk::DiskV1};
     use std::{env, fs, path::Path};
 
     #[test]

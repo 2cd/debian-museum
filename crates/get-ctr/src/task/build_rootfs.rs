@@ -78,6 +78,8 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                     get_rootfs(arch, s)?
                 }
                 // (Some(arch @ "loong64"), s @ "sid") => get_rootfs(arch, s)?,
+                (Some(arch @ "powerpc"), s @ "breezy") => get_rootfs(arch, s)?,
+
                 (Some(arch), s)
                     if ["warty", "hoary", "gutsy", "potato", "woody"]
                         .contains(&s) =>
@@ -289,7 +291,6 @@ fn run_debootstrap(
             "nano",
             "nftables",
             "procps",
-            "udev",
             "vim",
             "vim-common",
             "vim-tiny",
