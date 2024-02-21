@@ -3,31 +3,39 @@
 for series (
     # warty
     # hoary
-    breezy
-    dapper
-    edgy
-    feisty
+    # breezy
+    # dapper
+    # edgy
+    # feisty
     ## gutsy
-    hardy
-    intrepid
+    # hardy
+    # intrepid
     jaunty
-    karmic
-    lucid
-    maverick
-    natty
-    oneiric
+    # karmic
+    # lucid
+    # maverick
+    # natty
+    # oneiric
+    # artful
     ) {
-    arch=amd64
-    # arch=sparc
+    # arch=amd64
+    arch=sparc
     # arch=hppa
     # arch=powerpc
+    # arch=i386
+    # arch=arm64
+    # arch=lpia
+    # arch=s390x
+    # arch=ppc64el
+    # arch=armhf
 
     name=$series-$arch
-    exclude_pkgs="ubuntu-minimal,ubuntu-base,postfix,postfix-tls,popularity-contest,vim,vim-common,wireless-tools,ppp,pppconfig,pppoeconf,w3m,kbd,udev,man-db"
+    exclude_pkgs="ubuntu-minimal,ubuntu-base,cpio,dmidecode,fdisk,ifupdown,iproute2,iputils-ping,isc-dhcp-common,isc-dhcp-client,kmod,less,logrotate,nano,nftables,procps,udev,vim,vim-common,vim-tiny,man-db,tasksel,tasksel-data"
 
     args=(
-        --no-check-gpg
+        # --include=mawk,libc6
         --exclude=$exclude_pkgs
+        --no-check-gpg
         --components=$(get-deb-components uuu-debootstrap)
         --arch=$arch
     )
