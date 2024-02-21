@@ -1,0 +1,72 @@
+{
+    "bookworm": (
+        ver: "12",
+        archs: "arm64  i386  amd64  ppc64el  armhf  mips64el  mipsel  armel  s390x",
+        matrix: (arch: ["arm64", "i386", "amd64", "ppc64el", "armhf", "mips64el", "mipsel", "armel", "s390x"]),
+    ),
+    "bullseye": (
+        ver: "11",
+        archs: "i386  amd64  ppc64el  armhf  arm64  mips64el  mipsel  s390x  armel",
+        matrix: (arch: ["i386", "amd64", "ppc64el", "armhf", "arm64", "mips64el", "mipsel", "s390x", "armel"]),
+    ),
+    "buster": (
+        ver: "10",
+        archs: "i386  armhf  amd64  ppc64el  s390x  armel  arm64  mips64el  mips  mipsel",
+        matrix: (arch: ["i386", "armhf", "amd64", "ppc64el", "s390x", "armel", "arm64", "mips64el", "mips", "mipsel"]),
+    ),
+    "etch": (
+        ver: "4.0",
+        archs: "arm  amd64  alpha  sparc  powerpc  mipsel  mips  i386  hppa  m68k",
+        matrix: (arch: ["arm", "amd64", "alpha", "sparc", "powerpc", "mipsel", "mips", "i386", "hppa", "m68k"]),
+    ),
+    "jessie": (
+        ver: "8",
+        archs: "i386  s390x  amd64  mipsel  armel  mips  powerpc  ppc64el  armhf  arm64",
+        matrix: (arch: ["i386", "s390x", "amd64", "mipsel", "armel", "mips", "powerpc", "ppc64el", "armhf", "arm64"]),
+    ),
+    "lenny": (
+        ver: "5.0",
+        archs: "sparc  powerpc  mipsel  mips  i386  hppa  armel  arm  amd64  alpha",
+        matrix: (arch: ["sparc", "powerpc", "mipsel", "mips", "i386", "hppa", "armel", "arm", "amd64", "alpha"]),
+    ),
+    "potato": (
+        ver: "2.2",
+        archs: "i386  alpha  sparc  m68k  arm",
+        matrix: (arch: ["i386", "alpha", "sparc", "m68k", "arm"]),
+    ),
+    "sarge": (
+        ver: "3.1",
+        archs: "arm  sparc  powerpc  mips  mipsel  m68k  i386  hppa  alpha",
+        matrix: (arch: ["arm", "sparc", "powerpc", "mips", "mipsel", "m68k", "i386", "hppa", "alpha"]),
+    ),
+    "sid": (
+        ver: "unstable",
+        archs: "i386  amd64  arm64  ppc64el  mips64el  s390x  armhf  riscv64  armel  alpha  hppa  loong64  m68k  powerpc  ppc64  sh4  sparc64",
+        matrix: (arch: ["i386", "amd64", "arm64", "ppc64el", "mips64el", "s390x", "armhf", "riscv64", "armel", "alpha", "hppa", "m68k", "powerpc", "ppc64", "sh4", "sparc64"]),
+    ),
+    "squeeze": (
+        ver: "6.0",
+        archs: "sparc  powerpc  mipsel  mips  i386  armel  amd64",
+        matrix: (arch: ["sparc", "powerpc", "mipsel", "mips", "i386", "armel", "amd64"]),
+    ),
+    "stretch": (
+        ver: "9",
+        archs: "armhf  amd64  i386  arm64  ppc64el  mips64el  mipsel  s390x  mips  armel",
+        matrix: (arch: ["armhf", "amd64", "i386", "arm64", "ppc64el", "mips64el", "mipsel", "s390x", "mips", "armel"]),
+    ),
+    "trixie": (
+        ver: "13",
+        archs: "i386  arm64  amd64  ppc64el  mips64el  armhf  s390x  armel",
+        matrix: (arch: ["i386", "arm64", "amd64", "ppc64el", "mips64el", "armhf", "s390x", "armel"]),
+    ),
+    "wheezy": (
+        ver: "7",
+        archs: "amd64  i386  armhf  powerpc  sparc  s390x  mipsel  mips  armel",
+        matrix: (arch: ["amd64", "i386", "armhf", "powerpc", "sparc", "s390x", "mipsel", "mips", "armel"]),
+    ),
+    "woody": (
+        ver: "3.0",
+        archs: "alpha  hppa  i386  sparc  arm  m68k",
+        matrix: (arch: ["alpha", "hppa", "i386", "sparc", "arm", "m68k"]),
+    ),
+}
