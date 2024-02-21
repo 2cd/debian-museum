@@ -297,11 +297,9 @@ codename = "Hardy Heron"
 series = "hardy"
 date = "2008-04-24"
 deb-architectures = [
-    "sparc",
-    "powerpc",
-
+    # "sparc",
     # "ia64",
-
+    "powerpc",
     "i386",
     "hppa",
     "amd64",
@@ -317,9 +315,9 @@ src = "ubuntu-old-releases"
 arch = "lpia"
 deb-arch = "lpia"
 
-[[os.tag]]
-arch = "sparc"
-deb-arch = "sparc"
+# [[os.tag]]
+# arch = "sparc"
+# deb-arch = "sparc"
 
 [[os.tag]]
 arch = "ppc"
@@ -330,12 +328,12 @@ deb-arch = "powerpc"
 #deb-arch = "ia64"
 
 [[os.tag]]
-arch = "x86"
-deb-arch = "i386"
-
-[[os.tag]]
 arch = "hppa"
 deb-arch = "hppa"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
 
 [[os.tag]]
 arch = "x64"
@@ -406,9 +404,7 @@ date = "2009-04-23"
 deb-architectures = [
     "sparc",
     "powerpc",
-
     # "ia64",
-
     "i386",
     "hppa",
     "armel",
@@ -509,7 +505,6 @@ codename = "Lucid Lynx"
 series = "lucid"
 date = "2010-04-29"
 deb-architectures = [
-    "armhf",
     "sparc",
     "powerpc",
 
@@ -524,10 +519,6 @@ deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
-
-[[os.tag]]
-arch = "armv7a"
-deb-arch = "armhf"
 
 [[os.tag]]
 arch = "sparc"
@@ -559,16 +550,12 @@ version = "10.10"
 codename = "Maverick Meerkat"
 series = "maverick"
 date = "2010-10-10"
-deb-architectures = ["armhf", "powerpc", "i386", "armel", "amd64"]
+deb-architectures = ["powerpc", "i386", "armel", "amd64"]
 no-minbase = false
 deb822-format = false
 
 [os.source]
 src = "ubuntu-old-releases"
-
-[[os.tag]]
-arch = "armv7a"
-deb-arch = "armhf"
 
 [[os.tag]]
 arch = "ppc"
