@@ -64,7 +64,8 @@ pub(crate) struct Mirror<'m> {
 }
 
 pub(crate) const fn include_pkgs() -> &'static str {
-    "ca-certificates,apt-transport-https"
+    // "ca-certificates,apt-transport-https"
+    "ca-certificates"
 }
 
 #[cfg(test)]
