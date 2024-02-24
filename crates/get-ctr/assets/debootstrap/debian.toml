@@ -43,6 +43,8 @@ deb-arch = "m68k"
 arch = "armv3"
 deb-arch = "arm"
 
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "3.0"
@@ -115,6 +117,8 @@ deb-arch = "arm"
 arch = "m68k"
 deb-arch = "m68k"
 
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "3.1"
@@ -208,6 +212,8 @@ deb-arch = "arm"
 arch = "alpha"
 deb-arch = "alpha"
 
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "4.0"
@@ -239,10 +245,10 @@ enabled = [
     "debian-archive/debian/ etch",
     "debian-archive/debian-backports/ etch-backports",
 ]
-# W: GPG error: http://archive.debian.org etch/updates Release: 
-# The following signatures were invalid: KEYEXPIRED 
-# W: GPG error: http://archive.debian.org etch/volatile-sloppy Release: The following signatures were invalid: KEYEXPIRED 
-# W: GPG error: http://archive.debian.org etch/volatile Release: The following signatures were invalid: KEYEXPIRED 
+# W: GPG error: http://archive.debian.org etch/updates Release:
+# The following signatures were invalid: KEYEXPIRED
+# W: GPG error: http://archive.debian.org etch/volatile-sloppy Release: The following signatures were invalid: KEYEXPIRED
+# W: GPG error: http://archive.debian.org etch/volatile Release: The following signatures were invalid: KEYEXPIRED
 disabled = [
     "debian-archive/debian-security/ etch/updates",
     "debian-archive/debian-volatile/ etch/volatile-sloppy",
@@ -300,6 +306,8 @@ deb-arch = "i386"
 arch = "hppa"
 deb-arch = "hppa"
 
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "5.0"
@@ -391,6 +399,8 @@ deb-arch = "amd64"
 arch = "alpha"
 deb-arch = "alpha"
 
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "6.0"
@@ -478,6 +488,7 @@ arch = "armv4t"
 deb-arch = "armel"
 
 
+# ------------------
 [[os]]
 name = "Debian"
 version = "7"
@@ -573,6 +584,8 @@ deb-arch = "armel"
 # arch = "s390"
 # deb-arch = "s390"
 
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "8"
@@ -614,7 +627,6 @@ disabled = [
     "debian-archive/debian/ jessie-backports-sloppy",
     "debian-archive/debian-security/ jessie/updates",
 ]
-
 
 [[os.tag]]
 arch = "x64"
@@ -712,6 +724,8 @@ enabled = [
     "debian-archive/debian/ jessie-backports-sloppy",
 ]
 
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "9"
@@ -809,6 +823,8 @@ deb-arch = "mips"
 arch = "armv4t"
 deb-arch = "armel"
 
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "10"
@@ -880,6 +896,8 @@ deb-arch = "mips"
 arch = "mipsle"
 deb-arch = "mipsel"
 
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "11"
@@ -911,24 +929,12 @@ enabled = [
 disabled = ["debian/ bullseye-proposed-updates", "debian-debug/ bullseye-debug"]
 
 [[os.tag]]
-arch = "x86"
-deb-arch = "i386"
-
-[[os.tag]]
-arch = "x64"
-deb-arch = "amd64"
-
-[[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
 
 [[os.tag]]
 arch = "armv7a"
 deb-arch = "armhf"
-
-[[os.tag]]
-arch = "arm64"
-deb-arch = "arm64"
 
 [[os.tag]]
 arch = "mips64le"
@@ -946,6 +952,20 @@ deb-arch = "s390x"
 arch = "armv5te"
 deb-arch = "armel"
 
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "12"
@@ -977,18 +997,6 @@ enabled = [
 disabled = ["debian/ bookworm-proposed-updates", "debian-debug/ bookworm-debug"]
 
 [[os.tag]]
-arch = "arm64"
-deb-arch = "arm64"
-
-[[os.tag]]
-arch = "x86"
-deb-arch = "i386"
-
-[[os.tag]]
-arch = "x64"
-deb-arch = "amd64"
-
-[[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
 
@@ -1012,6 +1020,20 @@ deb-arch = "armel"
 arch = "s390x"
 deb-arch = "s390x"
 
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+
+# ------------------
 [[os]]
 name = "Debian"
 version = "13"
@@ -1041,18 +1063,6 @@ enabled = [
 disabled = ["debian/ trixie-proposed-updates", "debian-debug/ trixie-debug"]
 
 [[os.tag]]
-arch = "x86"
-deb-arch = "i386"
-
-[[os.tag]]
-arch = "arm64"
-deb-arch = "arm64"
-
-[[os.tag]]
-arch = "x64"
-deb-arch = "amd64"
-
-[[os.tag]]
 arch = "ppc64le"
 deb-arch = "ppc64el"
 
@@ -1072,6 +1082,20 @@ deb-arch = "s390x"
 arch = "armv5te"
 deb-arch = "armel"
 
+[[os.tag]]
+arch = "x86"
+deb-arch = "i386"
+
+[[os.tag]]
+arch = "arm64"
+deb-arch = "arm64"
+
+[[os.tag]]
+arch = "x64"
+deb-arch = "amd64"
+
+
+# ------------------
 [[os]]
 name = "Debian"
 
@@ -1122,11 +1146,6 @@ disabled = ["debian/ experimental", "debian-debug/ sid-debug"]
 # [os.tag.source]
 # enabled = ["debian-ports/ sid"]
 # disabled = ["debian-ports/ experimental"]
-
-# ------
-# ------
-# ------
-
 
 [[os.tag]]
 arch = "x86"
@@ -1180,13 +1199,6 @@ enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
-arch = "loong64"
-deb-arch = "loong64"
-[os.tag.source]
-enabled = ["debian-ports/ sid"]
-disabled = ["debian-ports/ experimental"]
-
-[[os.tag]]
 arch = "m68k"
 deb-arch = "m68k"
 [os.tag.source]
@@ -1208,6 +1220,13 @@ enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
+arch = "sh4"
+deb-arch = "sh4"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
+
+[[os.tag]]
 arch = "sparc64"
 deb-arch = "sparc64"
 [os.tag.source]
@@ -1215,8 +1234,8 @@ enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
-arch = "sh4"
-deb-arch = "sh4"
+arch = "loong64"
+deb-arch = "loong64"
 [os.tag.source]
 enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]
