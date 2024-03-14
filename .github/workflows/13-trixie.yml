@@ -1,5 +1,6 @@
 name: build & push (Debian-Trixie, 13)
-on: { "schedule": [{ "cron": '13 13 */13 * *' }] }
+on: push
+# on: { "schedule": [{ "cron": "13 13 */13 * *" }] }
 
 env:
   DEBIAN_FRONTEND: noninteractive
