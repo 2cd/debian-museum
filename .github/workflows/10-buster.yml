@@ -1,5 +1,5 @@
 name: build & push (Debian-Buster, 10)
-on: { "schedule": [ { "cron": '10 10 10 6 *' } ] }
+on: { "schedule": [{ "cron": '10 10 10 6 *' }] }
 
 env:
   DEBIAN_FRONTEND: noninteractive

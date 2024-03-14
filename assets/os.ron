@@ -41,8 +41,8 @@
     ),
     "sid": (
         ver: "unstable",
-        archs: "alpha  amd64  arm64  armel  armhf  hppa  i386  loong64  m68k  mips64el  powerpc  ppc64  ppc64el  riscv64  s390x  sh4  sparc64",
-        matrix: (arch: ["alpha", "amd64", "arm64", "armel", "armhf", "hppa", "i386", "m68k", "mips64el", "powerpc", "ppc64", "ppc64el", "riscv64", "s390x", "sh4", "sparc64"]),
+        archs: "alpha  amd64  arm64  armel  armhf  hppa  i386  loong64  m68k  mips64el  powerpc  ppc64  ppc64el  riscv64  s390x  sparc64",
+        matrix: (arch: ["alpha", "amd64", "arm64", "armel", "armhf", "hppa", "i386", "m68k", "mips64el", "powerpc", "ppc64", "ppc64el", "riscv64", "s390x", "sparc64"]),
     ),
     "squeeze": (
         ver: "6.0",

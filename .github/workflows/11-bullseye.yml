@@ -1,5 +1,5 @@
 name: build & push (Debian-Bullseye, 11)
-on: { "schedule": [ { "cron": '11 11 11 * *' } ] }
+on: { "schedule": [{ "cron": '11 11 11 * *' }] }
 
 env:
   DEBIAN_FRONTEND: noninteractive

@@ -196,7 +196,7 @@ for series ver (${(kv)ver_map}) {
         # args.push()
         args+=(
             --expression
-            "1a\on: { \"schedule\": [ { \"cron\": '$cron' } ] }"
+            "1a\on: { \"schedule\": [{ \"cron\": '$cron' }] }"
         )
     }
 
