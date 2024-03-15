@@ -9,8 +9,19 @@ pub(crate) mod ubuntu;
 pub(crate) mod ubuntu_old;
 pub(crate) mod ubuntu_ports;
 
+pub(crate) fn static_debian_snapshot() -> &'static Url {
+    static U: OnceLock<Url> = OnceLock::new();
+    U.get_or_init(|| {
+        const HTTPS: &str = "https://snapshot.debian.org/";
+        Url::parse(HTTPS).expect("Invalid URL")
+    })
+}
+
+use std::sync::OnceLock;
+
 use getset::Getters;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, derive_more::Display,

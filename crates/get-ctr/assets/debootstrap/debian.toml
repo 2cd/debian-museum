@@ -1032,7 +1032,6 @@ deb-arch = "i386"
 arch = "x64"
 deb-arch = "amd64"
 
-
 # ------------------
 [[os]]
 name = "Debian"
@@ -1120,12 +1119,12 @@ deb-architectures = [
     "hppa",
     # "ia64",
     # "x32",
+    # "sh4",
 
     "loong64",
     "m68k",
     "powerpc",
     "ppc64",
-    "sh4",
     "sparc64",
 ]
 no-minbase = false
@@ -1143,6 +1142,12 @@ disabled = ["debian/ experimental", "debian-debug/ sid-debug"]
 # [[os.tag]]
 # arch = "x32"
 # deb-arch = "x32"
+# [os.tag.source]
+# enabled = ["debian-ports/ sid"]
+# disabled = ["debian-ports/ experimental"]
+# [[os.tag]]
+# arch = "sh4"
+# deb-arch = "sh4"
 # [os.tag.source]
 # enabled = ["debian-ports/ sid"]
 # disabled = ["debian-ports/ experimental"]
@@ -1215,13 +1220,6 @@ disabled = ["debian-ports/ experimental"]
 [[os.tag]]
 arch = "ppc64"
 deb-arch = "ppc64"
-[os.tag.source]
-enabled = ["debian-ports/ sid"]
-disabled = ["debian-ports/ experimental"]
-
-[[os.tag]]
-arch = "sh4"
-deb-arch = "sh4"
 [os.tag.source]
 enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]

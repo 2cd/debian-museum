@@ -40,7 +40,7 @@ where
     let out = || {
         Command::new(&cmd)
             .args(args)
-            .stdout(Stdio::piped())
+            // .stdout(Stdio::piped())
             .stderr(Stdio::inherit())
             .output()
     };

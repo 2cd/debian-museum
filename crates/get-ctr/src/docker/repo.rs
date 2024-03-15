@@ -1,17 +1,26 @@
 use getset::Getters;
 use std::{
     borrow::Cow,
-    fs, io,
+    fs,
+    io::{self, Write},
     path::{Path, PathBuf},
+    process::{Command, Stdio},
+    sync::OnceLock,
 };
 use tinyvec::TinyVec;
 use typed_builder::TypedBuilder;
 use url::Url;
 
 use crate::{
-    cfg::{components, debootstrap::DebootstrapSrc, disk::OsPatch, mirror},
+    cfg::{
+        components,
+        debootstrap::DebootstrapSrc,
+        disk::OsPatch,
+        mirror::{self, static_debian_snapshot, ubuntu, ubuntu_ports},
+    },
+    command::run_and_get_stdout,
     docker::{get_oci_platform, repo_map},
-    logger,
+    logger::{self, today_date},
 };
 
 #[derive(Getters, TypedBuilder, Debug, Clone)]
@@ -171,10 +180,10 @@ impl SrcFormat {
                 if let Some(disabled) = disabled_srcs {
                     for src in disabled {
                         let enabled = false;
-                        let (suite, site_left, site_suffix) =
+                        let (suite, site_name, site_suffix) =
                             get_debian_suite_and_site(src)?;
                         let (mirrors, keyring) =
-                            get_debian_mirrors_and_keyring(site_left);
+                            get_debian_mirrors_and_keyring(site_name);
 
                         let mut deb_src = DebianSrc::builder()
                             .keyring(keyring)
@@ -238,13 +247,27 @@ fn create_deb822_link(mirror_dir: &Path) -> io::Result<()> {
 }
 
 fn get_debian_mirrors_and_keyring(
-    site_left: &str,
+    site_name: &str,
 ) -> ([mirror::Mirror<'_>; 2], &str) {
-    let mirrors = get_debian_mirrors(site_left);
-    let keyring = get_debian_keyring(site_left);
+    let mirrors = get_debian_mirrors(site_name);
+    let keyring = get_debian_keyring(site_name);
     (mirrors, keyring)
 }
+/**
+```no_run
+"debian-archive/debian/ potato" => {
+    suite: potato,
+    site_name: debian-archive,
+    site_suffix: debian,
+}
 
+"debian-ports/ sid" => {
+    suite: sid,
+    site_name: debian-ports,
+    site_suffix: ""
+}
+```
+*/
 fn get_debian_suite_and_site(
     src: &str,
 ) -> Result<(&str, &str, &str), anyhow::Error> {
@@ -312,18 +335,38 @@ impl<'a> DebianSrc<'a> {
 
         let yes_or_no = if *enabled { "yes" } else { "no" };
 
+        let http_url = match (url, suite) {
+            (u, &"sid" | &"experimental")
+                if u.contains("deb.debian.org/debian/") =>
+            {
+                get_static_debian_snapshot_url(false).as_ref()
+            }
+            (u, &"sid" | &"experimental")
+                if u.contains("deb.debian.org/debian-ports/") =>
+            {
+                get_static_debian_snapshot_url(true).as_ref()
+            }
+            _ => None,
+        }
+        .map_or(url.as_str(), |x| x.as_str());
+
+        let https_url = http_str_to_https(url);
+
         format!(
             r##"# Name: {src}
 # yes or no
 Enabled: {yes_or_no}
 # Types: deb deb-src
 Types: deb
-URIs: {url}{url_suffix}
+# URIs: {https_url}{url_suffix}
+URIs: {http_url}{url_suffix}
 Suites: {suite}
 Components: {components}
 Signed-By: {keyring}
 Trusted: yes
-# When using official source, recommended -> yes; using mirrors -> no. 
+# When using official source, recommended => yes;
+#      using mirror => no;
+#      using snapshot => no.
 Check-Valid-Until: no
 # Allow-Insecure: no
 
@@ -351,6 +394,93 @@ Check-Valid-Until: no
         cdn_legacy_style.push_str(&self.one_line_debsrc_str());
         cdn_deb822_style.push_str(&self.deb822_str());
     }
+}
+
+fn get_static_debian_snapshot_url(ports: bool) -> &'static Option<Url> {
+    type OnceUrl = OnceLock<Option<Url>>;
+    static U: OnceUrl = OnceLock::new();
+    static PORTS: OnceUrl = OnceLock::new();
+
+    if ports {
+        PORTS.get_or_init(|| get_snapshot_url(ports))
+    } else {
+        U.get_or_init(|| get_snapshot_url(ports))
+    }
+}
+
+fn get_snapshot_url(ports: bool) -> Option<Url> {
+    let year = today_date().year();
+    let month = today_date().month() as u8;
+    let debian = if ports { "debian-ports" } else { "debian" };
+
+    let mut url = static_debian_snapshot()
+        .join(&format!("archive/{debian}/"))
+        .expect("Invalid snapshot url");
+    // const ERR_MSG: &str = "Failed to connect to the debian snapshot site";
+
+    url.set_query(Some(&format!("year={year}&month={month}")));
+
+    if !check_http_status(url.as_str()) {
+        let (new_year, new_month) =
+            if month == 1 { (year - 1, 12) } else { (year, month - 1) };
+
+        url.set_query(Some(&format!("year={new_year}&month={new_month}")));
+        if !check_http_status(url.as_str()) {
+            return None;
+        }
+    }
+    let html = run_and_get_stdout("curl", &["-L", url.as_str()]).ok()?;
+    log::trace!("html: {html}");
+
+    let mut child = Command::new("awk")
+        .args([
+            r#"-F""#,
+            // r#"/="[0-9]+T[0-9]+Z\/"/ {print $2}"#,
+            r#"/="[0-9]+T[0-9]+Z\/"/ {c = $2} END{print(c)}"#,
+        ])
+        .stderr(Stdio::inherit())
+        .stdout(Stdio::piped())
+        .stdin(Stdio::piped())
+        .spawn()
+        .ok()?;
+
+    child
+        .stdin
+        .as_mut()?
+        .write_all(html.as_bytes())
+        .ok()?;
+
+    let out = child
+        .wait_with_output()
+        .ok()?
+        .stdout;
+
+    let snapshot_rfc3339 = String::from_utf8_lossy(&out)
+        .trim()
+        .to_owned();
+    log::debug!("snapshot: {snapshot_rfc3339}");
+
+    url.set_query(None);
+
+    let mut snap_url = url
+        .join(&snapshot_rfc3339)
+        .ok()?;
+
+    log::info!("snapshot url: {snap_url}");
+    snap_url
+        .set_scheme("http")
+        .ok()?;
+
+    Some(snap_url)
+}
+
+fn check_http_status(url: &str) -> bool {
+    let Ok(out) = run_and_get_stdout("curl", &["-LI", url]) else {
+        return false;
+    };
+
+    out.lines()
+        .any(|x| x.contains(" 200 OK"))
 }
 
 fn get_debian_components(components: Option<&str>) -> &str {
@@ -409,6 +539,15 @@ deb {deb_vendor}{url} {suite}-security {components}
 
 fn ubuntu_deb822_style(suite: &str, url: &str, name: &str) -> String {
     let components = components::UBUNTU;
+    let url_cmt = match url {
+        ubuntu::OFFICIAL => {
+            Cow::from("# URIs: mirror://mirrors.ubuntu.com/mirrors.txt")
+        }
+        ubuntu_ports::OFFICIAL => Cow::from(
+            r##"# get ubuntu-ports mirror:  curl -L mirrors.ubuntu.com/mirrors.txt | awk '{ sub(/ubuntu(\/)?$/, "ubuntu-ports/"); sprintf("curl -sI %s", $0) | getline status; if (status ~ /^HTTP.* 200 /) print}'"##,
+        ),
+        _ => Cow::from(format!("# URIs: {}", http_str_to_https(url))),
+    };
 
     format!(
         r##"# Name: ubuntu {suite} ({name})
@@ -416,13 +555,15 @@ fn ubuntu_deb822_style(suite: &str, url: &str, name: &str) -> String {
 Enabled: yes
 # Types: deb deb-src
 Types: deb
+# {url_cmt}
 URIs: {url}
 # Suites: {suite} {suite}-updates {suite}-backports {suite}-security {suite}-proposed
 Suites: {suite} {suite}-updates {suite}-backports {suite}-security
 Components: {components}
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 Trusted: yes
-# When using official source, recommended -> yes; using mirrors -> no. 
+# When using official source, recommended => yes;
+#      using mirror => no.
 Check-Valid-Until: no
 # Allow-Insecure: no
 
@@ -443,8 +584,15 @@ fn legacy_src_list_path(
 }
 
 pub(crate) fn https_to_http(m: &mirror::Mirror<'_>) -> String {
-    m.get_url()
-        .replacen("https://", "http://", 1)
+    https_str_to_http(m.get_url())
+}
+
+fn https_str_to_http(https: &str) -> String {
+    https.replacen("https://", "http://", 1)
+}
+
+fn http_str_to_https(http: &str) -> String {
+    http.replacen("http://", "https://", 1)
 }
 
 impl<'r> Default for Repository<'r> {
