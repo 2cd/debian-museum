@@ -1121,7 +1121,7 @@ deb-architectures = [
     # "x32",
     # "sh4",
 
-    "loong64",
+    # "loong64",
     "m68k",
     "powerpc",
     "ppc64",
@@ -1190,20 +1190,6 @@ deb-arch = "armel"
 
 
 [[os.tag]]
-arch = "alpha"
-deb-arch = "alpha"
-[os.tag.source]
-enabled = ["debian-ports/ sid"]
-disabled = ["debian-ports/ experimental"]
-
-[[os.tag]]
-arch = "hppa"
-deb-arch = "hppa"
-[os.tag.source]
-enabled = ["debian-ports/ sid"]
-disabled = ["debian-ports/ experimental"]
-
-[[os.tag]]
 arch = "m68k"
 deb-arch = "m68k"
 [os.tag.source]
@@ -1225,15 +1211,29 @@ enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]
 
 [[os.tag]]
+arch = "alpha"
+deb-arch = "alpha"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
+
+[[os.tag]]
+arch = "hppa"
+deb-arch = "hppa"
+[os.tag.source]
+enabled = ["debian-ports/ sid"]
+disabled = ["debian-ports/ experimental"]
+
+[[os.tag]]
 arch = "sparc64"
 deb-arch = "sparc64"
 [os.tag.source]
 enabled = ["debian-ports/ sid"]
 disabled = ["debian-ports/ experimental"]
 
-[[os.tag]]
-arch = "loong64"
-deb-arch = "loong64"
-[os.tag.source]
-enabled = ["debian-ports/ sid"]
-disabled = ["debian-ports/ experimental"]
+# [[os.tag]]
+# arch = "loong64"
+# deb-arch = "loong64"
+# [os.tag.source]
+# enabled = ["debian-ports/ sid"]
+# disabled = ["debian-ports/ experimental"]
