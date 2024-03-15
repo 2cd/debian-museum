@@ -25,7 +25,8 @@ const fn byte_dance_volces<'m>() -> Mirror<'m> {
 const fn official<'m>() -> Mirror<'m> {
     new_mirror(
         "Official",
-        "http://debug.mirrors.debian.org/debian-debug/",
+        // "http://debug.mirrors.debian.org/debian-debug/",
+        "https://deb.debian.org/debian-debug/",
         None,
     )
 }
