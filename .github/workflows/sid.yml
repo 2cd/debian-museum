@@ -1,6 +1,7 @@
 name: build & push (Debian-Sid, Unstable)
 # auto-task.build-time = 2024-03-15 08:38:49.283365760+00:00
-on: { "push": { "paths": [".github/workflows/sid.yml"] } }
+# on: { "push": { "paths": [".github/workflows/sid.yml"] } }
+on: { "schedule": [ { "cron": '14 3 */4 * *' } ] }
 
 env:
   DEBIAN_FRONTEND: noninteractive
