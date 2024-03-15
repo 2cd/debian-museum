@@ -16,6 +16,7 @@ derive_more = { version = "0.99.17", default-features = false, features = [
 getset = "0.1.2"
 libc = { version = "0.2.153", default-features = false }
 log = "0.4.20"
+regex = { version = "1.10.3", default-features = false, features = ["std", "unicode-perl"] }
 ron = "0.8.1"
 serde = { version = "1.0.196", features = ["derive"] }
 serde_with = "3.6.0"

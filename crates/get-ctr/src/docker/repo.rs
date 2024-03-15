@@ -1,10 +1,9 @@
 use getset::Getters;
+use regex::Regex;
 use std::{
     borrow::Cow,
-    fs,
-    io::{self, Write},
+    fs, io,
     path::{Path, PathBuf},
-    process::{Command, Stdio},
     sync::OnceLock,
 };
 use tinyvec::TinyVec;
@@ -349,6 +348,7 @@ impl<'a> DebianSrc<'a> {
             _ => None,
         }
         .map_or(url.as_str(), |x| x.as_str());
+        log::debug!("http url: {http_url}");
 
         let https_url = http_str_to_https(url);
 
@@ -407,6 +407,10 @@ fn get_static_debian_snapshot_url(ports: bool) -> &'static Option<Url> {
         U.get_or_init(|| get_snapshot_url(ports))
     }
 }
+fn iso8601_regex() -> &'static Regex {
+    static R: OnceLock<Regex> = OnceLock::new();
+    R.get_or_init(|| Regex::new(r#""\d{8,}T\d{6}Z/""#).expect("Invalid regex"))
+}
 
 fn get_snapshot_url(ports: bool) -> Option<Url> {
     let year = today_date().year();
@@ -432,38 +436,24 @@ fn get_snapshot_url(ports: bool) -> Option<Url> {
     let html = run_and_get_stdout("curl", &["-L", url.as_str()]).ok()?;
     log::trace!("html: {html}");
 
-    let mut child = Command::new("awk")
-        .args([
-            r#"-F""#,
-            // r#"/="[0-9]+T[0-9]+Z\/"/ {print $2}"#,
-            r#"/="[0-9]+T[0-9]+Z\/"/ {c = $2} END{print(c)}"#,
-        ])
-        .stderr(Stdio::inherit())
-        .stdout(Stdio::piped())
-        .stdin(Stdio::piped())
-        .spawn()
-        .ok()?;
+    let snapshot_iso8601 = html
+        .lines()
+        .rev()
+        .filter(|x| x.contains('Z'))
+        .filter_map(|x| iso8601_regex().find(x))
+        .next()?
+        .as_str()
+        .trim_start_matches("%22")
+        .trim_end_matches("%22")
+        .trim_start_matches('"')
+        .trim_end_matches('"');
 
-    child
-        .stdin
-        .as_mut()?
-        .write_all(html.as_bytes())
-        .ok()?;
-
-    let out = child
-        .wait_with_output()
-        .ok()?
-        .stdout;
-
-    let snapshot_rfc3339 = String::from_utf8_lossy(&out)
-        .trim()
-        .to_owned();
-    log::debug!("snapshot: {snapshot_rfc3339}");
+    log::debug!("snapshot: {snapshot_iso8601}");
 
     url.set_query(None);
 
     let mut snap_url = url
-        .join(&snapshot_rfc3339)
+        .join(snapshot_iso8601)
         .ok()?;
 
     log::info!("snapshot url: {snap_url}");
