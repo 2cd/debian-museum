@@ -265,6 +265,13 @@ fn patch_deb_rootfs(rootfs_dir: &Path, repo: &Repository<'_>) {
             // "container=lxc",
         ],
     );
+
+    run_nspawn(
+        rootfs_dir,
+        "apt-get install --fix-broken --assume-yes",
+        false,
+        &["LANG=C.UTF-8"],
+    );
 }
 
 pub(crate) fn get_mirror_dir_based_on(docker_dir: &Path) -> io::Result<PathBuf> {
