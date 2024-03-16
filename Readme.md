@@ -150,15 +150,15 @@ args=(
     # Automatically remove the container when it exits
     --rm
 
-    # Keep STDIN open even if not attached ( -i )
+    # ( -i ) Keep STDIN open even if not attached
     --interactive
 
-    # Allocate a pseudo-TTY ( -t )
+    # ( -t ) Allocate a pseudo-TTY
     --tty
 
     # Set environment variables
     --env
-    # e.g., en_US.UTF-8, C.UTF-8
+    # LANG=?, e.g., C.UTF-8, en_US.UTF-8
     LANG=$LANG
 )
 
