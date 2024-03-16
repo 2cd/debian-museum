@@ -70,7 +70,7 @@
 
 ```zsh
 # Depends:    docker.io | docker, zsh (>= 5)
-# Recommends: qemu-user-static
+# Recommends: qemu-user-static | qemu-user-static-binfmt
 setopt interactive_comments
 
 # versions: 8, 9, 10, 11, 12, 13, sid
@@ -162,14 +162,6 @@ args=(
     LANG=$LANG
 )
 
-# if platform.is_not_empty()
-if ((#platform)) {
-    args+=(
-        # If you want to run containers from other architectures (e.g., host: arm64, container: riscv64), you need to install `qemu-user-static` (on some Linux distributions, the package name is `qemu-user-static-binfmt`).
-        --platform  $platform
-    )
-}
-
 # Set timezone env.
 #
 # if "timedatectl".cmd_exists()
@@ -179,6 +171,14 @@ if (($+commands[timedatectl])) {
         --env
         # TZ=?, e.g., UTC, Asia/[CITY], Europe/[CITY]
         TZ=$(timedatectl show --property=Timezone --value)
+    )
+}
+
+# if platform.is_not_empty()
+if ((#platform)) {
+    args+=(
+        # If you want to run containers from other architectures (e.g., host: arm64, container: riscv64), you need to install `qemu-user-static`.
+        --platform  $platform
     )
 }
 
