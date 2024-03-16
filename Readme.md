@@ -69,14 +69,14 @@
 - What follows may seem complicated, but it's actually quite simple to follow step-by-step.
 
 ```zsh
-# Depends: docker.io | docker, zsh (>= 5)
+# Depends:    docker.io | docker, zsh (>= 5)
 # Recommends: qemu-user-static
 setopt interactive_comments
 
 # versions: 8, 9, 10, 11, 12, 13, sid
 ver=sid
 
-# architectures: "", "riscv64", "amd64", "x86_64", "arm64"
+# architectures: "", "riscv64", "amd64", "x86_64", "arm64", "i386", "loong64", "armhf"
 # The architectures supported by different versions are not exactly the same.
 arch=""
 
@@ -93,8 +93,9 @@ if ((! $#ver)) {
 rv64=linux/riscv64
 x86=linux/386
 x64=linux/amd64
-arm64=linux/arm64
 loong64=linux/loong64
+aa64=linux/arm64
+armv7="linux/armv7"
 local -A oci_platform_map=(
     rv64gc       $rv64
     riscv64      $rv64
@@ -105,20 +106,33 @@ local -A oci_platform_map=(
     x86_64       $x64
     amd64        $x64
     x64          $x64
-    arm64        $arm64
-    aarch64      $arm64
+    aarch64      $aa64
+    arm64        $aa64
     loong64      $loong64
     loongarch64  $loong64
-    # armhf      "linux/armv7"
+    armhf        $armv7
+    # armv7l       $armv7
+    # armv7a       $armv7
 )
+
+# On alpine, if dpkg is installed, it will output musl-[xxx] (e.g., musl-linux-riscv64), not [xxx] (e.g., riscv64).
+# If `deb_arch.starts_with("musl-")`, use `uname`, not `dpkg`.
+# We can also use `rsplit('-')`, and take out the first value.
+get_dpkg_architecture() {
+    deb_arch=$(dpkg --print-architecture)
+    case $deb_arch {
+        (musl-*) uname -m ;;
+        (*) print $deb_arch ;;
+    }
+}
 
 # if arch.is_empty()
 if ((! $#arch)) {
     # arch = if "dpkg".cmd_exists() { dpkg --print-architecture } else { uname -m }
     arch=$(
         if (($+commands[dpkg])) {
-            dpkg --print-architecture
-        } else {
+            get_dpkg_architecture
+         } else {
             uname -m
         }
     )
