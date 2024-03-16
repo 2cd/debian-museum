@@ -60,3 +60,149 @@
 > - [Ubuntu Museum](https://github.com/2cd/ubuntu-museum/)
 > - [Debian Project History](https://www.debian.org/doc/manuals/project-history/releases.en.html)
 > - [distro-info-data/debian.csv](https://debian.pages.debian.net/distro-info-data/debian.csv)
+
+## docker
+
+- RUN IT ON zsh.
+  - bash is NOT SUPPORTED, NOR is dash
+- Just change the values of `ver` & `arch`
+- What follows may seem complicated, but it's actually quite simple to follow step-by-step.
+
+```zsh
+# Depends: docker.io | docker, zsh (>= 5)
+# Recommends: qemu-user-static
+setopt interactive_comments
+
+# versions: 8, 9, 10, 11, 12, 13, sid
+ver=sid
+
+# architectures: "", "riscv64", "amd64", "x86_64", "arm64"
+# The architectures supported by different versions are not exactly the same.
+arch=""
+
+# --------------------------
+dbg() {
+    print >&2 -Pr "%F{blue}[DEBUG]%f $*"
+}
+# if ver.is_empty()
+if ((! $#ver)) {
+    ver=sid
+}
+
+# debian sid supports a very large number of architectures, not all of which are listed here.
+rv64=linux/riscv64
+x86=linux/386
+x64=linux/amd64
+arm64=linux/arm64
+loong64=linux/loong64
+local -A oci_platform_map=(
+    rv64gc       $rv64
+    riscv64      $rv64
+    rv64         $rv64
+    x86          $x86
+    i686         $x86
+    i386         $x86
+    x86_64       $x64
+    amd64        $x64
+    x64          $x64
+    arm64        $arm64
+    aarch64      $arm64
+    loong64      $loong64
+    loongarch64  $loong64
+    # armhf      "linux/armv7"
+)
+
+# if arch.is_empty()
+if ((! $#arch)) {
+    # arch = if "dpkg".cmd_exists() { dpkg --print-architecture } else { uname -m }
+    arch=$(
+        if (($+commands[dpkg])) {
+            dpkg --print-architecture
+        } else {
+            uname -m
+        }
+    )
+}
+# map: oci_platform_map, key: arch, value => platform
+platform=$oci_platform_map[$arch]
+
+args=(
+    # Run a new container
+    run
+
+    # Pull image before running ("always"|"missing"|"never") (default "missing")
+    # --pull  always
+
+    # Automatically remove the container when it exits
+    --rm
+
+    # Keep STDIN open even if not attached ( -i )
+    --interactive
+
+    # Allocate a pseudo-TTY ( -t )
+    --tty
+
+    # Set environment variables
+    --env
+    # e.g., en_US.UTF-8, C.UTF-8
+    LANG=$LANG
+)
+
+# if platform.is_not_empty()
+if ((#platform)) {
+    args+=(
+        # If you want to run containers from other architectures (e.g., host: arm64, container: riscv64), you need to install `qemu-user-static` (on some Linux distributions, the package name is `qemu-user-static-binfmt`).
+        --platform  $platform
+    )
+}
+
+# Set timezone env.
+#
+# if "timedatectl".cmd_exists()
+if (($+commands[timedatectl])) {
+    # args.push(docker_tz_env)
+    args+=(
+        --env
+        # TZ=?, e.g., UTC, Asia/[CITY], Europe/[CITY]
+        TZ=$(timedatectl show --property=Timezone --value)
+    )
+}
+
+is_loongarch=false
+is_sid=false
+if [[ $ver == sid ]] {
+    is_sid=true
+}
+case $platform {
+    # Due to the fact that older versions of Debian (such as Buster) do not support RISC-V 64-bit architecture, it is defined as "sid" here. However, this is not accurate.
+    # A more reasonable approach would be to create a `HashMap<version_name, arch_set>` that corresponds to different versions and architectures, and then make the determination based on that.
+    (*/riscv64) is_sid=true ;;
+    (*/loong64)
+        is_sid=true
+        is_loongarch=true
+    ;;
+}
+
+repo="ghcr.io/2cd/debian"
+
+if {$is_sid} {
+    repo+=-sid
+}
+if {$is_loongarch} {
+    repo+=:loong64
+}
+dbg repo: $repo
+
+args+=$repo
+dbg args: $args
+
+docker $args
+```
+
+## TODO
+
+- +Debian GNU/Hurd VM (a.k.a., Virtual Machine) image
+- +Debian kFreeBSD VM image
+
+- +ia64 (a.k.a., Intel Itanium architecture) stage1 container image
+  - Since modern qemu does not support emulation of the ia64, there is only stage1 and no full rootfs.
