@@ -1,5 +1,4 @@
-name: build & push (Debian-Bookworm, 12)
-# on: push
+name: build (Bookworm, 12)
 on: { "schedule": [{ "cron": "12 12 12,24 * *" }] }
 
 env:

@@ -1,4 +1,4 @@
-name: build & push (Debian-Bullseye, 11)
+name: build (Bullseye, 11)
 on: { "schedule": [{ "cron": "11 11 11 * *" }] }
 
 env:

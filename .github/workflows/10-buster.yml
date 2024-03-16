@@ -1,4 +1,4 @@
-name: build & push (Debian-Buster, 10)
+name: build (Buster, 10)
 on: { "schedule": [{ "cron": "10 10 10 6 *" }] }
 
 env:

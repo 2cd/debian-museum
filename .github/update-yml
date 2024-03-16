@@ -122,8 +122,11 @@ for series ver (${(kv)ver_map}) {
             "s@/sid(\.yml)@/$new_file\1@g"
 
             # Debian-Sid -> Debian-${series.to_title_case()} (e.g., Debian-Bookworm, 12)
+            # --expression
+            # "s@(Debian)-Sid, Unstable@\1-$title_case, $ver@g"
+
             --expression
-            "s@(Debian)-Sid, Unstable@\1-$title_case, $ver@g"
+            "s@\(Sid, Unstable@($title_case, $ver@g"
 
             # .SID_ -> .${series.to_upper_case()}_ (e.g., .BOOKWORM_)
             --expression
@@ -136,8 +139,11 @@ for series ver (${(kv)ver_map}) {
             "s@/devel\.yml@/$new_file@g"
 
             # Ubuntu-Devel -> Ubuntu-${series.to_title_case()} (e.g., Ubuntu-Jammy, 22.04)
+            # --expression
+            # "s@(Ubuntu)-Devel@\1-$title_case, $ver@g"
+
             --expression
-            "s@(Ubuntu)-Devel@\1-$title_case, $ver@g"
+            "s@\(Devel@($title_case, $ver@g"
 
             # .DEVEL_ -> .${series.to_upper_case()}_ (e.g., .JAMMY_)
             --expression
