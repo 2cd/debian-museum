@@ -31,44 +31,44 @@ if [[ $OS == debian ]] {
 
 if [[ $OS == ubuntu ]] {
     local -A ver_map=(
-        warty    "4.10"
-        hoary    "5.04"
-        breezy   "5.10"
-        dapper   "6.06"
-        edgy     "6.10"
-        feisty   "7.04"
-        gutsy    "7.10"
-        hardy    "8.04"
-        intrepid "8.10"
-        jaunty   "9.04"
-        karmic   "9.10"
-        lucid    "10.04"
-        maverick "10.10"
-        natty    "11.04"
-        oneiric  "11.10"
-        precise  "12.04"
-        quantal  "12.10"
-        raring   "13.04"
-        saucy    "13.10"
+        # warty    "4.10"
+        # hoary    "5.04"
+        # breezy   "5.10"
+        # dapper   "6.06"
+        # edgy     "6.10"
+        # feisty   "7.04"
+        # gutsy    "7.10"
+        # hardy    "8.04"
+        # intrepid "8.10"
+        # jaunty   "9.04"
+        # karmic   "9.10"
+        # lucid    "10.04"
+        # maverick "10.10"
+        # natty    "11.04"
+        # oneiric  "11.10"
+        # precise  "12.04"
+        # quantal  "12.10"
+        # raring   "13.04"
+        # saucy    "13.10"
         trusty   "14.04"
-        utopic   "14.10"
-        vivid    "15.04"
-        wily     "15.10"
+        # utopic   "14.10"
+        # vivid    "15.04"
+        # wily     "15.10"
         xenial   "16.04"
-        yakkety  "16.10"
-        zesty    "17.04"
-        artful   "17.10"
+        # yakkety  "16.10"
+        # zesty    "17.04"
+        # artful   "17.10"
         bionic   "18.04"
-        cosmic   "18.10"
-        disco    "19.04"
-        eoan     "19.10"
+        # cosmic   "18.10"
+        # disco    "19.04"
+        # eoan     "19.10"
         focal    "20.04"
-        groovy   "20.10"
-        hirsute  "21.04"
-        impish   "21.10"
+        # groovy   "20.10"
+        # hirsute  "21.04"
+        # impish   "21.10"
         jammy    "22.04"
-        kinetic  "22.10"
-        lunar    "23.04"
+        # kinetic  "22.10"
+        # lunar    "23.04"
         mantic   "23.10"
         noble    "24.04"
     )
@@ -125,8 +125,11 @@ for series ver (${(kv)ver_map}) {
             # --expression
             # "s@(Debian)-Sid, Unstable@\1-$title_case, $ver@g"
 
+            # --expression
+            # "s@\(Sid, Unstable@($title_case, $ver@g"
+
             --expression
-            "s@\(Sid, Unstable@($title_case, $ver@g"
+            "s@\(Unstable, Sid@($ver, $title_case@g"
 
             # .SID_ -> .${series.to_upper_case()}_ (e.g., .BOOKWORM_)
             --expression
@@ -143,7 +146,8 @@ for series ver (${(kv)ver_map}) {
             # "s@(Ubuntu)-Devel@\1-$title_case, $ver@g"
 
             --expression
-            "s@\(Devel@($title_case, $ver@g"
+            # "s@\(Devel@($title_case, $ver@g"
+            "s@\(Devel@($ver, $title_case@g"
 
             # .DEVEL_ -> .${series.to_upper_case()}_ (e.g., .JAMMY_)
             --expression
@@ -154,19 +158,19 @@ for series ver (${(kv)ver_map}) {
     unset cron
     case $series {
         # release: 2019-07;  eol: 2022-09;  eol-lts: 2024-06;  eol-elts: 2029-06
-        (buster)
-        case $year {
-            (2024) cron='10 10 10 6 *' ;;
-        }
-        ;;
+        # (buster)
+        #     case $year {
+        #         (2024) cron='10 10 10 6 *' ;;
+        #     }
+        # ;;
 
-        # 2021; 2024; 2026
-        (bullseye)
-            case $year {
-                (2024) cron='11 11 11 * *' ;;
-                (2025|2026) cron='11 11 11 5,11 * ' ;;
-            }
-        ;;
+        # # 2021; 2024; 2026
+        # (bullseye)
+        #     case $year {
+        #         (2024) cron='11 11 11 * *' ;;
+        #         (2025|2026) cron='11 11 11 5,11 * ' ;;
+        #     }
+        # ;;
 
         # 2023; 2026; 2028
         (bookworm)
@@ -210,7 +214,7 @@ for series ver (${(kv)ver_map}) {
         args+=(
             --expression
             # "on":{"push":{"paths":[".github\/workflows\/sid.yml"]}}
-            "1a\on: { \"push\": { \"paths\": [ \".github/workflows/$new_file\" ] } }"
+            "1a\on: { \"push\": { \"paths\": [\".github/workflows/$new_file\"] } }"
         )
     }
 

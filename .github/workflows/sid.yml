@@ -1,4 +1,4 @@
-name: build (Sid, Unstable)
+name: build (Unstable, Sid)
 # auto-task.build-time = 2024-03-15 08:38:49.283365760+00:00
 # on: { "push": { "paths": [".github/workflows/sid.yml"] } }
 on: { "schedule": [{ "cron": "14 3 */4 * *" }] }

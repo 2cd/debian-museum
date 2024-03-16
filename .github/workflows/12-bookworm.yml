@@ -1,4 +1,4 @@
-name: build (Bookworm, 12)
+name: build (12, Bookworm)
 on: { "schedule": [{ "cron": "12 12 12,24 * *" }] }
 
 env:

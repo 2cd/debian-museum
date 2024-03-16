@@ -1,5 +1,5 @@
-name: build (Buster, 10)
-on: { "schedule": [{ "cron": "10 10 10 6 *" }] }
+name: build (10, Buster)
+on: { "push": { "paths": [".github/workflows/10-buster.yml"] } }
 
 env:
   DEBIAN_FRONTEND: noninteractive
