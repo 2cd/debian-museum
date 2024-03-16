@@ -95,7 +95,7 @@ x86=linux/386
 x64=linux/amd64
 loong64=linux/loong64
 aa64=linux/arm64
-armv7="linux/armv7"
+armv7=linux/armv7
 local -A oci_platform_map=(
     rv64gc       $rv64
     riscv64      $rv64
@@ -115,9 +115,9 @@ local -A oci_platform_map=(
     # armv7a       $armv7
 )
 
-# On alpine, if dpkg is installed, it will output musl-[xxx] (e.g., musl-linux-riscv64), not [xxx] (e.g., riscv64).
+# On alpine, if dpkg is installed, it will output musl-linux-[xxx] (e.g., musl-linux-riscv64), not [xxx] (e.g., riscv64).
 # If `deb_arch.starts_with("musl-")`, use `uname`, not `dpkg`.
-# We can also use `rsplit('-')`, and take out the first value.
+# We can also use `rsplit('-')` (i.e., Split from **RIGHT** to **LEFT**, separated by `-`), and take out the first value.
 get_dpkg_architecture() {
     deb_arch=$(dpkg --print-architecture)
     case $deb_arch {
