@@ -96,7 +96,7 @@ where
     eprintln!("Retrying ...");
     // 2nd run:
     let status_2nd = status();
-    if status_1st.success() {
+    if status_2nd.success() {
         return status_2nd;
     }
 
