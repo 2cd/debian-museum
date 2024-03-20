@@ -89,7 +89,7 @@ if ((! $#ver)) {
     ver=sid
 }
 
-# debian sid supports a very large number of architectures, not all of which are listed here.
+# Debian sid supports a very large number of architectures, not all of which are listed here.
 rv64=linux/riscv64
 x86=linux/386
 x64=linux/amd64
@@ -100,28 +100,35 @@ local -A oci_platform_map=(
     rv64gc       $rv64
     riscv64      $rv64
     rv64         $rv64
+    #
     x86          $x86
-    i686         $x86
     i386         $x86
-    x86_64       $x64
-    amd64        $x64
+    i486         $x86
+    i586         $x86
+    i686         $x86
+    #
     x64          $x64
+    amd64        $x64
+    x86_64       $x64
+    #
     aarch64      $aa64
     arm64        $aa64
+    #
     loong64      $loong64
     loongarch64  $loong64
+    #
     armhf        $armv7
     # armv7l       $armv7
     # armv7a       $armv7
 )
 
 # On alpine, if dpkg is installed, it will output musl-linux-[xxx] (e.g., musl-linux-riscv64), not [xxx] (e.g., riscv64).
-# If `deb_arch.starts_with("musl-")`, use `uname`, not `dpkg`.
-# We can also use `rsplit('-')` (i.e., Split from **RIGHT** to **LEFT**, separated by `-`), and take out the first value.
+# For busybox, the dpkg it contains is a lite version. Therefore, the value of `deb_arch` may be empty.
+# If `deb_arch.starts_with("musl-")` or `is_empty()`, use `uname`, not `dpkg`.
 get_dpkg_architecture() {
     deb_arch=$(dpkg --print-architecture)
     case $deb_arch {
-        (musl-*) uname -m ;;
+        (musl-*|"") uname -m ;;
         (*) print $deb_arch ;;
     }
 }
@@ -137,8 +144,6 @@ if ((! $#arch)) {
         }
     )
 }
-# map: oci_platform_map, key: arch, value => platform
-platform=$oci_platform_map[$arch]
 
 args=(
     # Run a new container
@@ -174,10 +179,15 @@ if (($+commands[timedatectl])) {
     )
 }
 
+# map: oci_platform_map, key: arch, value => platform
+platform=$oci_platform_map[$arch]
+
 # if platform.is_not_empty()
 if ((#platform)) {
     args+=(
-        # If you want to run containers from other architectures (e.g., host: arm64, container: riscv64), you need to install `qemu-user-static`.
+        # If you want to run containers from other architectures
+        # (e.g., host: arm64, container: riscv64),
+        # you need to install `qemu-user-static`.
         --platform  $platform
     )
 }
@@ -188,8 +198,12 @@ if [[ $ver == sid ]] {
     is_sid=true
 }
 case $platform {
-    # Due to the fact that older versions of Debian (such as Buster) do not support RISC-V 64-bit architecture, it is defined as "sid" here. However, this is not accurate.
-    # A more reasonable approach would be to create a `HashMap<version_name, arch_set>` that corresponds to different versions and architectures, and then make the determination based on that.
+    # Due to the fact that older versions of Debian (such as Buster)
+    # do not support RISC-V 64-bit architecture, it is defined as "sid" here.
+    # However, this is not accurate.
+    # A more reasonable approach would be to create a `HashMap<version_name, arch_set>`
+    # that corresponds to different versions and architectures, and then
+    # make the determination based on that.
     (*/riscv64) is_sid=true ;;
     (*/loong64)
         is_sid=true
