@@ -1,5 +1,6 @@
 name: build (13, Trixie)
-on: { "schedule": [{ "cron": "13 13 */13 * *" }] }
+# auto-task.start-build-time = ?
+on: { "push": { "paths": [".github/workflows/13-trixie.yml"] } }
 
 env:
   DEBIAN_FRONTEND: noninteractive

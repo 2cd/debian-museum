@@ -106,10 +106,11 @@ for series ver (${(kv)ver_map}) {
 
     args=(
         --regexp-extended
-        # delete line
-        --expression
-        '/auto-task.build-time\s+=/d'
 
+        --expression
+        '/^#/ s@(auto-task.*time\s+=).*@\1 ?@'
+
+        # delete line
         --expression
         '/on:\s*\{\s*("push"|"schedule"):/d'
     )
@@ -155,68 +156,10 @@ for series ver (${(kv)ver_map}) {
             );;
     }
 
-    unset cron
-    case $series {
-        # release: 2019-07;  eol: 2022-09;  eol-lts: 2024-06;  eol-elts: 2029-06
-        # (buster)
-        #     case $year {
-        #         (2024) cron='10 10 10 6 *' ;;
-        #     }
-        # ;;
-
-        # # 2021; 2024; 2026
-        # (bullseye)
-        #     case $year {
-        #         (2024) cron='11 11 11 * *' ;;
-        #         (2025|2026) cron='11 11 11 5,11 * ' ;;
-        #     }
-        # ;;
-
-        # 2023; 2026; 2028
-        (bookworm)
-            case $year {
-                (2024|2025)
-                 cron='12 12 12,24 * *' ;;
-                (2026) cron='12 12 12 * *';;
-                (2027|2028) cron='12 12 12 6,12 *' ;;
-            }
-        ;;
-
-        # 2025; 2028; 2030
-        (trixie)
-            case $year {
-                (2024) cron='13 13 */13 * *'  ;;
-                (2025|2026|2027) cron='13 13 13,26 * *' ;;
-                (2028) cron='13 13 13 * *' ;;
-                (2029|2030) cron='13 13 13 1,7 *' ;;
-            }
-        ;;
-
-        # 2027; 2030; 2032
-        # (forky)
-        #     if ((year <= 2025)) {
-        #         error "Until 2025-06, you should be using sid, not forky."
-        #         exit 0
-        #     }
-        # ;;
-    }
-
-    if (($+cron)) {
-        debug cron: $cron
-        # args.push()
-        args+=(
-            --expression
-            "1a\on: { \"schedule\": [{ \"cron\": \"$cron\" }] }"
-        )
-    }
-
-    if ! (($+cron)) {
-        args+=(
-            --expression
-            # "on":{"push":{"paths":[".github\/workflows\/sid.yml"]}}
-            "1a\on: { \"push\": { \"paths\": [\".github/workflows/$new_file\"] } }"
-        )
-    }
+    args+=(
+        --expression
+        "2a\on: { \"push\": { \"paths\": [\".github/workflows/$new_file\"] } }"
+    )
 
     if [[ ! -e $tmpl ]] {
         io::Error::not_found $tmpl
