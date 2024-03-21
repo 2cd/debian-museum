@@ -48,6 +48,7 @@ fn new_map() -> io::Result<()> {
         ("ppc", "linux/ppc"),
         ("ppc64el", "linux/ppc64le"),
         ("ppc64le", "linux/ppc64le"),
+        // ("powerpc64", "linux/ppc64"),
         ("ppc64", "linux/ppc64"),
         ("rv64", "linux/riscv64"),
         ("riscv64", "linux/riscv64"),
@@ -61,8 +62,14 @@ fn new_map() -> io::Result<()> {
         ("sparc64", "linux/sparc64"),
         ("x32", "linux/amd64p32"),
         ("x64", "linux/amd64"),
+        ("x64v2", "linux/amd64/v2"),
+        ("x64v3", "linux/amd64/v3"),
+        ("x64v4", "linux/amd64/v4"),
         ("x86", "linux/386"),
         ("x86_64", "linux/amd64"),
+        ("x86-64-v2", "linux/amd64/v2"),
+        ("x86-64-v3", "linux/amd64/v3"),
+        ("x86-64-v4", "linux/amd64/v4"),
     ];
 
     builder::MapBuilder::new(name, &pairs).build()

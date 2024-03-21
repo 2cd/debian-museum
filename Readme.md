@@ -76,8 +76,10 @@ setopt interactive_comments
 # versions: 8, 9, 10, 11, 12, 13, sid
 ver=sid
 
-# architectures: "", "riscv64", "amd64", "x86_64", "arm64", "i386", "loong64", "armhf"
+# architectures: "", "riscv64", "rv64", "amd64", "x86_64", "x64", "arm64", "aarch64", "i386", "loong64", "armhf"
 # The architectures supported by different versions are not exactly the same.
+# For example, trixie(13) no longer supports mipsle (a.k.a., MIPS 32-bit Little Endian),
+# sid(unstable) supports more architectures than stable.
 arch=""
 
 # --------------------------
@@ -90,22 +92,15 @@ if ((! $#ver)) {
 }
 
 # Debian sid supports a very large number of architectures, not all of which are listed here.
-rv64=linux/riscv64
-x86=linux/386
-x64=linux/amd64
-loong64=linux/loong64
-aa64=linux/arm64
-armv7=linux/armv7
-local -A oci_platform_map=(
+rv64=riscv64
+x86=386
+x64=amd64
+aa64=arm64
+local -A oci_arch_map=(
+    # riscv64imafdc
     rv64gc       $rv64
     riscv64      $rv64
     rv64         $rv64
-    #
-    x86          $x86
-    i386         $x86
-    i486         $x86
-    i586         $x86
-    i686         $x86
     #
     x64          $x64
     amd64        $x64
@@ -114,12 +109,18 @@ local -A oci_platform_map=(
     aarch64      $aa64
     arm64        $aa64
     #
-    loong64      $loong64
-    loongarch64  $loong64
+    loong64      loong64
+    loongarch64  loong64
+    # i386 ~ i686
+    x86          $x86
+    i386         $x86
+    i486         $x86
+    i586         $x86
+    i686         $x86
     #
-    armhf        $armv7
+    armhf        armv7
+    # In fact, just relying on `uname -m` cannot determine `feature = "+vfp3"` (armhf).
     # armv7l       $armv7
-    # armv7a       $armv7
 )
 
 # On alpine, if dpkg is installed, it will output musl-linux-[xxx] (e.g., musl-linux-riscv64), not [xxx] (e.g., riscv64).
@@ -179,8 +180,8 @@ if (($+commands[timedatectl])) {
     )
 }
 
-# map: oci_platform_map, key: arch, value => platform
-platform=$oci_platform_map[$arch]
+# map: oci_arch_map, key: arch, value => platform
+platform=$oci_arch_map[$arch]
 
 # if platform.is_not_empty()
 if ((#platform)) {
@@ -188,7 +189,7 @@ if ((#platform)) {
         # If you want to run containers from other architectures
         # (e.g., host: arm64, container: riscv64),
         # you need to install `qemu-user-static`.
-        --platform  $platform
+        --platform  linux/$platform
     )
 }
 
