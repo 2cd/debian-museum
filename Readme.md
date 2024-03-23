@@ -50,16 +50,26 @@
 
 ---
 
-| version  | codename |
-| -------- | -------- |
-| unstable | Sid      |
+| version      | codename |
+| ------------ | -------- |
+| unstable     | Sid      |
+| experimental | RC-Buggy |
+
+> Unlike the Debian Releases unstable and testing, [experimental](https://wiki.debian.org/DebianExperimental) isn't a complete distribution, it can work only as an extension of unstable.
+>
+
+To enable experimental source, run a sid contaienr and then edit the **/etc/apt/sources.list.d/mirror.sources** file in the container.
+
+![experimental source](./assets/img/experimental_src.jpg)
 
 ---
+
 > See also:
 >
 > - [Ubuntu Museum](https://github.com/2cd/ubuntu-museum/)
 > - [Debian Project History](https://www.debian.org/doc/manuals/project-history/releases.en.html)
 > - [distro-info-data/debian.csv](https://debian.pages.debian.net/distro-info-data/debian.csv)
+> - [Wiki/DebianTesting](https://wiki.debian.org/DebianTesting)
 
 ## docker
 
@@ -67,12 +77,17 @@
   - bash is NOT SUPPORTED, NOR is dash
 - Just change the values of `ver` & `arch`
 - What follows may seem complicated, but it's actually quite simple to follow step-by-step.
+- Depends:
+  - `docker.io` | `docker`
+  - `zsh` (>= 5)
+- Recommends:
+  - [qemu-user-static](https://tracker.debian.org/pkg/qemu) | [qemu-user-static-binfmt](https://archlinux.org/packages/extra/x86_64/qemu-user-static-binfmt/)
 
 ```zsh
-# Depends:    docker.io | docker, zsh (>= 5)
-# Recommends: qemu-user-static | qemu-user-static-binfmt
 setopt interactive_comments
 
+# On modern Linux distro, running very very old debian containers can be problematic! (e.g., host: 12(bookworm, kernel: 6.x), container: 3.1(sarge), host-arch: amd64, container-arch: amd64)
+#
 # versions: 8, 9, 10, 11, 12, 13, sid
 ver=sid
 
@@ -87,7 +102,7 @@ dbg() {
     print >&2 -Pr "%F{blue}[DEBUG]%f $*"
 }
 # if ver.is_empty()
-if ((! $#ver)) {
+if ((! #ver)) {
     ver=sid
 }
 
@@ -125,22 +140,26 @@ local -A oci_arch_map=(
 
 # On alpine, if dpkg is installed, it will output musl-linux-[xxx] (e.g., musl-linux-riscv64), not [xxx] (e.g., riscv64).
 # For busybox, the dpkg it contains is a lite version. Therefore, the value of `deb_arch` may be empty.
-# If `deb_arch.starts_with("musl-")` or `is_empty()`, use `uname`, not `dpkg`.
+# If `deb_arch.is_empty()`, use `uname`, not `dpkg`.
 get_dpkg_architecture() {
-    deb_arch=$(dpkg --print-architecture)
+    local dpkg_arch=$(dpkg --print-architecture)
+
+    # arch_arr.split('-').last()
+    local deb_arch=$dpkg_arch[(ws^-^)-1]
+
     case $deb_arch {
-        (musl-*|"") uname -m ;;
-        (*) print $deb_arch ;;
+        ("") uname -m        ;;
+        (*)  print $deb_arch ;;
     }
 }
 
 # if arch.is_empty()
-if ((! $#arch)) {
+if ((! #arch)) {
     # arch = if "dpkg".cmd_exists() { dpkg --print-architecture } else { uname -m }
     arch=$(
         if (($+commands[dpkg])) {
             get_dpkg_architecture
-         } else {
+        } else {
             uname -m
         }
     )
@@ -180,7 +199,9 @@ if (($+commands[timedatectl])) {
     )
 }
 
-# map: oci_arch_map, key: arch, value => platform
+# map: oci_arch_map
+#   key: arch
+#   value => platform
 platform=$oci_arch_map[$arch]
 
 # if platform.is_not_empty()
@@ -193,11 +214,12 @@ if ((#platform)) {
     )
 }
 
-is_loongarch=false
-is_sid=false
-if [[ $ver == sid ]] {
-    is_sid=true
+case $ver {
+    (sid|unstable) is_sid=true  ;;
+    (*)            is_sid=false ;;
 }
+
+is_loongarch=false
 case $platform {
     # Due to the fact that older versions of Debian (such as Buster)
     # do not support RISC-V 64-bit architecture, it is defined as "sid" here.
