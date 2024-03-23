@@ -104,18 +104,25 @@ pub(crate) struct FileSize {
     cmt: Option<String>,
 }
 
-#[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder)]
+#[derive(Getters, Serialize, Deserialize, Debug, TypedBuilder)]
 #[getset(get = "pub(crate) with_prefix")]
 #[serde(default)]
 #[builder(field_defaults(setter(into)))]
 pub(crate) struct Zstd {
+    #[builder(default = 18)]
     level: u8,
-    #[builder(default = false)]
-    #[serde(rename = "long-distance")]
-    long_distance: bool,
+    #[builder(default = Some(27))]
+    long: Option<u32>,
+    // #[serde(rename = "long-distance")]
+    // long_distance: bool,
+    // #[builder(default = false)]
+    // dict: bool,
+}
 
-    #[builder(default = false)]
-    dict: bool,
+impl Default for Zstd {
+    fn default() -> Self {
+        Self::builder().build()
+    }
 }
 
 #[derive(Getters, Serialize, Deserialize, Debug, Default, TypedBuilder)]
@@ -159,6 +166,8 @@ pub(crate) struct DateTime {
 pub(crate) struct MainTag {
     name: String,
     arch: String,
+    // #[serde(rename = "os-arch")]
+    // os_arch: String,
     datetime: DateTime,
     docker: Docker,
     file: ArchiveFile,

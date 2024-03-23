@@ -93,28 +93,27 @@ impl SrcFormat {
         &self,
         series: &str,
         mirror_dir: &Path,
-        // deb822: bool,
+        title_date: Option<&str>,
         components: Option<&str>,
+        deb_arch: Option<&str>,
     ) -> anyhow::Result<()> {
+        let current_year = today_date().year();
+
+        let year = match title_date {
+            Some(s) => s
+                .split('-')
+                .next()
+                .and_then(|x| x.parse::<i32>().ok())
+                .unwrap_or(current_year),
+            _ => current_year,
+        };
+
+        // year < 2019
+        let http_no_tls = year < current_year - 5;
+
+        // let enable_https = today_date().day()
+        // match today_date().day()
         match self {
-            /*
-            deb https://mirror.sjtu.edu.cn/ubuntu/ jammy main restricted universe multiverse
-            # deb-src https://mirror.sjtu.edu.cn/ubuntu/ jammy main restricted universe multiverse
-
-            deb https://mirror.sjtu.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse
-            # deb-src https://mirror.sjtu.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse
-
-            deb https://mirror.sjtu.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse
-            # deb-src https://mirror.sjtu.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse
-
-            deb https://mirror.sjtu.edu.cn/ubuntu/ jammy-security main restricted universe multiverse
-            # deb-src https://mirror.sjtu.edu.cn/ubuntu/ jammy-security main restricted universe multiverse
-
-            # --------
-            # Disabled
-            # deb https://mirror.sjtu.edu.cn/ubuntu/ jammy-proposed main restricted universe multiverse
-            # deb-src https://mirror.sjtu.edu.cn/ubuntu/ jammy-proposed main restricted universe multiverse
-            */
             Self::Simple(s) => {
                 let mirrors = match s.as_str() {
                     "ubuntu" => mirror::ubuntu::mirrors(),
@@ -122,10 +121,11 @@ impl SrcFormat {
                     _ => mirror::ubuntu_old::mirrors(),
                 };
                 for m in mirrors {
-                    let url = https_to_http(&m);
+                    let url = convert_to_url_str(&m, http_no_tls);
                     let name = m.get_name();
                     let one_line_style = ubuntu_one_line_style(series, &url);
-                    let deb822_style = ubuntu_deb822_style(series, &url, name);
+                    let deb822_style =
+                        ubuntu_deb822_style(series, &url, name, deb_arch);
                     let legacy_file = legacy_src_list_path(&m, mirror_dir, name);
                     let deb822_file = legacy_file.with_extension("sources");
                     fs::write(legacy_file, one_line_style)?;
@@ -159,12 +159,14 @@ impl SrcFormat {
                     let mut deb_src = DebianSrc::builder()
                         .keyring(keyring)
                         .components(components)
-                        .url(https_to_http(&mirrors[0]))
+                        .url(convert_to_url_str(&mirrors[0], http_no_tls))
                         .url_suffix(site_suffix)
                         .suite(suite)
                         .enabled(enabled)
                         .src(src)
                         .deb_vendor(deb_vendor)
+                        .plain_http(http_no_tls)
+                        .deb_arch(deb_arch)
                         .build();
 
                     deb_src.update_debian_list(
@@ -187,12 +189,14 @@ impl SrcFormat {
                         let mut deb_src = DebianSrc::builder()
                             .keyring(keyring)
                             .components(components)
-                            .url(https_to_http(&mirrors[0]))
+                            .url(convert_to_url_str(&mirrors[0], http_no_tls))
                             .url_suffix(site_suffix)
                             .suite(suite)
                             .enabled(enabled)
                             .src(src)
                             .deb_vendor(deb_vendor)
+                            .plain_http(http_no_tls)
+                            .deb_arch(deb_arch)
                             .build();
 
                         deb_src.update_debian_list(
@@ -288,7 +292,9 @@ struct DebianSrc<'a> {
     components: &'a str,
     keyring: &'a str,
     deb_vendor: &'a str,
+    plain_http: bool,
     enabled: bool,
+    deb_arch: Option<&'a str>,
 }
 
 impl<'a> DebianSrc<'a> {
@@ -320,7 +326,7 @@ impl<'a> DebianSrc<'a> {
         format!("# deb-src {deb_vendor}{url}{url_suffix} {suite} {components}\n\n")
     }
 
-    fn deb822_str(&self) -> String {
+    fn debian_deb822_str(&self) -> String {
         let Self {
             url,
             url_suffix,
@@ -329,28 +335,38 @@ impl<'a> DebianSrc<'a> {
             enabled,
             keyring,
             src,
+            deb_arch,
             ..
         } = self;
 
         let yes_or_no = if *enabled { "yes" } else { "no" };
 
-        let http_url = match (url, suite) {
+        let mut disabled_url_cmt = if url.ends_with("/debian/") {
+            " URIs: https://cloudflaremirrors.com/debian/".to_owned()
+        } else {
+            "".into()
+        };
+
+        let enabled_url = match (url, suite) {
             (u, &"sid" | &"experimental")
                 if u.contains("deb.debian.org/debian/") =>
             {
+                disabled_url_cmt.push_str(&format!(" {url}{url_suffix}"));
                 get_static_debian_snapshot_url(false).as_ref()
             }
             (u, &"sid" | &"experimental")
                 if u.contains("deb.debian.org/debian-ports/") =>
             {
+                disabled_url_cmt.clear();
+                disabled_url_cmt = format!(" URIs: {url}{url_suffix}");
                 get_static_debian_snapshot_url(true).as_ref()
             }
             _ => None,
         }
         .map_or(url.as_str(), |x| x.as_str());
-        log::debug!("http url: {http_url}");
+        log::debug!("enabled url: {enabled_url}");
 
-        let https_url = http_str_to_https(url);
+        let architecture = deb_arch.unwrap_or_default();
 
         format!(
             r##"# Name: {src}
@@ -358,17 +374,23 @@ impl<'a> DebianSrc<'a> {
 Enabled: {yes_or_no}
 # Types: deb deb-src
 Types: deb
-# URIs: {https_url}{url_suffix}
-URIs: {http_url}{url_suffix}
+#{disabled_url_cmt}
+URIs: {enabled_url}{url_suffix}
 Suites: {suite}
 Components: {components}
 Signed-By: {keyring}
+#
+# When using plain-http(no-tls) source, recommend => no.
 Trusted: yes
-# When using official source, recommended => yes;
-#      using mirror => no;
+#
+# When using official source, recommend => yes;
+#      using mirror   => no;
 #      using snapshot => no.
 Check-Valid-Until: no
+#
 # Allow-Insecure: no
+# Architectures: {architecture}
+
 
 "##
         )
@@ -386,13 +408,13 @@ Check-Valid-Until: no
         official_legacy_style.push_str(&self.one_line_str());
         official_legacy_style.push_str(&self.one_line_debsrc_str());
 
-        official_deb822_style.push_str(&self.deb822_str());
+        official_deb822_style.push_str(&self.debian_deb822_str());
 
         // cdn mirror:
-        self.url = https_to_http(cdn_mirror);
+        self.url = convert_to_url_str(cdn_mirror, self.plain_http);
         cdn_legacy_style.push_str(&self.one_line_str());
         cdn_legacy_style.push_str(&self.one_line_debsrc_str());
-        cdn_deb822_style.push_str(&self.deb822_str());
+        cdn_deb822_style.push_str(&self.debian_deb822_str());
     }
 }
 
@@ -452,14 +474,14 @@ fn get_snapshot_url(ports: bool) -> Option<Url> {
 
     url.set_query(None);
 
-    let mut snap_url = url
+    let snap_url = url
         .join(snapshot_iso8601)
         .ok()?;
+    // snap_url
+    //     .set_scheme("http")
+    //     .ok()?;
 
     log::info!("snapshot url: {snap_url}");
-    snap_url
-        .set_scheme("http")
-        .ok()?;
 
     Some(snap_url)
 }
@@ -527,7 +549,12 @@ deb {deb_vendor}{url} {suite}-security {components}
     )
 }
 
-fn ubuntu_deb822_style(suite: &str, url: &str, name: &str) -> String {
+fn ubuntu_deb822_style(
+    suite: &str,
+    url: &str,
+    name: &str,
+    deb_arch: Option<&str>,
+) -> String {
     let components = components::UBUNTU;
     let url_cmt = match url {
         ubuntu::OFFICIAL => {
@@ -539,6 +566,8 @@ fn ubuntu_deb822_style(suite: &str, url: &str, name: &str) -> String {
         _ => Cow::from(format!("# URIs: {}", http_str_to_https(url))),
     };
 
+    let architecture = deb_arch.unwrap_or_default();
+    let trusted = if url.starts_with("https") { "yes" } else { "no" };
     format!(
         r##"# Name: ubuntu {suite} ({name})
 # yes or no
@@ -551,11 +580,16 @@ URIs: {url}
 Suites: {suite} {suite}-updates {suite}-backports {suite}-security
 Components: {components}
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-Trusted: yes
-# When using official source, recommended => yes;
+#
+# When using plain-http(no-tls) source, recommend => no.
+Trusted: {trusted}
+#
+# When using official source, recommend => yes;
 #      using mirror => no.
 Check-Valid-Until: no
+#
 # Allow-Insecure: no
+# Architectures: {architecture}
 
 "##
     )
@@ -573,8 +607,14 @@ fn legacy_src_list_path(
     mirror_dir.join(format!("{name}{region_prefix}{region}.list"))
 }
 
-pub(crate) fn https_to_http(m: &mirror::Mirror<'_>) -> String {
-    https_str_to_http(m.get_url())
+pub(crate) fn convert_to_url_str(
+    m: &mirror::Mirror<'_>,
+    plain_http: bool,
+) -> String {
+    if plain_http {
+        return https_str_to_http(m.get_url());
+    }
+    m.get_url().to_string()
 }
 
 fn https_str_to_http(https: &str) -> String {

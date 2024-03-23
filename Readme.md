@@ -60,7 +60,7 @@
 
 To enable experimental source, run a sid contaienr and then edit the **/etc/apt/sources.list.d/mirror.sources** file in the container.
 
-![experimental source](./assets/img/experimental_src.jpg)
+<img alt="experimental source" src="./assets/img/experimental_src.jpg" width="500"/>
 
 ---
 

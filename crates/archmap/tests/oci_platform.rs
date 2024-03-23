@@ -48,7 +48,7 @@ fn new_map() -> io::Result<()> {
         ("ppc", "linux/ppc"),
         ("ppc64el", "linux/ppc64le"),
         ("ppc64le", "linux/ppc64le"),
-        // ("powerpc64", "linux/ppc64"),
+        ("powerpc64", "linux/ppc64"),
         ("ppc64", "linux/ppc64"),
         ("rv64", "linux/riscv64"),
         ("riscv64", "linux/riscv64"),

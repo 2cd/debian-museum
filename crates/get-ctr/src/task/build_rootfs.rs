@@ -130,7 +130,9 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
             src.create_src_list(
                 repo.get_series(),
                 &mirror_dir,
+                repo.get_title_date().as_deref(),
                 *repo.get_components(),
+                repo.get_deb_arch().as_deref(),
             )?;
             move_mirror_list_to_rootfs(&mirror_dir, &rootfs_dir, *repo.get_deb822())?
         }
