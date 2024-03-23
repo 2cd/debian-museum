@@ -1,0 +1,104 @@
+name: build (9, Stretch)
+# auto-task.start-build-time = ?
+on: { "push": { "paths": [".github/workflows/9-stretch.yml"] } }
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  GET_CTR_LOG: debug
+  ZSTD_LV: 18
+  ARCHS: ${{ fromJson(vars.STRETCH_JSON).archs }}
+  BUILD_CMD: get-ctr --os ${{vars.OS}} --ver ${{fromJson(vars.STRETCH_JSON).ver}}
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix: ${{ fromJson(vars.STRETCH_JSON).matrix }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: preparations
+        run: |
+          ${{vars.INSTALL_QEMU_AND_DEBOOTSTRAP}}
+          ${{vars.GET_CTR_CMD}}
+
+      - name: Login to REG
+        uses: docker/login-action@v3
+        with:
+          registry: ${{vars.REG_URI}}
+          username: ${{vars.REG_USER}}
+          password: ${{ secrets.DEB_UUU_TOKEN }}
+
+      - name: download & repack rootfs & save cache
+        run: ${{env.BUILD_CMD}} --arch ${{matrix.arch}} --obtain --repack --zstd-level ${{env.ZSTD_LV}} --save-cache
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    # defaults:
+    #   run:
+    #     shell: zsh -fe {0}
+    env:
+      digests_ron: digests.ron
+      digests_yaml: digests.yml
+    steps:
+      - name: Login to REG
+        uses: docker/login-action@v3
+        with:
+          registry: ${{vars.REG_URI}}
+          username: ${{vars.REG_USER}}
+          password: ${{ secrets.DEB_UUU_TOKEN }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: get `get-ctr` bin from docker
+        run: ${{vars.GET_CTR_CMD}}
+
+      - name: install qemu-user & debootstrap
+        run: ${{vars.INSTALL_QEMU_AND_DEBOOTSTRAP}}
+
+      - name: restore cache
+        run: |
+          archs=( ${{env.ARCHS}} )
+          for arch in "${archs[@]}"; do
+            ${{env.BUILD_CMD}} --restore-cache --arch $arch
+            tree tmp
+          done
+
+      - name: build container
+        run: ${{env.BUILD_CMD}} --build
+
+      - name: push to ghcr & reg
+        run: ${{env.BUILD_CMD}} --push
+
+      - name: create manifest
+        run: ${{env.BUILD_CMD}} --create-manifest --update-repo-digest
+
+      - name: generate digests.{ron,yml}
+        run: ${{env.BUILD_CMD}} --digest ${{env.digests_ron}} --digest ${{env.digests_yaml}}
+
+      - name: create digests.md
+        run: |
+          echo '```yaml' > digests.md
+          cat tmp/${{env.digests_yaml}} >> digests.md
+          echo '```' >> digests.md
+          echo TITLE=$(${{env.BUILD_CMD}} --title) >>$GITHUB_ENV
+
+      - name: +RELEASE_TAG env
+        run: echo RELEASE_TAG=$(${{env.BUILD_CMD}} --release-tag) >>$GITHUB_ENV
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          fail_on_unmatched_files: true
+          tag_name: ${{env.RELEASE_TAG}}
+          name: ${{env.TITLE}}
+          files: |
+            tmp/zstd/*.zst
+            tmp/${{env.digests_ron}}
+            tmp/${{env.digests_yaml}}
+          body_path: digests.md
