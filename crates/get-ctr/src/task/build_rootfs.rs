@@ -255,9 +255,9 @@ fn patch_deb_rootfs(rootfs_dir: &Path, repo: &Repository<'_>) {
     run_nspawn(
         rootfs_dir,
         format!(
-            "apt-get dist-upgrade --assume-yes {apt_arg} ;
+            "apt-get dist-upgrade --fix-broken --assume-yes {apt_arg} ;
             for i in gpgv apt-utils eatmydata whiptail; do
-                apt-get install --assume-yes {apt_arg} $i
+                apt-get install --fix-broken --assume-yes {apt_arg} $i
             done
             apt-get clean"
         ),
