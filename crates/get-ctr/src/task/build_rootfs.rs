@@ -339,6 +339,11 @@ fn run_debootstrap(
 
     let ex_pkgs_comma_str = ex_packages_arr.join(",");
 
+    let deb_src_url = deb_src.get_url();
+    if deb_src_url.scheme() == "https" {
+        args.push(osstr("--no-check-gpg"));
+    }
+
     args.extend(
         [
             "--no-check-gpg",
@@ -374,7 +379,7 @@ fn run_debootstrap(
     args.push(osstr(real_name));
 
     args.push(rootfs_dir.as_ref());
-    args.push(osstr(deb_src.get_url().as_str()));
+    args.push(osstr(deb_src_url.as_str()));
 
     run_as_root("/usr/sbin/debootstrap", &args, true);
 
