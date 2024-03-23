@@ -270,6 +270,13 @@ fn patch_deb_rootfs(rootfs_dir: &Path, repo: &Repository<'_>) {
 
     run_nspawn(
         rootfs_dir,
+        "chown -Rv 0:0 /usr/local/etc/apt/mirrors /etc/apt/sources.list.d",
+        false,
+        &["LANG=C.UTF-8"],
+    );
+
+    run_nspawn(
+        rootfs_dir,
         "apt-get install --fix-broken --assume-yes",
         false,
         &["LANG=C.UTF-8"],
