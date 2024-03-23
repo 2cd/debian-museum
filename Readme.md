@@ -58,7 +58,7 @@
 > Unlike the Debian Releases unstable and testing, [experimental](https://wiki.debian.org/DebianExperimental) isn't a complete distribution, it can work only as an extension of unstable.
 >
 
-To enable experimental source, run a sid contaienr and then edit the **/etc/apt/sources.list.d/mirror.sources** file in the container.
+To enable experimental source, run a sid container and then edit the **/etc/apt/sources.list.d/mirror.sources** file in the container.
 
 <img alt="experimental source" src="./assets/img/experimental_src.jpg" />
 

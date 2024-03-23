@@ -272,7 +272,7 @@ fn patch_deb_rootfs(rootfs_dir: &Path, repo: &Repository<'_>) {
         rootfs_dir,
         "chown -Rv 0:0 /usr/local/etc/apt/mirrors /etc/apt/sources.list.d",
         false,
-        &["LANG=C.UTF-8"],
+        &["LANG=C"],
     );
 
     run_nspawn(
