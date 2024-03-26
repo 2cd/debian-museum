@@ -357,8 +357,8 @@ impl<'a> DebianSrc<'a> {
             (u, &"sid" | &"experimental")
                 if u.contains("deb.debian.org/debian-ports/") =>
             {
-                disabled_url_cmt.clear();
-                disabled_url_cmt = format!(" URIs: {url}{url_suffix}");
+                // disabled_url_cmt.clear();
+                // disabled_url_cmt = format!(" URIs: {url}{url_suffix}");
                 get_static_debian_snapshot_url(true).as_ref()
             }
             _ => None,

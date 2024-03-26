@@ -422,7 +422,7 @@ struct ReleaseUUU {
     archive: String,
 }
 
-/// When using devel as `suite`, the build may fail. So we need to get its real name, e.g., nobel
+/// When using devel as `suite`, the build may fail. So we need to get its real name, e.g., noble
 fn get_the_real_name_of_ubuntu_devel(url: &Url) -> &'static str {
     static N: OnceLock<String> = OnceLock::new();
 
