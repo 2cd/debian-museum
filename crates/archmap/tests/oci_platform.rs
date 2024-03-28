@@ -9,6 +9,7 @@ fn new_map() -> io::Result<()> {
         ("aarch64", "linux/arm64"),
         ("alpha", "linux/alpha"),
         ("amd64", "linux/amd64"),
+        //
         ("arm", "linux/arm/v6"),
         ("arm64", "linux/arm64"),
         ("armv3", "linux/arm/v3"),
@@ -24,6 +25,7 @@ fn new_map() -> io::Result<()> {
         ("armv8m", "linux/arm/v7"),
         ("armv8a", "linux/arm64"),
         ("armv9", "linux/arm64"),
+        //
         ("hppa", "linux/hppa"),
         ("i386", "linux/386"),
         ("i486", "linux/386"),
@@ -34,6 +36,7 @@ fn new_map() -> io::Result<()> {
         ("loong64", "linux/loong64"),
         ("loongarch64", "linux/loong64"),
         ("m68k", "linux/m68k"),
+        //
         ("mips", "linux/mips"),
         ("mips64", "linux/mips64"),
         ("mips64be", "linux/mips64"),
@@ -42,6 +45,7 @@ fn new_map() -> io::Result<()> {
         ("mipsbe", "linux/mips"),
         ("mipsel", "linux/mipsle"),
         ("mipsle", "linux/mipsle"),
+        //
         ("powerpc", "linux/ppc"),
         ("powerpc64el", "linux/ppc64le"),
         ("powerpc64le", "linux/ppc64le"),
@@ -50,17 +54,20 @@ fn new_map() -> io::Result<()> {
         ("ppc64le", "linux/ppc64le"),
         ("powerpc64", "linux/ppc64"),
         ("ppc64", "linux/ppc64"),
+        //
         ("rv64", "linux/riscv64"),
         ("riscv64", "linux/riscv64"),
         ("riscv64gc", "linux/riscv64"),
         ("rv64gc", "linux/riscv64"),
         ("rv64imafdc", "linux/riscv64"),
+        // ("s390x", "linux/s390x"),
         ("s390", "linux/s390"),
         ("s390x", "linux/s390x"),
         ("sh4", "linux/sh4"),
         ("sparc", "linux/sparc"),
         ("sparc64", "linux/sparc64"),
         ("x32", "linux/amd64p32"),
+        //
         ("x64", "linux/amd64"),
         ("x64v2", "linux/amd64/v2"),
         ("x64v3", "linux/amd64/v3"),
@@ -82,6 +89,5 @@ fn get_map() {
         .get("x86")
         .copied()
         .unwrap();
-
-    dbg!(a);
+    assert_eq!(a, "linux/386");
 }
