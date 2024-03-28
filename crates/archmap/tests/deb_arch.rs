@@ -10,7 +10,7 @@ fn new_map() -> io::Result<()> {
         ("alpha", "alpha"),
         ("amd64", "amd64"),
         //
-        ("arm", "armel"),
+        ("arm", "arm"),
         ("arm64", "arm64"),
         ("armv3", "arm"),
         ("armv4", "armel"),

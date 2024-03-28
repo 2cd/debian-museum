@@ -48,7 +48,7 @@ pub const fn map() -> crate::PhfMap {
         ("x86_64", r###"amd64"###),
         ("x64v2", r###"amd64"###),
         ("armv5te", r###"armel"###),
-        ("arm", r###"armel"###),
+        ("arm", r###"arm"###),
         ("aarch64", r###"arm64"###),
         ("x64v3", r###"amd64"###),
         ("sh4", r###"sh4"###),
