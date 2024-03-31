@@ -5,7 +5,7 @@ on:
   # schedule:
   #   - cron: '0 11 28 */2 *'
   push:
-    branches: ["dev"]
+    branches: ["build"]
     paths:
       - .github/workflows/cross.rs.yml
       - assets/cross/Dockerfile
