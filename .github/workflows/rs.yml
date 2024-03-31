@@ -1,4 +1,4 @@
-name: build zsh-builder
+name: build pkg (get-ctr)
 # 0.0.0-alpha.2
 # auto-task.start-build-time = ?
 # on: { "push": { "branch": dev, "paths": [".github/workflows/rs.yml", "Cargo.toml"] } }
@@ -22,6 +22,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: actions/checkout@v4
+      with:
+        ref: dev
+
       - uses: actions/cache@v3
         with:
           path: |
@@ -32,9 +36,6 @@ jobs:
             ${{env.CARGO_TARGET_DIR}}
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - uses: actions/checkout@v4
-        with:
-          ref: dev
       - uses: dtolnay/rust-toolchain@stable
       - name: cargo build
         run: cargo build --package get-ctr --profile ${{env.PROFILE}}
