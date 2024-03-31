@@ -17,7 +17,7 @@ jobs:
       run:
         shell: zsh --pipefail -fex {0}
     env:
-      PROFILE: no-lto
+      PROFILE: thin
       CARGO_TARGET_DIR: /tmp/rs
       DOCKER_DIR: assets/cross
 
@@ -32,11 +32,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/checkout@v4
-        with:
-          # ref: main
-          repository: cross-rs/cross
 
       - name: check cargo
         id: cargo_installed
@@ -63,9 +58,24 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         if: (!steps.cargo_installed.RS_INSTALLED)
 
+      - uses: actions/checkout@v4
+        with:
+          # ref: main
+          repository: cross-rs/cross
+
+      - name: add thin profile
+        run: |
+          print '
+          [profile.thin]
+          inherits = "release"
+          panic = "abort"
+          strip = true
+          lto = "thin"
+          ' >> Cargo.toml
+
       - name: cargo build
         run: |
-          cargo build --package get-ctr --profile ${{env.PROFILE}}
+          cargo build -r
           cargo -Vv
 
       - uses: actions/checkout@v4
