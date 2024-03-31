@@ -42,14 +42,14 @@ jobs:
       - name: check cargo
         id: cargo_installed
         run: |
-        installed=$(
-          if (($+commands[cargo])) {
-            print true
-          } else {
-            print false
-          }
-        )
-        print "RS_INSTALLED=$installed" >> $GITHUB_OUTPUT
+          installed=$(
+            if (($+commands[cargo])) {
+              print true
+            } else {
+              print false
+            }
+          )
+          print "RS_INSTALLED=$installed" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v3
         if: steps.cargo_installed.RS_INSTALLED
