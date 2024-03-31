@@ -3,8 +3,8 @@ name: build pkg (get-ctr)
 # auto-task.start-build-time = ?
 
 on:
-  # schedule:
-  #   - cron: '0 11 28 */2 *'
+  schedule:
+    - cron: '0 11 28 */2 *'
   push:
     branches: ["dev"]
     paths:
@@ -37,12 +37,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # ref: main
-          repository: 'cross-rs/cross'
+          repository: cross-rs/cross
 
-      - name: check rustc
-        run:
+      - name: check cargo
+        id: cargo_installed
+        run: |
+        installed=$(
+          if (($+commands[cargo])) {
+            print true
+          } else {
+            print false
+          }
+        )
+        print "RS_INSTALLED=$installed" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v3
+        if: steps.cargo_installed.RS_INSTALLED
         with:
           path: |
             ~/.cargo/bin/
