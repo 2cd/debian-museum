@@ -111,7 +111,8 @@ where
 
 fn check_status_and_exit(status: ExitStatus) {
     if !status.success() {
-        exit(status.into_raw())
+        exit(1)
+        // exit(status.into_raw())
     }
 }
 

@@ -299,9 +299,10 @@ fn run_debootstrap(
     let osstr = OsStr::new;
     let mut args = TinyVec::<[&OsStr; 10]>::new();
     let mut ex_packages_arr = TinyVec::<[&str; 32]>::new();
+    let os_name = repo.get_osname();
 
     #[allow(clippy::useless_asref)]
-    let is_uuu = matches!(repo.get_osname().as_ref(), "ubuntu" | "Ubuntu");
+    let is_uuu = matches!(os_name.as_ref(), "ubuntu" | "Ubuntu");
 
     {
         // ubuntu-minimal:
@@ -356,6 +357,7 @@ fn run_debootstrap(
 
     args.extend(
         [
+            "--verbose",
             "--exclude",
             &ex_pkgs_comma_str,
             "--components",
@@ -391,7 +393,6 @@ fn run_debootstrap(
         args.push(osstr(&uuu_suites));
     }
 
-    let os_name = repo.get_osname();
     fix_script_link(real_name, os_name)?;
 
     args.push(osstr(real_name));

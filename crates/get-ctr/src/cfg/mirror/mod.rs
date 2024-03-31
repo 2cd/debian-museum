@@ -27,31 +27,31 @@ use url::Url;
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, derive_more::Display,
 )]
 pub(crate) enum MirrorVariant {
-    #[display(fmt = "debian-archive")]
+    #[display("debian-archive")]
     DebianArchive,
 
-    #[display(fmt = "debian")]
+    #[display("debian")]
     Debian,
 
-    #[display(fmt = "debian-ports")]
+    #[display("debian-ports")]
     DebianPorts,
 
-    #[display(fmt = "debian-elts")]
+    #[display("debian-elts")]
     DebianELTS,
 
-    #[display(fmt = "debian-debug")]
+    #[display("debian-debug")]
     DebianDebug,
 
-    #[display(fmt = "debian-security")]
+    #[display("debian-security")]
     DebianSecurity,
 
-    #[display(fmt = "ubuntu-ports")]
+    #[display("ubuntu-ports")]
     UbuntuPorts,
 
-    #[display(fmt = "ubuntu")]
+    #[display("ubuntu")]
     Ubuntu,
 
-    #[display(fmt = "ubuntu-old")]
+    #[display("ubuntu-old")]
     UbuntuOld,
 }
 
