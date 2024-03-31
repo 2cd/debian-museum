@@ -1,9 +1,9 @@
-name: build pkg (get-ctr)
+name: build pkg (cross)
 # auto-task.start-build-time = ?
 
 on:
-  schedule:
-    - cron: '0 11 28 */2 *'
+  # schedule:
+  #   - cron: '0 11 28 */2 *'
   push:
     branches: ["dev"]
     paths:
