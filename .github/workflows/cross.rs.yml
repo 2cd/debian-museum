@@ -39,7 +39,6 @@ jobs:
           installed=$(
             if (($+commands[cargo])) {
               print true
-              rustup update
             } else {
               print false
             }
