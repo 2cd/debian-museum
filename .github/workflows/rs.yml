@@ -6,7 +6,13 @@ name: build pkg (get-ctr)
 on:
   push:
     branches: ["dev", "build"]
-    paths: [".github/workflows/rs.yml", "assets/build-get-ctr/Dockerfile", "Cargo.toml", "Cargo.lock", "crates/get-ctr/src/**",  "crates/get-ctr/src/Cargo.toml"]
+    paths:
+      - .github/workflows/rs.yml
+      - assets/build-get-ctr/Dockerfile
+      - Cargo.toml
+      - Cargo.lock
+      - 'crates/get-ctr/src/**'
+      - crates/get-ctr/Cargo.toml
 
 jobs:
   docker:
@@ -27,6 +33,7 @@ jobs:
           ref: dev
 
       - uses: actions/cache@v3
+        if: runner.arch == "X64"
         with:
           path: |
             ~/.cargo/bin/
