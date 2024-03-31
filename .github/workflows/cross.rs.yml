@@ -1,5 +1,4 @@
 name: build pkg (get-ctr)
-# 0.0.0-alpha.2
 # auto-task.start-build-time = ?
 
 on:
