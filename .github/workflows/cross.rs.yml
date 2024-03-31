@@ -3,8 +3,8 @@ name: build pkg (get-ctr)
 # auto-task.start-build-time = ?
 
 on:
-  schedule:
-    - cron: '0 11 28 */2 *'
+  # schedule:
+  #   - cron: '0 11 28 */2 *'
   push:
     branches: ["dev"]
     paths:
@@ -12,7 +12,7 @@ on:
       - assets/cross/Dockerfile
 
 jobs:
-  docker:
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -21,6 +21,7 @@ jobs:
       PROFILE: no-lto
       CARGO_TARGET_DIR: /tmp/rs
       DOCKER_DIR: assets/cross
+
     steps:
       - name: install zsh
         shell: sh -e {0}
