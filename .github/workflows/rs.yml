@@ -6,7 +6,7 @@ name: build zsh-builder
 on:
   push:
     branches: ["dev", "build"]
-    paths: [".github/workflows/rs.yml", "Cargo.toml"]
+    paths: [".github/workflows/rs.yml", "assets/build-get-ctr/Dockerfile", "Cargo.toml", "Cargo.lock", "crates/get-ctr/src/**/*.rs",  "crates/get-ctr/src/Cargo.toml"]
 
 jobs:
   docker:
@@ -21,6 +21,17 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ${{env.CARGO_TARGET_DIR}}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - uses: actions/checkout@v4
         with:
           ref: dev
@@ -32,7 +43,7 @@ jobs:
         with:
           ref: build
 
-      - name: install get-ctr
+      - name: copy bin to docker context
         run: install -Dm755 ${{env.CARGO_TARGET_DIR}}/${{env.PROFILE}}/get-ctr assets/build-get-ctr/tmp.get-ctr
 
       - name: Build and push
@@ -40,4 +51,4 @@ jobs:
         with:
           context: assets/build-get-ctr
           push: true
-          tags: ghcr.io/2cd/pkg/get-ctr:x64
+          tags: ghcr.io/2cd/pkgs:get-ctr-x64
