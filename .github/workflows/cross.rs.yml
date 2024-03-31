@@ -39,6 +39,7 @@ jobs:
           installed=$(
             if (($+commands[cargo])) {
               print true
+              rustup update
             } else {
               print false
             }
@@ -55,8 +56,9 @@ jobs:
             ${{env.CARGO_TARGET_DIR}}
           key: ${{ runner.os }}-cargo-cross
 
-      - uses: dtolnay/rust-toolchain@stable
-        if: (!steps.cargo_installed.RS_INSTALLED)
+      - name: install cargo & rustc
+        if: (!steps.cargo_installed.outputs.RS_INSTALLED)
+        uses: dtolnay/rust-toolchain@stable
 
       - uses: actions/checkout@v4
         with:
@@ -75,8 +77,8 @@ jobs:
 
       - name: cargo build
         run: |
-          cargo build -r
           cargo -Vv
+          cargo build --profile ${{env.PROFILE}}
 
       - uses: actions/checkout@v4
         with:
@@ -88,7 +90,8 @@ jobs:
           bin_dir: ${{env.CARGO_TARGET_DIR}}/${{env.PROFILE}}
         run: |
           mkdir -pv $tmp
-          cp -vf $bin_dir/cross* $tmp
+          files=(/tmp/rs/thin/cross*)
+          cp -vf ${files:#*.d} $tmp
 
       - name: Build and push
         uses: docker/build-push-action@v5
