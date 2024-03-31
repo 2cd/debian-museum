@@ -582,7 +582,7 @@ Components: {components}
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 #
 # When using plain-http(no-tls) source, recommend => no.
-Trusted: {trusted}
+# Trusted: {trusted}
 #
 # When using official source, recommend => yes;
 #      using mirror => no.
