@@ -26,4 +26,4 @@ jobs:
         with:
           context: assets/debootstrap
           push: true
-          tags: ghcr.io/2cd/pkgs:debootstrap-all
+          tags: ghcr.io/2cd/pkgs:debootstrap-deb
