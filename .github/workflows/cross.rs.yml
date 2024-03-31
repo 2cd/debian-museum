@@ -3,7 +3,7 @@ name: build pkg (get-ctr)
 # auto-task.start-build-time = ?
 
 on:
-  schedue:
+  schedule:
     - cron: '0 11 28 */2 *'
   push:
     branches: ["dev"]
