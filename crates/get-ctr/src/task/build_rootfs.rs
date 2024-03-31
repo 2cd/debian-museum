@@ -300,6 +300,9 @@ fn run_debootstrap(
     let mut args = TinyVec::<[&OsStr; 10]>::new();
     let mut ex_packages_arr = TinyVec::<[&str; 32]>::new();
 
+    #[allow(clippy::useless_asref)]
+    let is_uuu = matches!(repo.get_osname().as_ref(), "ubuntu" | "Ubuntu");
+
     {
         // ubuntu-minimal:
         // adduser, alsa-base, alsa-utils, apt, apt-utils, aptitude, base-files, base-passwd, bash, bsdutils, bzip2, console-setup, console-tools, coreutils, dash, debconf, debianutils, dhcp3-client, diff, dpkg, e2fsprogs, eject, ethtool, findutils, gettext-base, gnupg, grep, gzip, hostname, ifupdown, initramfs-tools, iproute, iputils-ping, less, libc6-i686, libfribidi0, locales, login, lsb-release, makedev, mawk, mii-diag, mktemp, module-init-tools, mount, ncurses-base, ncurses-bin, net-tools, netbase, netcat, ntpdate, passwd, pciutils, pcmciautils, perl-base, procps, python, python-minimal, sed, startup-tasks, sudo, sysklogd, system-services, tar, tasksel, tzdata, ubuntu-keyring, udev, upstart, upstart-compat-sysv, upstart-logd, usbutils, util-linux, util-linux-locales, vim-tiny, wireless-tools, wpasupplicant
@@ -378,6 +381,12 @@ fn run_debootstrap(
         "devel" => get_the_real_name_of_ubuntu_devel(deb_src.get_url()),
         _ => suite,
     };
+
+    let uuu_suites = ["updates", "backports", "security"].join(",");
+    if is_uuu {
+        args.push(osstr("--extra-suites"));
+        args.push(osstr(&uuu_suites));
+    }
 
     let os_name = repo.get_osname();
     fix_script_link(real_name, os_name)?;
