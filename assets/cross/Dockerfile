@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1
 FROM ghcr.io/2moe/zsh-static
-
 WORKDIR /app
-COPY tmp.get-ctr /app/get-ctr
+COPY cross cross-util /app/
