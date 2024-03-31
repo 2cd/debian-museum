@@ -11,7 +11,7 @@ on:
       - assets/build-get-ctr/Dockerfile
       - Cargo.toml
       - Cargo.lock
-      - 'crates/get-ctr/src/**'
+      - 'crates/get-ctr/src/**/*'
       - crates/get-ctr/Cargo.toml
 
 jobs:
