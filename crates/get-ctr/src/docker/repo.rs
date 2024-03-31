@@ -379,8 +379,6 @@ URIs: {enabled_url}{url_suffix}
 Suites: {suite}
 Components: {components}
 Signed-By: {keyring}
-#
-# When using plain-http(no-tls) source, recommend => no.
 Trusted: yes
 #
 # When using official source, recommend => yes;
@@ -581,7 +579,6 @@ Suites: {suite} {suite}-updates {suite}-backports {suite}-security
 Components: {components}
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 #
-# When using plain-http(no-tls) source, recommend => no.
 # Trusted: {trusted}
 #
 # When using official source, recommend => yes;
