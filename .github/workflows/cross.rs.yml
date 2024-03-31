@@ -33,18 +33,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: check cargo
-        id: cargo_installed
-        run: |
-          installed=$(
-            if (($+commands[cargo])) {
-              print true
-            } else {
-              print false
-            }
-          )
-          print "RS_INSTALLED=$installed" >> $GITHUB_OUTPUT
-
       - uses: actions/cache@v3
         with:
           path: |
@@ -56,7 +44,6 @@ jobs:
           key: ${{ runner.os }}-cargo-cross
 
       - name: install cargo & rustc
-        if: (!steps.cargo_installed.outputs.RS_INSTALLED)
         uses: dtolnay/rust-toolchain@stable
 
       - uses: actions/checkout@v4
