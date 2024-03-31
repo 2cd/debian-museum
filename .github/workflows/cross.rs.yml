@@ -51,7 +51,6 @@ jobs:
           print "RS_INSTALLED=$installed" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v3
-        if: steps.cargo_installed.RS_INSTALLED
         with:
           path: |
             ~/.cargo/bin/
@@ -62,6 +61,8 @@ jobs:
           key: ${{ runner.os }}-cargo-cross
 
       - uses: dtolnay/rust-toolchain@stable
+        if: (!steps.cargo_installed.RS_INSTALLED)
+
       - name: cargo build
         run: |
           cargo build --package get-ctr --profile ${{env.PROFILE}}
