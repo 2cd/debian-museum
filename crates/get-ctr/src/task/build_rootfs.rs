@@ -353,7 +353,6 @@ fn run_debootstrap(
 
     args.extend(
         [
-            "--no-check-gpg",
             "--exclude",
             &ex_pkgs_comma_str,
             "--components",
