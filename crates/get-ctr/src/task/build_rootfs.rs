@@ -382,7 +382,10 @@ fn run_debootstrap(
         _ => suite,
     };
 
-    let uuu_suites = ["updates", "backports", "security"].join(",");
+    let uuu_suites = ["updates", "backports", "security"]
+        .map(|x| format!("{real_name}-{x}"))
+        .join(",");
+
     if is_uuu {
         args.push(osstr("--extra-suites"));
         args.push(osstr(&uuu_suites));
