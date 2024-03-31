@@ -23,8 +23,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/checkout@v4
-      with:
-        ref: dev
+        with:
+          ref: dev
 
       - uses: actions/cache@v3
         with:
