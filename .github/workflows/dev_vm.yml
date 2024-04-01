@@ -7,7 +7,6 @@ on:
   # schedule:
   #   - cron: '0 11 28 */2 *'
   push:
-    # branches: ["build"]
     paths:
       - .github/workflows/dev_vm.yml
 
