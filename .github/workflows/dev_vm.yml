@@ -47,7 +47,7 @@ jobs:
           )
           awk_cmd=(
             busybox awk
-            '/([0-9]+[[:space:]]+){3,}.*root/ {
+            '/([0-9]+[[:space:]]+){3,}[0-9]+(\.[0-9]+)?G/ {
                 print($2)
             }'
           )
@@ -58,7 +58,6 @@ jobs:
               print $fdisk_output | $awk_cmd
           )
           print -r "start=$((start * 512))" >> $GITHUB_OUTPUT
-          exit 1
 
       - name: apt fix-broken
         run: sudo apt-get install -y -f
