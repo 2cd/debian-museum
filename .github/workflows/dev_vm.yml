@@ -143,7 +143,7 @@ jobs:
 
       - name: wait ssh
         run: |
-          sleep 7
+          sleep 10
           autossh -F vm.sshconf vm echo OK ||:
 
       - uses: 2moe/local-ssh-action@v0
@@ -165,7 +165,7 @@ jobs:
         run: |
           cp -vf /usr/libexec/virtiofsd .
           cp -vf ${{env.DEV_DIR}}/Readme.md .
-          sleep 10
+          sleep 20
           args=(
               --use-compress-program='zstdmt --long -18v'
               -cf dev-vm_x64.tar.zst
