@@ -126,7 +126,7 @@ jobs:
             update-grub
             systemctl enable media-sd.automount
             systemctl start media-sd.mount
-            ls /media/sd ||:
+            ls -lah /media/sd ||:
 
             parted -s /dev/vdb mklabel gpt
             parted -s /dev/vdb mkpart var-p1 0% 100%
@@ -152,7 +152,7 @@ jobs:
           run: |
             df -Th
             lsblk
-            ls /media/sd ||:
+            ls -lah /media/sd ||:
             apt update
             apt-get install -y qemu-user-static debootstrap
             apt clean
@@ -165,7 +165,7 @@ jobs:
         run: |
           cp -vf /usr/libexec/virtiofsd .
           cp -vf ${{env.DEV_DIR}}/Readme.md .
-
+          sleep 10
           args=(
               --use-compress-program='zstdmt --long -18v'
               -cf dev-vm_x64.tar.zst
