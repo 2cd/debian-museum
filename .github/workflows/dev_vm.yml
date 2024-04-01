@@ -51,15 +51,17 @@ jobs:
                 print($2)
             }'
           )
-          fdisk_output=$fdisk_cmd
-
+          fdisk_output=$(
+            $fdisk_cmd
+          )
           integer start=$(
               print $fdisk_output | $awk_cmd
           )
           print -r "start=$((start * 512))" >> $GITHUB_OUTPUT
+          exit 1
 
-      - name: install systemd-nspawn
-        run: sudo apt-get install -y systemd-container
+      - name: apt fix-broken
+        run: sudo apt-get install -y -f
 
       - name: mount rootfs partition
         run: |
