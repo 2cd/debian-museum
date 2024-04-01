@@ -5,4 +5,5 @@ Host vm
     IdentityFile ./vm.ed25519
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
-    ServerAliveInterval 60
+    ServerAliveInterval 30
+    ClientAliveCountMax 10
