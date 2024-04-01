@@ -150,10 +150,12 @@ jobs:
         with:
           host: vm
           run: |
+            export DEBIAN_FRONTEND=noninteractive
             df -Th
             lsblk
             ls -lah /media/sd ||:
             apt update
+            apt-get install apt-utils whiptail -y
             apt-get upgrade -y
             apt-get install -y qemu-user-static debootstrap
             apt clean
