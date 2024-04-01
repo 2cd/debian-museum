@@ -156,7 +156,7 @@ jobs:
         run: |
           for i ({1..100}) {
             print $i
-            case $(ssh vm echo OK ||:) {
+            case $(ssh -F vm.sshconf vm echo OK ||:) {
               (OK) break  ;;
               (*) sleep 1 ;;
             }
