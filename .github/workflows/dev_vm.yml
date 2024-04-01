@@ -29,7 +29,14 @@ jobs:
         env:
           url: "https://cdimage.debian.org/cdimage/cloud/sid/daily/latest/debian-sid-nocloud-amd64-daily.tar.xz"
         run: |
-          curl -Lo disk.txz $url
+          sudo apt update
+          apt_install() {
+              sudo apt-get install -y $*
+          }
+          apt_install aria2
+          apt_install qemu-system-x86 systemd-container &
+
+          aria2c -s5 -x5 -k1m --no-conf -o disk.txz $url
           tar --use-compress-program='xz -T0 -dv' -xf disk.txz
 
       - name: get start offset of rootfs partition
@@ -44,15 +51,15 @@ jobs:
                 print($2)
             }'
           )
+          fdisk_output=$fdisk_cmd
+
           integer start=$(
-            $fdisk_cmd | $awk_cmd
+              print $fdisk_output | $awk_cmd
           )
           print -r "start=$((start * 512))" >> $GITHUB_OUTPUT
 
       - name: install systemd-nspawn
-        run: |
-          sudo apt update
-          sudo apt-get install -y systemd-container
+        run: sudo apt-get install -y systemd-container
 
       - name: mount rootfs partition
         run: |
