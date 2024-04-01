@@ -146,8 +146,13 @@ jobs:
 
       - name: wait ssh
         run: |
-          sleep 10
-          autossh -M0 -F vm.sshconf vm echo OK ||:
+          for i ({1..100}) {
+            print $i
+            case $(ssh vm echo OK ||:) {
+              (OK) break  ;;
+              (*) sleep 1 ;;
+            }
+          }
 
       - uses: 2moe/local-ssh-action@v0
         with:
@@ -160,7 +165,7 @@ jobs:
             apt update
             apt-get install apt-utils whiptail -y
             apt-get upgrade -y
-            apt-get install -y qemu-user-static debootstrap
+            apt-get install -y qemu-user-static debootstrap systemd-container
             apt clean
             rm -vf /var/lib/apt/lists/*.* ||:
             poweroff
@@ -171,15 +176,15 @@ jobs:
         run: |
           cp -vf /usr/libexec/virtiofsd .
           for i (Readme.md connect-to-ssh) {
-            cp -vf ${{env.DEV_DIR}}/$i .
+              cp -vf ${{env.DEV_DIR}}/$i .
           }
 
-          while ((1)) {
-              if {lsof disk.raw} {
-                  sleep 1
-              } else {
-                  break
-              }
+          for i ({1..100}) {
+            if {! lsof disk.raw} {
+              break
+            }
+            print $i
+            sleep 1
           }
 
           files=(
