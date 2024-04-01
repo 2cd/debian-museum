@@ -164,7 +164,10 @@ jobs:
       - name: pack vm to tar+zstd
         run: |
           cp -vf /usr/libexec/virtiofsd .
-          cp -vf ${{env.DEV_DIR}}/Readme.md .
+          for i (Readme.md connect-to-ssh) {
+            cp -vf ${{env.DEV_DIR}}/$i .
+          }
+
           while ((1)) {
               if {lsof disk.raw} {
                   sleep 1
@@ -181,6 +184,7 @@ jobs:
             var.qcow2
             virtiofsd
             Readme.md
+            connect-to-ssh
           )
           sha256sum $files > sha256.txt
           files+=sha256.txt
