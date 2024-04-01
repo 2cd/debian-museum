@@ -17,7 +17,7 @@ use anyhow::{bail, Context};
 use clap::{value_parser, Parser};
 use getset::Getters;
 use log::trace;
-use std::{path::PathBuf, process::exit};
+use std::{path::PathBuf, process::exit, sync::OnceLock};
 
 pub(crate) const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -42,6 +42,9 @@ pub(crate) struct Cli {
     /// e.g. base
     #[arg(long, num_args = 0..=1, default_missing_value = " ")]
     tag: Option<String>,
+
+    #[arg(long)]
+    auto_add_extra_suites: bool,
 
     /// download or build rootfs
     #[arg(long, help_heading = "Operation")]
@@ -89,7 +92,7 @@ pub(crate) struct Cli {
     #[arg(long, help_heading = "Save Config")]
     release_tag: bool,
 
-    /// pack the [workdir] to cache.tar, then build & push to REG  
+    /// pack the [workdir] to cache.tar, then build & push to REG
     #[arg(long, help_heading = "CI", group = "cache")]
     save_cache: bool,
 
@@ -301,11 +304,19 @@ impl Cli {
         repos.reverse();
 
         if *self.get_obtain() {
+            Self::static_auto_add_extra_suites(Some(
+                *self.get_auto_add_extra_suites(),
+            ));
             build_rootfs::obtain(&repos)?;
         }
 
         self.cli_common(repos.to_vec())?;
         Ok(())
+    }
+
+    pub(crate) fn static_auto_add_extra_suites(init: Option<bool>) -> bool {
+        static B: OnceLock<bool> = OnceLock::new();
+        *B.get_or_init(|| init.unwrap_or(false))
     }
 
     fn cli_common(&self, repos: Vec<Repository>) -> Result<(), anyhow::Error> {

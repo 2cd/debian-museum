@@ -14,6 +14,7 @@ pub(crate) const DEB_ENV: &str = "DEBIAN_FRONTEND=noninteractive";
 
 use crate::{
     cfg::debootstrap,
+    cli::Cli,
     command::{
         create_dir_all_as_root, force_remove_item_as_root, move_item_as_root, run,
         run_and_get_stdout, run_as_root, run_nspawn,
@@ -384,13 +385,18 @@ fn run_debootstrap(
         _ => suite,
     };
 
-    let uuu_suites = ["updates", "backports", "security"]
-        .map(|x| format!("{real_name}-{x}"))
-        .join(",");
+    if Cli::static_auto_add_extra_suites(None) {
+        let uuu_suites = ["updates", "backports", "security"]
+            .map(|x| format!("{real_name}-{x}"))
+            .join(",");
 
-    if is_uuu {
-        args.push(osstr("--extra-suites"));
-        args.push(osstr(&uuu_suites));
+        static S: OnceLock<String> = OnceLock::new();
+        S.get_or_init(|| uuu_suites);
+
+        if is_uuu {
+            args.push(osstr("--extra-suites"));
+            args.push(osstr(S.get().expect("Invalid suites")));
+        }
     }
 
     fix_script_link(real_name, os_name)?;
