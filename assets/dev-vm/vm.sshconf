@@ -6,4 +6,4 @@ Host vm
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
     ServerAliveInterval 30
-    ClientAliveCountMax 10
+    ServerAliveCountMax 10
