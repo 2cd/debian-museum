@@ -16,25 +16,35 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ${{matrix.machine}}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - arch: x64
-            target: x86_64-unknown-linux-gnu
-            platform: linux/amd64
-          - arch: arm64
-            target: aarch64-unknown-linux-musl
-            platform: linux/arm64
+          # - arch: x64
+          #   target: x86_64-unknown-linux-gnu
+          #   platform: linux/amd64
+          #   machine: ubuntu-latest
+          # - arch: arm64
+          #   target: aarch64-unknown-linux-musl
+          #   platform: linux/arm64
+          #   machine: ubuntu-latest
           - arch: rv64gc
             target: riscv64gc-unknown-linux-gnu
             platform: linux/riscv64
-
+            machine: armbian
+    defaults:
+      run:
+        shell: zsh --pipefail -fex {0}
     env:
       PROFILE: no-lto
       CARGO_TARGET_DIR: /tmp/rs
+      PKG: get-ctr
     steps:
+      - name: install zsh
+        shell: sh -e {0}
+        run: ${{ vars.INSTALL_ZSH }}
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -50,7 +60,7 @@ jobs:
         with:
           ref: dev
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         if: runner.arch == 'X64'
         with:
           path: |
@@ -64,17 +74,52 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: install cross-rs
-        run: docker run --rm -v /usr/local/bin:/host ghcr.io/2cd/pkgs:cross-x64 cp cross /host
+        if: runner.arch == 'X64'
+        run: ${{vars.INSTALL_CROSS}}
 
       - name: cross build
-        run: cross build --target=${{matrix.target}} --package get-ctr --profile ${{env.PROFILE}}
+        if: runner.arch == 'X64'
+        run: cross build --target=${{matrix.target}} --package ${{env.PKG}} --profile ${{env.PROFILE}}
+
+      - name: set bin path
+        id: bin_path
+        run: print -R "bin=${{env.CARGO_TARGET_DIR}}/${{matrix.target}}/${{env.PROFILE}}/${{env.PKG}}" >> $GITHUB_OUTPUT
+
+      - name: scp tar to rv64sbc
+        id: scp_tar
+        if: matrix.arch == 'rv64gc'
+        env:
+          target_bin: ${{steps.bin_path.outputs.bin}}
+        run: |
+          file=$(mktemp).tar.zst
+          tar --use-compress-program='zstdmt -9v' -xf $file .
+          scp $file rv64:/tmp
+          print -R "file=$file" >> $GITHUB_OUTPUT
+          unlink $file
+          mkdir -pv ${target_bin:h}
+
+      - name: cargo build (riscv64imafdc)
+        if: matrix.arch == 'rv64gc'
+        uses: 2moe/local-ssh-action@v0
+        with:
+          host: rv64
+          run: |
+            typeset -x PROFILE=${{env.PROFILE}}
+            typeset -x CARGO_TARGET_DIR=${{env.CARGO_TARGET_DIR}}
+            dir=$(mktemp -d)
+            file=${{steps.scp_tar.outputs.file}}
+            tar -C $dir -xf $file
+            cd $dir
+            cargo build --target=${{matrix.target}} --package get-ctr --profile ${{env.PROFILE}}
+            target_bin=${{steps.bin_path.outputs.bin}}
+            scp -C $target_bin armbian:$target_bin
 
       - uses: actions/checkout@v4
         with:
           ref: build
 
       - name: copy bin to docker context
-        run: install -Dm755 ${{env.CARGO_TARGET_DIR}}/${{matrix.target}}/${{env.PROFILE}}/get-ctr assets/build-get-ctr/tmp.get-ctr
+        run: install -Dm755 ${{steps.bin_path.outputs.bin}} assets/build-get-ctr/tmp.get-ctr
 
       - name: Build and push
         uses: docker/build-push-action@v5
