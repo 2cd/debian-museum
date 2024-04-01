@@ -1,4 +1,4 @@
-name: build pkg (get-ctr)
+name: build crate (get-ctr)
 # 0.0.0-alpha.2
 # auto-task.start-build-time = ?
 # on: { "push": { "branch": dev, "paths": [".github/workflows/rs.yml", "Cargo.toml"] } }
@@ -11,12 +11,26 @@ on:
       - assets/build-get-ctr/Dockerfile
       - Cargo.toml
       - Cargo.lock
-      - 'crates/get-ctr/src/**/*'
+      - "crates/get-ctr/src/**/*"
       - crates/get-ctr/Cargo.toml
 
 jobs:
   docker:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            target: x86_64-unknown-linux-gnu
+            platform: linux/amd64
+          - arch: arm64
+            target: aarch64-unknown-linux-musl
+            platform: linux/arm64
+          - arch: rv64gc
+            target: riscv64gc-unknown-linux-gnu
+            platform: linux/riscv64
+
     env:
       PROFILE: no-lto
       CARGO_TARGET_DIR: /tmp/rs
@@ -27,6 +41,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        if: (!matrix.arch != 'x64')
+        uses: docker/setup-qemu-action@v3
 
       - uses: actions/checkout@v4
         with:
@@ -41,24 +59,27 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             ${{env.CARGO_TARGET_DIR}}
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{matrix.arch}}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - uses: dtolnay/rust-toolchain@stable
-      - name: cargo build
-        run: |
-          cargo build --package get-ctr --profile ${{env.PROFILE}}
-          type cargo rustc rustup ||:
+
+      - name: install cross-rs
+        run: docker run --rm -v /usr/local/bin:/host ghcr.io/2cd/pkgs:cross-x64 cp cross /host
+
+      - name: cross build
+        run: cross build --target=${{matrix.target}} --package get-ctr --profile ${{env.PROFILE}}
 
       - uses: actions/checkout@v4
         with:
           ref: build
 
       - name: copy bin to docker context
-        run: install -Dm755 ${{env.CARGO_TARGET_DIR}}/${{env.PROFILE}}/get-ctr assets/build-get-ctr/tmp.get-ctr
+        run: install -Dm755 ${{env.CARGO_TARGET_DIR}}/${{matrix.target}}/${{env.PROFILE}}/get-ctr assets/build-get-ctr/tmp.get-ctr
 
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: assets/build-get-ctr
           push: true
-          tags: ghcr.io/2cd/pkgs:get-ctr-x64
+          tags: ghcr.io/2cd/pkgs:get-ctr-${{matrix.arch}}
+          platforms: ${{matrix.platform}}
