@@ -154,6 +154,7 @@ jobs:
             lsblk
             ls -lah /media/sd ||:
             apt update
+            apt-get upgrade -y
             apt-get install -y qemu-user-static debootstrap
             apt clean
             rm -vf /var/lib/apt/lists/*.* ||:

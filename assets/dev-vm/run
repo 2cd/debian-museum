@@ -110,6 +110,12 @@ if {$kvm} {
 ls -lah $socket_dir
 if [[ ! -e $sock_file ]] {
     print Waiting for virtio_fs socket to be created
-    sleep 2
+    sleep 0.2
+}
+if [[ ! -e $sock_file ]] {
+    sleep 0.3
+}
+if [[ ! -e $sock_file ]] {
+    sleep 0.5
 }
 $qemu_cmd $args $*
