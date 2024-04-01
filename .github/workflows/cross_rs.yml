@@ -1,4 +1,4 @@
-name: build pkg (cross)
+name: build rs-pkg (cross)
 # auto-task.start-build-time = ?
 
 on:
@@ -7,7 +7,7 @@ on:
   push:
     branches: ["build"]
     paths:
-      - .github/workflows/cross.rs.yml
+      - .github/workflows/cross_rs.yml
       - assets/cross/Dockerfile
 
 jobs:

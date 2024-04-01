@@ -1,0 +1,191 @@
+name: DEV virtual machine
+# auto-task.start-build-time = ?
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+on:
+  # schedule:
+  #   - cron: '0 11 28 */2 *'
+  push:
+    # branches: ["build"]
+    paths:
+      - .github/workflows/dev_vm.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DEV_DIR: assets/dev-vm
+    defaults:
+      run:
+        shell: zsh --pipefail -fex {0}
+    steps:
+      - name: install zsh
+        shell: sh -e {0}
+        run: ${{ vars.INSTALL_ZSH }}
+
+      - uses: actions/checkout@v4
+
+      - name: download qemu image
+        env:
+          url: 'https://cdimage.debian.org/cdimage/cloud/sid/daily/latest/debian-sid-nocloud-amd64-daily.tar.xz'
+        run: |
+          curl -Lo disk.txz $url
+          tar --use-compress-program='xz -T0 -dv' -xf disk.txz
+
+      - name: get start offset of rootfs partition
+        id: get_start_offset
+        run: |
+          fdisk_cmd=(
+            sudo env LANG=C /sbin/fdisk --list disk.raw
+          )
+          awk_cmd=(
+            busybox awk
+            '/([0-9]+[[:space:]]+){3,}.*root/ {
+                print($2)
+            }'
+          )
+          integer start=$(
+            $fdisk_cmd | $awk_cmd
+          )
+          print -r "start=$((start * 512))" >> $GITHUB_OUTPUT
+
+      - name: install systemd-nspawn
+        run: |
+          sudo apt update
+          sudo apt-get install -y systemd-container
+
+      - name: mount rootfs partition
+        run: |
+          mkdir -p rootfs
+          sudo mount -o loop,offset=${{steps.get_start_offset.outputs.start}} ./disk.raw rootfs
+
+      - name: generate local ssh-key
+        run: |
+          key=vm.ed25519
+          ssh-keygen -t ed25519 -f $key -N ""
+          ssh_client_d=rootfs/root/.ssh
+          for i ($ssh_client_d) {
+              sudo install -Dm600 ${key}.pub $i/authorized_keys
+              sudo chmod 700 -v $i
+          }
+
+      - name: run vm rootfs as container
+        run: |
+          sudo rm -vf rootfs/etc/resolv.conf
+          sudo cp -vf /bin/zsh rootfs/bin/
+          sudo cp -vf ${{env.DEV_DIR}}/systemd/* rootfs/etc/systemd/system
+
+          single_arg=$(<<'CTR_ARG'
+              apt update
+              apt-get install -y ifupdown parted
+              printf "%s\n" "auto enp0s2" "iface enp0s2 inet dhcp" >/etc/network/interfaces.d/dhcp.conf
+              ssh-keygen -A
+              printf "%s\n" "TCPKeepAlive yes" "ClientAliveInterval 100" "ClientAliveCountMax 36" >> /etc/ssh/sshd_config.d/keep-alive.conf
+              chsh -s /bin/zsh
+              cd /etc/default/grub.d/ || exit 1
+              print -r 'GRUB_TIMEOUT=1' > 15_timeout.cfg
+              print -r 'GRUB_TERMINAL="serial"' > 40_serial.cfg
+          CTR_ARG
+          )
+          sudo systemd-nspawn -D rootfs zsh -fexc "$single_arg"
+          sudo umount -lvf rootfs
+      - name: install virtiofsd
+        env:
+          url: 'https://gitlab.com/virtio-fs/virtiofsd/uploads/2cf9068046720699531407101f2bcb60/virtiofsd-v1.10.1.zip'
+          file: 'target/x86_64-unknown-linux-musl/release/virtiofsd'
+        run: |
+          curl -Lo v.zip $url
+          unzip -o v.zip
+          sudo install -Dm755 $file /usr/libexec/virtiofsd
+
+      - name: run vm
+        run: |
+          sudo apt-get install -y qemu-system-x86
+          qemu-img create -f qcow2 var.qcow2 20G
+          cp ${{env.DEV_DIR}}/run .
+          sudo sysctl -w fs.file-max=100000
+          # sudo adduser "$(id -un)" kvm
+          sudo chmod 666 /dev/kvm
+          tmux new-session -d -s run-vm ./run
+          # timeout 10 tmux attach-session -r -t run-vm ||:
+
+      - name: copy vm ssh config
+        env:
+          conf: vm.sshconf
+        run: |
+          install -m600 ${{env.DEV_DIR}}/$conf ./$conf
+          sudo apt-get install -y autossh
+          autossh -F vm.sshconf vm echo OK ||:
+
+      - name: Disk partitioning and mounting
+        uses: 2moe/local-ssh-action@v0
+        with:
+          host: vm
+          run: |
+            update-grub
+            systemctl enable media-sd.automount
+            systemctl start media-sd.mount
+            ls /media/sd ||:
+
+            parted -s /dev/vdb mklabel gpt
+            parted -s /dev/vdb mkpart var-p1 0% 100%
+            mkfs.ext4 -L vm-var /dev/vdb1
+            mkdir -p /tmp/var
+            mount /dev/vdb1 /tmp/var
+            cp -a /var /tmp
+            print -r 'LABEL="vm-var" /var ext4 defaults 0 0' >> /etc/fstab
+            rm -rf /var/* /var/.* ||:
+            reboot
+          args: |
+            -F
+            vm.sshconf
+
+      - name: wait ssh
+        run: |
+          autossh -F vm.sshconf vm echo OK ||:
+
+      - uses: 2moe/local-ssh-action@v0
+        with:
+          host: vm
+          run: |
+            df -Th
+            lsblk
+            ls /media/sd ||:
+            apt update
+            apt-get install -y qemu-user-static debootstrap
+            apt clean
+            rm -vf /var/lib/apt/lists/*.* ||:
+            poweroff
+          args: |
+            -F
+            vm.sshconf
+      - name: pack vm to tar+zstd
+        run: |
+          cp -vf /usr/libexec/virtiofsd .
+          cp -vf ${{env.DEV_DIR}}/Readme.md .
+
+          args=(
+              --use-compress-program='zstdmt --long -18v'
+              -cf dev-vm_x64.tar.zst
+              vm.sshconf
+              vm.ed25519*
+              run
+              disk.raw
+              var.qcow2
+              virtiofsd
+              Readme.md
+          )
+          tar $args
+
+      - name: release
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          tag_name: unstable
+          files: |
+            *.tar.zst
+
+
+
+

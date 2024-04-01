@@ -1,0 +1,8 @@
+Host vm
+    User root
+    Port 9022
+    HostName 127.0.0.1
+    IdentityFile ./vm.ed25519
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    ServerAliveInterval 60

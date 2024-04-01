@@ -4,7 +4,7 @@ name: get pkg (debootstrap)
 on:
   push:
     # branches: ["build"]
-    paths: [".github/workflows/pkg_debootstrap.yml", "assets/debootstrap/Dockerfile"]
+    paths: [".github/workflows/debootstrap_pkg.yml", "assets/debootstrap/Dockerfile"]
 
 jobs:
   docker:

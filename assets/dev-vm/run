@@ -1,0 +1,115 @@
+#!/usr/bin/env zsh
+set -fexo pipefail
+#
+# Depends: qemu-system-x86 (>= 7), virtiofsd (>= 1), podman, coreutils, awk
+#
+virtio_fsd=true
+kvm=true
+name=debian
+ssh_port=9022
+socket_dir=${XDG_RUNTIME_DIR:-/run/user/$UID}
+# ------------------
+if [[ ! -e /dev/kvm || $(uname -m) != x86_64 ]] {
+    print DISABLE KVM
+    kvm=false
+}
+
+vfsd_bin=/usr/libexec/virtiofsd
+if [[ ! -e $vfsd_bin ]] {
+    print DISABLE VIRTIO FSD
+    virtio_fsd=false
+}
+
+if {$virtio_fsd} {
+    mkdir -pv $socket_dir
+    sock_file=$socket_dir/${name}-vfsd.sock
+    rm -fv $sock_file ||:
+    pid_f=${sock_file}.pid
+    if [[ -e $pid_f ]] {
+        print $pid_f
+        pid=$(< $pid_f)
+        kill -s TERM $pid ||:
+    }
+
+    print $sock_file
+    # lxc_ns=(
+    #     lxc-usernsexec
+    #     -m b:0:1000:1
+    #     -m b:1:100000:65536
+    # )
+    vfsd=(
+        $vfsd_bin
+        --socket-path=$sock_file
+        --shared-dir $PWD
+        --announce-submounts
+        --sandbox chroot
+    )
+    podman unshare -- $vfsd &
+}
+
+qemu_cmd=(
+    qemu-system-x86_64
+)
+
+args=(
+    -machine q35,accel=kvm:tcg
+    # -vga none
+    -display none
+    # -display curses
+
+    -smp $(nproc)
+    -drive file=disk.raw,format=raw,if=virtio
+    -drive file=var.qcow2,if=virtio
+
+    -name $name
+    -device virtio-net-pci,netdev=nat0
+    -netdev "user,id=nat0,hostfwd=tcp:127.0.0.1:${ssh_port}-:22"
+    -boot menu=off
+
+    # TL;DR. Press Ctrl+A, and then Press C, finally Press Enter.
+    #
+    # By default, this control sequence is Ctrl-a followed by c. Press Ctrl-a first, then release, and then press c, you can switch between the QEMU monitor and the serial console.
+    -chardev stdio,mux=on,id=char0
+    -mon chardev=char0,mode=readline
+    -serial chardev:char0
+)
+memory=$(
+    env LANG=C free -m | awk '/Mem:/ {
+        ava = $NF
+        exit
+    } END {
+        float_ava = ava * 0.9
+        printf("%dM", float_ava)
+    }'
+)
+args+=(
+    -m $memory
+)
+# virtio fs
+if {$virtio_fsd} {
+    args+=(
+        -chardev
+            "socket,id=char1,path=$sock_file"
+        -device
+            vhost-user-fs-pci,queue-size=1024,chardev=char1,tag=sd
+        -object
+            "memory-backend-memfd,id=mem,size=$memory,share=on"
+        -numa
+            node,memdev=mem
+    )
+}
+if {$kvm} {
+    args+=(
+        -cpu  host
+    )
+} else {
+    args+=(
+        -cpu  qemu64-v1
+    )
+}
+ls -lah $socket_dir
+if [[ ! -e $sock_file ]] {
+    print Waiting for virtio_fs socket to be created
+    sleep 2
+}
+$qemu_cmd $args $*
