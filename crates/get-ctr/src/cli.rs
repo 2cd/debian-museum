@@ -43,6 +43,7 @@ pub(crate) struct Cli {
     #[arg(long, num_args = 0..=1, default_missing_value = " ")]
     tag: Option<String>,
 
+    /// e.g., For noble, auto add: noble-updates,noble-backports,noble-security
     #[arg(long)]
     auto_add_extra_suites: bool,
 
