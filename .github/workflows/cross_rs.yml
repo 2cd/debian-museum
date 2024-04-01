@@ -2,13 +2,13 @@ name: build rs-pkg (cross)
 # auto-task.start-build-time = ?
 
 on:
-  # schedule:
-  #   - cron: '0 11 28 */2 *'
-  push:
-    branches: ["build"]
-    paths:
-      - .github/workflows/cross_rs.yml
-      - assets/cross/Dockerfile
+  schedule:
+    - cron: '30 20 20 */2 *'
+  # push:
+  #   branches: ["build"]
+  #   paths:
+  #     - .github/workflows/cross_rs.yml
+  #     - assets/cross/Dockerfile
 
 jobs:
   build:
@@ -33,7 +33,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
