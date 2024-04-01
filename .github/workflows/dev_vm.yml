@@ -73,7 +73,11 @@ jobs:
         run: |
           sudo rm -vf rootfs/etc/resolv.conf
           sudo cp -vf /bin/zsh rootfs/bin/
-          sudo cp -vf ${{env.DEV_DIR}}/systemd/* rootfs/etc/systemd/system
+          uuu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
+          if [[ -e $uuu_keyring ]] {
+              sudo cp -vf $uuu_keyring rootfs$uuu_keyring
+          }
+          sudo cp -vf ${{env.DEV_DIR}}/systemd/* rootfs/etc/systemd/system/
 
           single_arg=$(<<'CTR_ARG'
               apt update
