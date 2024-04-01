@@ -27,7 +27,7 @@ jobs:
 
       - name: download qemu image
         env:
-          url: 'https://cdimage.debian.org/cdimage/cloud/sid/daily/latest/debian-sid-nocloud-amd64-daily.tar.xz'
+          url: "https://cdimage.debian.org/cdimage/cloud/sid/daily/latest/debian-sid-nocloud-amd64-daily.tar.xz"
         run: |
           curl -Lo disk.txz $url
           tar --use-compress-program='xz -T0 -dv' -xf disk.txz
@@ -95,8 +95,8 @@ jobs:
           sudo umount -lvf rootfs
       - name: install virtiofsd
         env:
-          url: 'https://gitlab.com/virtio-fs/virtiofsd/uploads/2cf9068046720699531407101f2bcb60/virtiofsd-v1.10.1.zip'
-          file: 'target/x86_64-unknown-linux-musl/release/virtiofsd'
+          url: "https://gitlab.com/virtio-fs/virtiofsd/uploads/2cf9068046720699531407101f2bcb60/virtiofsd-v1.10.1.zip"
+          file: "target/x86_64-unknown-linux-musl/release/virtiofsd"
         run: |
           curl -Lo v.zip $url
           unzip -o v.zip
@@ -107,7 +107,7 @@ jobs:
           sudo apt-get install -y qemu-system-x86
           qemu-img create -f qcow2 var.qcow2 20G
           cp ${{env.DEV_DIR}}/run .
-          sudo sysctl -w fs.file-max=100000
+          sudo sysctl -w fs.file-max=1000000
           # sudo adduser "$(id -un)" kvm
           sudo chmod 666 /dev/kvm
           tmux new-session -d -s run-vm ./run
@@ -210,7 +210,3 @@ jobs:
           tag_name: unstable
           files: |
             *.tar.zst
-
-
-
-
