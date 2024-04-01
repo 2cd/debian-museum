@@ -154,6 +154,7 @@ jobs:
 
       - name: wait ssh
         run: |
+          sleep 7
           for i ({1..100}) {
             print $i
             case $(ssh -F vm.sshconf vm echo OK ||:) {
