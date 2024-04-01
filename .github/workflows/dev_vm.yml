@@ -143,6 +143,7 @@ jobs:
 
       - name: wait ssh
         run: |
+          sleep 7
           autossh -F vm.sshconf vm echo OK ||:
 
       - uses: 2moe/local-ssh-action@v0
