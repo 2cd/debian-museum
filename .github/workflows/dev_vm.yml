@@ -165,18 +165,32 @@ jobs:
         run: |
           cp -vf /usr/libexec/virtiofsd .
           cp -vf ${{env.DEV_DIR}}/Readme.md .
-          sleep 20
-          args=(
-              --use-compress-program='zstdmt --long -18v'
-              -cf dev-vm_x64.tar.zst
-              vm.sshconf
-              vm.ed25519*
-              run
-              disk.raw
-              var.qcow2
-              virtiofsd
-              Readme.md
+          while ((1)) {
+              if {lsof disk.raw} {
+                  sleep 1
+              } else {
+                  break
+              }
+          }
+
+          files=(
+            vm.sshconf
+            vm.ed25519*
+            run
+            disk.raw
+            var.qcow2
+            virtiofsd
+            Readme.md
           )
+          sha256sum $files > sha256.txt
+          files+=sha256.txt
+
+          args=(
+            --use-compress-program='zstdmt --long -18v'
+            -cf dev-vm_x64.tar.zst
+            $files
+          )
+
           tar $args
 
       - name: release
