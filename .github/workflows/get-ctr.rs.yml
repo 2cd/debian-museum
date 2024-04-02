@@ -32,7 +32,7 @@ jobs:
           - arch: rv64gc
             target: riscv64gc-unknown-linux-gnu
             platform: linux/riscv64
-            machine: armbian
+            machine: arm64
     defaults:
       run:
         shell: zsh --pipefail -fex {0}
@@ -108,11 +108,14 @@ jobs:
             typeset -x CARGO_TARGET_DIR=${{env.CARGO_TARGET_DIR}}
             dir=$(mktemp -d)
             file=${{steps.scp_tar.outputs.file}}
+
             tar -C $dir -xf $file
-            cd $dir
+            unlink $file
+            cd $dir || exit 1
             cargo build --target=${{matrix.target}} --package get-ctr --profile ${{env.PROFILE}}
             target_bin=${{steps.bin_path.outputs.bin}}
             scp -C $target_bin armbian:$target_bin
+            rm -rfv $dir
 
       - uses: actions/checkout@v4
         with:
