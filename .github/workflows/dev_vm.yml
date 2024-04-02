@@ -27,8 +27,10 @@ jobs:
 
       - name: download qemu image
         env:
-          url: "https://cdimage.debian.org/cdimage/cloud/sid/daily/latest/debian-sid-nocloud-amd64-daily.tar.xz"
+          url: 'https://cdimage.debian.org/cdimage/cloud/sid/daily/latest/debian-sid-nocloud-amd64-daily.tar.xz'
         run: |
+          df -Th
+          lsblk
           sudo apt update
           apt_install() {
               sudo apt-get install -y $*
@@ -36,7 +38,7 @@ jobs:
           apt_install aria2
           apt_install qemu-system-x86 systemd-container &
 
-          aria2c -s5 -x5 -k1m --no-conf -o disk.txz $url
+          aria2c -s5 -x5 -k1m --no-conf -o disk.txz "$url"
           tar --use-compress-program='xz -T0 -dv' -xf disk.txz
 
       - name: get start offset of rootfs partition
@@ -84,7 +86,13 @@ jobs:
         run: |
           sudo rm -vf rootfs/etc/resolv.conf
           for i (zsh busybox) {
-              sudo cp -vf /usr/local/bin/$i rootfs/bin/
+              file=$commands[$i]
+              bin=/usr/local/bin/$i
+              if [[ -e $bin ]] {
+                file=$bin
+              }
+
+              sudo cp -vf $file rootfs/bin/
           }
           uuu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
           if [[ -e $uuu_keyring ]] {
@@ -97,7 +105,7 @@ jobs:
               apt-get install -y ifupdown parted
               printf "%s\n" "auto enp0s2" "iface enp0s2 inet dhcp" >/etc/network/interfaces.d/dhcp.conf
               ssh-keygen -A
-              printf "%s\n" "TCPKeepAlive yes" "ClientAliveInterval 100" "ClientAliveCountMax 36" >> /etc/ssh/sshd_config.d/keep-alive.conf
+              printf "%s\n" "TCPKeepAlive yes" "ClientAliveInterval 100" "ClientAliveCountMax 36" >> /etc/ssh/sshd_config.d/36-keep-alive.conf
               chsh -s /bin/zsh
               cd /etc/default/grub.d/ || exit 1
               print -R 'GRUB_TIMEOUT=1' > 15_timeout.cfg
@@ -121,7 +129,6 @@ jobs:
           qemu-img create -f qcow2 var.qcow2 10G
           cp ${{env.DEV_DIR}}/run .
           sudo sysctl -w fs.file-max=1000000
-          # sudo adduser "$(id -un)" kvm
           sudo chmod 666 /dev/kvm
           tmux new-session -d -s run-vm ./run
           # timeout 10 tmux attach-session -r -t run-vm ||:
@@ -145,6 +152,7 @@ jobs:
             systemctl enable media-sd.automount
             systemctl start media-sd.mount
             ls -lah /media/sd ||:
+            ln -svf /media/sd /root/
             lsblk ||:
 
             local -A map=(
@@ -216,11 +224,11 @@ jobs:
             apt-get install -y debootstrap systemd-container docker.io
             apt-get install -t experimental -y qemu-user-static
             old_kernel=$(
-              dpkg --list | awk -v num=0 '/^ii[[:space:]]+linux-image/ && $2 != "linux-image-amd64" {
-                num += 1
-                arr[num] = $2
+              dpkg --list | awk -v usize=0 '/^ii[[:space:]]+linux-image/ && $2 != "linux-image-amd64" {
+                usize += 1
+                arr[usize] = $2
               } END {
-                if (num >= 2) print arr[1]
+                if (usize >= 2)   print(arr[1])
               }'
             )
             apt-get autopurge -y $old_kernel
@@ -255,6 +263,7 @@ jobs:
             mv -vf _$file $file
           }
           qemu-img convert -O qcow2 disk.raw disk.qcow2
+          unlink disk.raw
           qemu-img convert -O raw disk.qcow2 disk.raw
           unlink disk.qcow2
 
