@@ -176,10 +176,11 @@ jobs:
             sed_args=(
               -E
               -e  '/Suites/ s@( sid).*@\1 experimental@'
+              -e  '$a\Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg'
               -i.bak  /etc/apt/sources.list.d/debian.sources
             )
             sed $sed_args
-            printf "%s\n" 'https://cloudflaremirrors.com/debian' 'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' >> /etc/apt/mirrors/debian.list
+            printf "%s\n" 'https://cloudflaremirrors.com/debian' >> /etc/apt/mirrors/debian.list
 
             apt update
             apt-get install apt-utils whiptail -y
