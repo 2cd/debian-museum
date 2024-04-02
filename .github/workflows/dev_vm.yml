@@ -217,7 +217,7 @@ jobs:
 
             for dir (/root /var /usr) {
               dd if=/dev/zero of=$dir/zero bs=1M || {
-                rm -v /root/zero
+                rm -v $dir/zero
               }
             }
             rm -vf /var/lib/apt/lists/*.* ||:
