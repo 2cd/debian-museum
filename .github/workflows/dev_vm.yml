@@ -101,6 +101,15 @@ jobs:
           sudo cp -vf ${{env.DEV_DIR}}/systemd/* rootfs/etc/systemd/system/
 
           single_arg=$(<<'CTR_ARG'
+              sed_args=(
+                -E
+                -e  '/Suites/ s@( sid).*@\1 experimental@'
+                -e  '$a\Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg'
+                -i.bak  /etc/apt/sources.list.d/debian.sources
+              )
+              sed $sed_args
+              printf "%s\n" 'https://cloudflaremirrors.com/debian' >> /etc/apt/mirrors/debian.list
+
               apt update
               apt-get install -y ifupdown parted
               printf "%s\n" "auto enp0s2" "iface enp0s2 inet dhcp" >/etc/network/interfaces.d/dhcp.conf
@@ -147,7 +156,13 @@ jobs:
           host: vm
           run: |
             set -fexo pipefail
+            export DEBIAN_FRONTEND=noninteractive
+
+            systemctl set-default multi-user.target
             update-grub
+
+            apt-get autopurge -y ^python 2>&1 >/dev/null
+            apt-get install -y linux-image-cloud-amd64
 
             systemctl enable media-sd.automount
             systemctl start media-sd.mount
@@ -182,6 +197,7 @@ jobs:
               /tmp/mount /dev/${d}1 /$value || /tmp/mount -o bind /tmp/$value /$value
             }
             lsblk ||:
+            df -Th ||:
             /sbin/reboot || /tmp/reboot
           args: |
             -F
@@ -189,7 +205,7 @@ jobs:
 
       - name: wait ssh
         run: |
-          sleep 10
+          sleep 7
           for i ({1..100}) {
             print $i
             case $(ssh -F vm.sshconf vm echo OK ||:) {
@@ -198,40 +214,43 @@ jobs:
             }
           }
 
-      - uses: 2moe/local-ssh-action@v0
+      - name: install qemu-user-static & docker
+        uses: 2moe/local-ssh-action@v0
         with:
           host: vm
+          args: |
+            -F
+            vm.sshconf
           run: |
             set -fexo pipefail
-            export DEBIAN_FRONTEND=noninteractive
+
             df -Th
             lsblk
             ls -lah /media/sd ||:
-            sed_args=(
-              -E
-              -e  '/Suites/ s@( sid).*@\1 experimental@'
-              -e  '$a\Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg'
-              -i.bak  /etc/apt/sources.list.d/debian.sources
-            )
-            sed $sed_args
-            printf "%s\n" 'https://cloudflaremirrors.com/debian' >> /etc/apt/mirrors/debian.list
 
-            apt update
-            apt-get autopurge ^python -y 2>&1 >/dev/null
-            apt-get install apt-utils whiptail qemu-guest-agent -y
+            apt_install() {
+              apt-get install -y $*
+            }
+            for kernel (
+              $(
+                dpkg --list | awk -v usize=0 '
+                /[[:space:]]+linux-image-/ && !/-cloud-/ {
+                    print($2)
+                }'
+              )
+            ) {
+              apt-get autopurge -y $kernel
+            }
+
+            apt_install apt-utils whiptail qemu-guest-agent -y
             apt-get upgrade -y
             apt-get dist-upgrade -fy
-            apt-get install -y debootstrap systemd-container docker.io
-            apt-get install -t experimental -y qemu-user-static
-            old_kernel=$(
-              dpkg --list | awk -v usize=0 '/^ii[[:space:]]+linux-image/ && $2 != "linux-image-amd64" {
-                usize += 1
-                arr[usize] = $2
-              } END {
-                if (usize >= 2)   print(arr[1])
-              }'
-            )
-            apt-get autopurge -y $old_kernel
+
+            apt_install debootstrap systemd-container docker.io
+            systemctl disable systemd-networkd-wait-online.service
+
+            apt_install -t experimental qemu-user-static
+            apt-get autopurge -y
             apt-get clean
 
             for dir (/root /var /usr) {
@@ -241,9 +260,7 @@ jobs:
             }
             rm -vf /var/lib/apt/lists/*.* ||:
             poweroff
-          args: |
-            -F
-            vm.sshconf
+
       - name: pack vm to tar+zstd
         run: |
           cp -vf /usr/libexec/virtiofsd .

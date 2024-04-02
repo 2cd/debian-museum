@@ -105,8 +105,10 @@ args=(
     -drive file=var.qcow2,if=virtio
 
     -name $name
-    -device virtio-net-pci,netdev=nat0
-    -netdev "user,id=nat0,hostfwd=tcp:127.0.0.1:${ssh_port}-:22"
+
+    # NAT network
+    -nic user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:${ssh_port}-:22
+
     -boot menu=off
 
     # TL;DR. Press Ctrl+A, and then Press C, finally Press Enter.
@@ -151,17 +153,19 @@ if {$kvm} {
     )
 }
 
-info 'Waiting for %F{blue}virtio_fsd%f socket to be created'
-# timeout 10s
-for i ({1..100}) {
-    if [[ -e $sock_file ]] {
-        break
+if {$virtio_fsd} {
+    info 'Waiting for %F{blue}virtio_fsd%f socket to be created'
+    # timeout 10s
+    for i ({1..100}) {
+        if [[ -e $sock_file ]] {
+            break
+        }
+        info $i
+        sleep 0.1
     }
-    info $i
-    sleep 0.1
-}
-if [[ ! -e $sock_file ]] {
-    panic 'Please %F{red}disable %F{cyan}VirtioFSD%f (i.e., virtio_fsd=false)'
+    if [[ ! -e $sock_file ]] {
+        panic 'Please %F{red}disable %F{cyan}VirtioFSD%f (i.e., virtio_fsd=false)'
+    }
 }
 
 $qemu_cmd $args $*
