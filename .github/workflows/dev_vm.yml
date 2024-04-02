@@ -60,7 +60,10 @@ jobs:
           print -r "start=$((start * 512))" >> $GITHUB_OUTPUT
 
       - name: apt fix-broken
-        run: sudo apt-get install -y -f
+        run: |
+          while {! sudo apt-get install -f} {
+              sleep 1
+          }
 
       - name: mount rootfs partition
         run: |
