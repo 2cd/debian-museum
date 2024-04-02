@@ -18,21 +18,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - arch: x64
-          #   target: x86_64-unknown-linux-gnu
-          #   platform: linux/amd64
-          #   machine: ubuntu-latest
-          # - arch: arm64
-          #   target: aarch64-unknown-linux-musl
-          #   platform: linux/arm64
-          #   machine: ubuntu-latest
+          - arch: x64
+            target: x86_64-unknown-linux-gnu
+            platform: linux/amd64
+            machine: ubuntu-latest
+          - arch: arm64
+            target: aarch64-unknown-linux-musl
+            platform: linux/arm64
+            machine: ubuntu-latest
           - arch: rv64gc
             target: riscv64gc-unknown-linux-gnu
             platform: linux/riscv64
             machine: armbian
     runs-on: ${{matrix.machine}}
 
-    # ${{matrix.machine}}
     defaults:
       run:
         shell: zsh --pipefail -fex {0}
@@ -54,7 +53,7 @@ jobs:
 
       - name: Set up QEMU
         # if: (!contains(fromJSON('["x64", "rv64gc"]'), matrix.arch))
-        if: (!matrix.arch == 'x64') || (!matrix.machine == 'armbian')
+        if: (!matrix.machine == 'armbian') || (!matrix.arch == 'x64')
         uses: docker/setup-qemu-action@v3
 
       - uses: actions/checkout@v4
@@ -72,9 +71,12 @@ jobs:
             ${{env.CARGO_TARGET_DIR}}
           key: ${{ runner.os }}-${{matrix.arch}}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      # - uses: dtolnay/rust-toolchain@stable
       - name: rustup update
+        id: rustup_update
+        continue-on-error: true
         run: rustup update --force
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.rustup_update.outcome == 'failure'
 
       - name: install cross-rs
         if: runner.arch == 'X64'
