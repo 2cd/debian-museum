@@ -216,7 +216,7 @@ jobs:
             apt clean
 
             for dir (/root /var /usr) {
-              dd if=/dev/zero of=$dir/zero bs=1m || {
+              dd if=/dev/zero of=$dir/zero bs=1M || {
                 rm -v /root/zero
               }
             }
