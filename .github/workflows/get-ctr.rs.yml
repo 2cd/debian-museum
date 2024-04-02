@@ -54,7 +54,7 @@ jobs:
 
       - name: Set up QEMU
         # if: (!contains(fromJSON('["x64", "rv64gc"]'), matrix.arch))
-        if: matrix.arch == 'x64' || matrix.machine == 'armbian'
+        if: matrix.arch != 'x64' || matrix.machine != 'armbian'
         uses: docker/setup-qemu-action@v3
 
       - uses: actions/checkout@v4
