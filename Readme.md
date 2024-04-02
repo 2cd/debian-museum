@@ -78,7 +78,7 @@ To enable experimental source, run a sid container and then edit the **/etc/apt/
 - Just change the values of `ver` & `arch`
 - What follows may seem complicated, but it's actually quite simple to follow step-by-step.
 - Depends:
-  - `docker.io` | `docker`
+  - `docker.io` | `docker-ce` | `docker-ee`
   - `zsh` (>= 5)
 - Recommends:
   - [qemu-user-static](https://tracker.debian.org/pkg/qemu) | [qemu-user-static-binfmt](https://archlinux.org/packages/extra/x86_64/qemu-user-static-binfmt/)
