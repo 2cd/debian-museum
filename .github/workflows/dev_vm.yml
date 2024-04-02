@@ -80,7 +80,9 @@ jobs:
       - name: run vm rootfs as container
         run: |
           sudo rm -vf rootfs/etc/resolv.conf
-          sudo cp -vf /bin/zsh /bin/busybox rootfs/bin/
+          for i (zsh busybox) {
+              sudo cp -vf /usr/local/bin/$i rootfs/bin/
+          }
           uuu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
           if [[ -e $uuu_keyring ]] {
               sudo cp -vf $uuu_keyring rootfs$uuu_keyring
