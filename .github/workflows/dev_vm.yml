@@ -118,8 +118,8 @@ jobs:
       - name: run vm
         run: |
           sudo apt-get install -y qemu-system-x86
-          qemu-img create -f qcow2 usr.qcow2 10G
-          qemu-img create -f qcow2 var.qcow2 20G
+          qemu-img create -f qcow2 usr.qcow2 5G
+          qemu-img create -f qcow2 var.qcow2 10G
           cp ${{env.DEV_DIR}}/run .
           sudo sysctl -w fs.file-max=1000000
           # sudo adduser "$(id -un)" kvm
@@ -212,8 +212,11 @@ jobs:
             apt-get install -t experimental -y qemu-user-static
             apt-get autopurge -y
             apt clean
-            dd if=/dev/zero of=/root/zero || {
+
+            for dir (/root /var /usr) {
+              dd if=/dev/zero of=$dir/zero bs=1m || {
                 rm -v /root/zero
+              }
             }
             rm -vf /var/lib/apt/lists/*.* ||:
             poweroff
@@ -223,17 +226,24 @@ jobs:
       - name: pack vm to tar+zstd
         run: |
           cp -vf /usr/libexec/virtiofsd .
+
           for i (Readme.md connect-to-ssh) {
               cp -vf ${{env.DEV_DIR}}/$i .
           }
 
-          for i ({1..100}) {
-            if {! lsof disk.raw} {
-              break
-            }
-            print $i
+          while {lsof disk.raw} {
+            print wait disk.raw
             sleep 1
           }
+
+          for file (*.qcow2) {
+            qemu-img convert -O qcow2 $file _$file
+            ls -lh $file _$file
+            mv -vf _$file $file
+          }
+          qemu-img convert -O qcow2 disk.raw disk.qcow2
+          qemu-img convert -O raw disk.qcow2 disk.raw
+          unlink disk.qcow2
 
           files=(
             vm.sshconf
