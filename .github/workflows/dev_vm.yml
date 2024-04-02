@@ -159,10 +159,10 @@ jobs:
             for d (vdc vdb) {
               value=$map[$d]
               parted -s /dev/$d mklabel gpt
-
+              sleep 0.2
+              parted -s /dev/$d mkpart ${value}-p1 0% 100%
               lsblk
               sleep 0.5
-              parted -s /dev/$d mkpart ${value}-p1 0% 100%
 
               mkfs.ext4 -FL vm-$value /dev/${d}1
               mkdir -pv /tmp/$value
