@@ -121,7 +121,22 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                         }
                         _ => {}
                     };
-                    run_debootstrap(deb_src, repo, &rootfs_dir, &ex_pkgs)?;
+
+                    let comp_mode = Cli::static_compatibility_mode(None);
+
+                    if comp_mode {
+                        get_rootfs_from_old_docker_image(
+                            docker_dir,
+                            repo.ghcr_repos()
+                                .first()
+                                .expect("Empty GHCR REPO"),
+                            &rootfs_dir,
+                        )?
+                    }
+
+                    if !comp_mode {
+                        run_debootstrap(deb_src, repo, &rootfs_dir, &ex_pkgs)?
+                    }
                 }
             }
         }
@@ -142,6 +157,32 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
 
         pack_tar_as_root(&rootfs_dir, tar_path, true);
     }
+    Ok(())
+}
+
+fn get_rootfs_from_old_docker_image(
+    docker_dir: &Path,
+    repo: &str,
+    rootfs_dir: &Path,
+) -> anyhow::Result<()> {
+    log::info!("Creating the container: {repo}");
+
+    let container = run_and_get_stdout("docker", &["create", repo])?;
+    let id = container.trim();
+
+    let tar = docker_dir.join("base.tar");
+    {
+        let osstr = OsStr::new;
+        let mut args = TinyVec::<[&OsStr; 4]>::new();
+        args.extend(["export", id, "-o"].map(osstr));
+        args.push(tar.as_ref());
+        log::info!("cmd: docker, args: {args:?}");
+        run("docker", &args, true);
+    }
+    run("docker", &["rm", id], true);
+
+    extract_tar_as_root(&tar, rootfs_dir)?;
+    force_remove_item_as_root(tar);
     Ok(())
 }
 

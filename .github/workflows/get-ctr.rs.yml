@@ -41,6 +41,7 @@ jobs:
       PKG: get-ctr
     steps:
       - name: install zsh
+        if: (matrix.machine != 'armbian')
         shell: sh -e {0}
         run: ${{ vars.INSTALL_ZSH }}
 

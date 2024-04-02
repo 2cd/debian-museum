@@ -43,9 +43,13 @@ pub(crate) struct Cli {
     #[arg(long, num_args = 0..=1, default_missing_value = " ")]
     tag: Option<String>,
 
-    /// e.g., For noble, auto add: noble-updates,noble-backports,noble-security
+    /// e.g., for noble, auto add: noble-updates,noble-backports,noble-security
     #[arg(long)]
     auto_add_extra_suites: bool,
+
+    /// It is recommended to use it only when the rootfs build fails.
+    #[arg(long)]
+    compatibility_mode: bool,
 
     /// download or build rootfs
     #[arg(long, help_heading = "Operation")]
@@ -308,6 +312,8 @@ impl Cli {
             Self::static_auto_add_extra_suites(Some(
                 *self.get_auto_add_extra_suites(),
             ));
+            Self::static_compatibility_mode(Some(*self.get_compatibility_mode()));
+
             build_rootfs::obtain(&repos)?;
         }
 
@@ -316,6 +322,11 @@ impl Cli {
     }
 
     pub(crate) fn static_auto_add_extra_suites(init: Option<bool>) -> bool {
+        static B: OnceLock<bool> = OnceLock::new();
+        *B.get_or_init(|| init.unwrap_or(false))
+    }
+
+    pub(crate) fn static_compatibility_mode(init: Option<bool>) -> bool {
         static B: OnceLock<bool> = OnceLock::new();
         *B.get_or_init(|| init.unwrap_or(false))
     }
