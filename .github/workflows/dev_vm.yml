@@ -33,7 +33,7 @@ jobs:
           lsblk
           sudo apt update
           apt_install() {
-              sudo apt-get install -y $*
+            sudo apt-get install -y $*
           }
           apt_install aria2
           apt_install qemu-system-x86 systemd-container &
@@ -50,21 +50,21 @@ jobs:
           awk_cmd=(
             busybox awk
             '/([0-9]+[[:space:]]+){3,}[0-9]+(\.[0-9]+)?G/ {
-                print($2)
+              print($2)
             }'
           )
           fdisk_output=$(
             $fdisk_cmd
           )
           integer start=$(
-              print $fdisk_output | $awk_cmd
+            print $fdisk_output | $awk_cmd
           )
           print -R "start=$((start * 512))" >> $GITHUB_OUTPUT
 
       - name: apt fix-broken
         run: |
           while {! sudo apt-get install -f} {
-              sleep 1
+            sleep 1
           }
 
       - name: mount rootfs partition
@@ -78,8 +78,8 @@ jobs:
           ssh-keygen -t ed25519 -f $key -N ""
           ssh_client_d=rootfs/root/.ssh
           for i ($ssh_client_d) {
-              sudo install -Dm600 ${key}.pub $i/authorized_keys
-              sudo chmod 700 -v $i
+            sudo install -Dm600 ${key}.pub $i/authorized_keys
+            sudo chmod 700 -v $i
           }
 
       - name: run vm rootfs as container
@@ -89,7 +89,7 @@ jobs:
               file=$commands[$i]
               bin=/usr/local/bin/$i
               if [[ -e $bin ]] {
-                file=$bin
+                  file=$bin
               }
 
               sudo cp -vf $file rootfs/bin/
@@ -249,7 +249,7 @@ jobs:
           cp -vf /usr/libexec/virtiofsd .
 
           for i (Readme.md connect-to-ssh) {
-              cp -vf ${{env.DEV_DIR}}/$i .
+            cp -vf ${{env.DEV_DIR}}/$i .
           }
 
           while {lsof disk.raw} {
