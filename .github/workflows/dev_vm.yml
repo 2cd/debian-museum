@@ -207,12 +207,21 @@ jobs:
             printf "%s\n" 'https://cloudflaremirrors.com/debian' >> /etc/apt/mirrors/debian.list
 
             apt update
-            apt-get install apt-utils whiptail -y
+            apt-get autopurge ^python -y
+            apt-get install apt-utils whiptail qemu-guest-agent -y
             apt-get upgrade -y
             apt-get dist-upgrade -fy
             apt-get install -y debootstrap systemd-container docker.io
             apt-get install -t experimental -y qemu-user-static
-            apt-get autopurge -y
+            old_kernel=$(
+              dpkg --list | awk -v num=0 '/^ii[[:space:]]+linux-image/ && $2 != "linux-image-amd64" {
+                num += 1
+                arr[num] = $2
+              } END {
+                if (num >= 2) print arr[1]
+              }'
+            )
+            apt-get autopurge -y $old_kernel
             apt-get clean
 
             for dir (/root /var /usr) {
