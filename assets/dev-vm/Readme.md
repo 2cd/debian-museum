@@ -1,12 +1,13 @@
 # DEV VM
 
-step1: install deps
+Step1: install deps
 
 ```sh
 sudo apt install qemu-system-x86 podman virtiofsd
+sudo apt install virtiofsd || sudo install -Dm755 ./virtiofsd /usr/libexec/virtiofsd
 ```
 
-step2 (optional):
+Step2: fix KVM Permissions (Optional):
 
 Add the current user to the kvm user group.
 
@@ -14,14 +15,24 @@ Add the current user to the kvm user group.
 sudo usermod -aG kvm "$(id -un)"
 ```
 
-If it does not work, change the permissions on `/dev/kvm` manually.
+If it does not work, change the permission manually.
 
 ```sh
 sudo chmod 666 -v /dev/shm
 ```
 
-step3: run
+Step3: run
 
 ```sh
 ./run
+```
+
+> localhost login: root
+
+Step4: connect to ssh (Optional)
+
+Open a new terminal window, then run:
+
+```sh
+./connect-to-ssh
 ```
