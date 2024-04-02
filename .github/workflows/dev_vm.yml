@@ -141,16 +141,18 @@ jobs:
           run: |
             set -fexo pipefail
             update-grub
+
             systemctl enable media-sd.automount
             systemctl start media-sd.mount
             ls -lah /media/sd ||:
+            lsblk ||:
 
             local -A map=(
               vdb usr
               vdc var
             )
 
-            for i (mount umount reboot) {
+            for i (mount umount reboot rm) {
               cp /bin/busybox /tmp/$i
             }
 
@@ -165,10 +167,9 @@ jobs:
               cp -a /$value /tmp
               print -R "LABEL=vm-$value /$value ext4 defaults 0 0" >> /etc/fstab
 
-              /tmp/umount -lf /tmp/$value ||:
-              rm -rf /${value}/* ||:
-              rm -rf /${value}/.* ||:
-              /tmp/mount /dev/${d}1 /$value || mount /dev/${d}1 /$value
+              /tmp/rm -rf /${value}/* ||:
+              /tmp/rm -rf /${value}/.* ||:
+              /tmp/mount /dev/${d}1 /$value || /tmp/mount -o bind /tmp/$value /$value
             }
             lsblk ||:
             /sbin/reboot || /tmp/reboot
