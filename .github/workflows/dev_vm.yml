@@ -217,7 +217,7 @@ jobs:
             printf "%s\n" 'https://cloudflaremirrors.com/debian' >> /etc/apt/mirrors/debian.list
 
             apt update
-            apt-get autopurge ^python -y
+            apt-get autopurge ^python -y 2>&1 >/dev/null
             apt-get install apt-utils whiptail qemu-guest-agent -y
             apt-get upgrade -y
             apt-get dist-upgrade -fy
