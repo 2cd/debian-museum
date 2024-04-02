@@ -93,7 +93,7 @@ jobs:
           target_bin: ${{steps.bin_path.outputs.bin}}
         run: |
           file=$(mktemp).tar.zst
-          tar --use-compress-program='zstdmt -9v' -xf $file .
+          tar --use-compress-program='zstdmt -9v' -cf $file .
           scp $file rv64:/tmp
           print -R "file=$file" >> $GITHUB_OUTPUT
           unlink $file
@@ -116,7 +116,7 @@ jobs:
             cargo build --target=${{matrix.target}} --package get-ctr --profile ${{env.PROFILE}}
             target_bin=${{steps.bin_path.outputs.bin}}
             scp -C $target_bin armbian:$target_bin
-            if [[ ${dir:h2} != /tmp ]] {
+            if [[ ${dir:h2} == /tmp ]] {
                 rm -rfv $dir
             }
 
