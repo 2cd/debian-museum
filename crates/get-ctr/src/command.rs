@@ -40,7 +40,7 @@ where
     let out = || {
         Command::new(&cmd)
             .args(args)
-            .stdout(Stdio::piped())
+            // .stdout(Stdio::piped())
             .stderr(Stdio::inherit())
             .output()
     };
@@ -96,7 +96,7 @@ where
     eprintln!("Retrying ...");
     // 2nd run:
     let status_2nd = status();
-    if status_1st.success() {
+    if status_2nd.success() {
         return status_2nd;
     }
 
@@ -111,7 +111,8 @@ where
 
 fn check_status_and_exit(status: ExitStatus) {
     if !status.success() {
-        exit(status.into_raw())
+        exit(1)
+        // exit(status.into_raw())
     }
 }
 

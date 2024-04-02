@@ -353,7 +353,7 @@ pub(crate) fn init_root_cfg(
 
     let cmt = format!(
         r##"Usage:
-    docker run -it --rm {}"##,
+    docker run --pull=always -it --rm {}"##,
         ghcr_repos[0]
     );
 

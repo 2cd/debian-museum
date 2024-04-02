@@ -6,14 +6,16 @@ use log_l10n::{
     logger::{before_init, env_logger},
 };
 use std::{borrow::Cow, env, sync::OnceLock};
+use time::OffsetDateTime;
+
+pub(crate) fn today_date() -> &'static time::Date {
+    static D: OnceLock<time::Date> = OnceLock::new();
+    D.get_or_init(|| OffsetDateTime::now_utc().date())
+}
 
 pub(crate) fn today() -> &'static str {
     static D: OnceLock<String> = OnceLock::new();
-    D.get_or_init(|| {
-        time::OffsetDateTime::now_utc()
-            .date()
-            .to_string()
-    })
+    D.get_or_init(|| today_date().to_string())
 }
 
 pub(crate) fn init() {

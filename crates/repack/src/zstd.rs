@@ -18,6 +18,9 @@ where
         let zstd_file = create_file(&self.target.path)?;
 
         let mut encoder = zstd::Encoder::new(zstd_file, level)?;
+        encoder.long_distance_matching(true)?;
+        encoder.window_log(27)?;
+
         encoder.multithread(*cpu::num() as _)?;
 
         let mut src_file = buf_reader(&self.source.path)?;

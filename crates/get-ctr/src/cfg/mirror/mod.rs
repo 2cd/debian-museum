@@ -9,38 +9,49 @@ pub(crate) mod ubuntu;
 pub(crate) mod ubuntu_old;
 pub(crate) mod ubuntu_ports;
 
+pub(crate) fn static_debian_snapshot() -> &'static Url {
+    static U: OnceLock<Url> = OnceLock::new();
+    U.get_or_init(|| {
+        const HTTPS: &str = "https://snapshot.debian.org/";
+        Url::parse(HTTPS).expect("Invalid URL")
+    })
+}
+
+use std::sync::OnceLock;
+
 use getset::Getters;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, derive_more::Display,
 )]
 pub(crate) enum MirrorVariant {
-    #[display(fmt = "debian-archive")]
+    #[display("debian-archive")]
     DebianArchive,
 
-    #[display(fmt = "debian")]
+    #[display("debian")]
     Debian,
 
-    #[display(fmt = "debian-ports")]
+    #[display("debian-ports")]
     DebianPorts,
 
-    #[display(fmt = "debian-elts")]
+    #[display("debian-elts")]
     DebianELTS,
 
-    #[display(fmt = "debian-debug")]
+    #[display("debian-debug")]
     DebianDebug,
 
-    #[display(fmt = "debian-security")]
+    #[display("debian-security")]
     DebianSecurity,
 
-    #[display(fmt = "ubuntu-ports")]
+    #[display("ubuntu-ports")]
     UbuntuPorts,
 
-    #[display(fmt = "ubuntu")]
+    #[display("ubuntu")]
     Ubuntu,
 
-    #[display(fmt = "ubuntu-old")]
+    #[display("ubuntu-old")]
     UbuntuOld,
 }
 
@@ -64,7 +75,8 @@ pub(crate) struct Mirror<'m> {
 }
 
 pub(crate) const fn include_pkgs() -> &'static str {
-    "ca-certificates,apt-transport-https"
+    // "ca-certificates,apt-transport-https"
+    "ca-certificates"
 }
 
 #[cfg(test)]

@@ -1,0 +1,139 @@
+name: build crate (get-ctr)
+# auto-task.start-build-time = ?
+
+on:
+  push:
+    branches: ["dev"]
+    paths:
+      - .github/workflows/get-ctr.rs.yml
+      - assets/build-get-ctr/Dockerfile
+      - Cargo.toml
+      - Cargo.lock
+      - "crates/get-ctr/src/**/*"
+      - crates/get-ctr/Cargo.toml
+
+jobs:
+  docker:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            target: x86_64-unknown-linux-gnu
+            platform: linux/amd64
+            machine: ubuntu-latest
+          - arch: arm64
+            target: aarch64-unknown-linux-musl
+            platform: linux/arm64
+            machine: ubuntu-latest
+          - arch: rv64gc
+            target: riscv64gc-unknown-linux-gnu
+            platform: linux/riscv64
+            machine: armbian
+    runs-on: ${{matrix.machine}}
+
+    defaults:
+      run:
+        shell: zsh --pipefail -fex {0}
+    env:
+      PROFILE: no-lto
+      CARGO_TARGET_DIR: /tmp/rs
+      PKG: get-ctr
+    steps:
+      - name: install zsh
+        if: (matrix.machine != 'armbian')
+        shell: sh -e {0}
+        run: ${{ vars.INSTALL_ZSH }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        # if: (!contains(fromJSON('["x64", "rv64gc"]'), matrix.arch))
+        if: (!matrix.machine == 'armbian') || (!matrix.arch == 'x64')
+        uses: docker/setup-qemu-action@v3
+
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - uses: actions/cache@v4
+        if: runner.arch == 'X64'
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ${{env.CARGO_TARGET_DIR}}
+          key: ${{ runner.os }}-${{matrix.arch}}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: rustup update
+        id: rustup_update
+        continue-on-error: true
+        run: rustup update --force
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.rustup_update.outcome == 'failure'
+
+      - name: install cross-rs
+        if: runner.arch == 'X64'
+        run: ${{vars.INSTALL_CROSS}}
+
+      - name: cross build
+        if: runner.arch == 'X64'
+        run: cross build --target=${{matrix.target}} --package ${{env.PKG}} --profile ${{env.PROFILE}}
+
+      - name: set bin path
+        id: bin_path
+        run: print -R "bin=${{env.CARGO_TARGET_DIR}}/${{matrix.target}}/${{env.PROFILE}}/${{env.PKG}}" >> $GITHUB_OUTPUT
+
+      - name: scp tar to rv64sbc
+        id: scp_tar
+        if: matrix.arch == 'rv64gc'
+        env:
+          target_bin: ${{steps.bin_path.outputs.bin}}
+        run: |
+          file=$(mktemp).tar.zst
+          tar --use-compress-program='zstdmt -9v' -cf $file .
+          scp $file rv64:/tmp
+          print -R "file=$file" >> $GITHUB_OUTPUT
+          unlink $file
+          mkdir -pv ${target_bin:h}
+
+      - name: cargo build (riscv64imafdc)
+        if: matrix.arch == 'rv64gc'
+        uses: 2moe/local-ssh-action@v0
+        with:
+          host: rv64
+          run: |
+            typeset -x PROFILE=${{env.PROFILE}}
+            typeset -x CARGO_TARGET_DIR=${{env.CARGO_TARGET_DIR}}
+            dir=$(mktemp -d)
+            file=${{steps.scp_tar.outputs.file}}
+
+            tar -C $dir -xf $file
+            unlink $file
+            cd $dir || exit 1
+            cargo build --target=${{matrix.target}} --package get-ctr --profile ${{env.PROFILE}}
+            target_bin=${{steps.bin_path.outputs.bin}}
+            scp -C $target_bin armbian:$target_bin
+            rm -rfv $dir
+
+      - uses: actions/checkout@v4
+        with:
+          ref: build
+
+      - name: copy bin to docker context
+        run: install -Dm755 ${{steps.bin_path.outputs.bin}} assets/build-get-ctr/tmp.get-ctr
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: assets/build-get-ctr
+          push: true
+          tags: ghcr.io/2cd/pkgs:get-ctr-${{matrix.arch}}
+          platforms: ${{matrix.platform}}

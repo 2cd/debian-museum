@@ -150,7 +150,7 @@ fn add_archive_src_mirrors(
         let content = format!(
             "deb {url} {series} {components}\n\
             # deb-src {url} {series} {components}\n",
-            url = crate::docker::repo::https_to_http(&m),
+            url = crate::docker::repo::convert_to_url_str(&m, true),
         );
         log::debug!("content: {content}");
 

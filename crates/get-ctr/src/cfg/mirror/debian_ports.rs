@@ -1,4 +1,5 @@
 use crate::cfg::mirror::{Mirror, MirrorVariant};
+const OFFICIAL: &str = "https://deb.debian.org/debian-ports/";
 
 /// Creates a new instance of Mirror (DebianPorts).
 const fn new_mirror<'m>(
@@ -23,7 +24,7 @@ const fn nju<'m>() -> Mirror<'m> {
 }
 
 const fn official<'m>() -> Mirror<'m> {
-    new_mirror("Official", "https://deb.debian.org/debian-ports/", None)
+    new_mirror("Official", OFFICIAL, None)
 }
 
 pub(crate) const fn mirrors() -> [Mirror<'static>; 2] {

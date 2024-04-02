@@ -14,6 +14,7 @@ pub(crate) const DEB_ENV: &str = "DEBIAN_FRONTEND=noninteractive";
 
 use crate::{
     cfg::debootstrap,
+    cli::Cli,
     command::{
         create_dir_all_as_root, force_remove_item_as_root, move_item_as_root, run,
         run_and_get_stdout, run_as_root, run_nspawn,
@@ -78,9 +79,29 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                     get_rootfs(arch, s)?
                 }
                 // (Some(arch @ "loong64"), s @ "sid") => get_rootfs(arch, s)?,
+                (Some(arch), s @ "breezy") if ["i386", "powerpc"].contains(arch) => {
+                    get_rootfs(arch, s)?
+                }
+
                 (Some(arch), s)
                     if ["warty", "hoary", "gutsy", "potato", "woody"]
                         .contains(&s) =>
+                {
+                    get_rootfs(arch, s)?
+                }
+                (Some(arch), s @ "artful") if !["amd64", "i386"].contains(arch) => {
+                    get_rootfs(arch, s)?
+                }
+                (Some(arch), s @ "intrepid") if ["sparc", "hppa"].contains(arch) => {
+                    get_rootfs(arch, s)?
+                }
+                (Some(arch), s @ "jaunty")
+                    if ["sparc", "powerpc", "hppa"].contains(arch) =>
+                {
+                    get_rootfs(arch, s)?
+                }
+                (Some(arch), s @ "karmic")
+                    if ["sparc", "powerpc", "armel"].contains(arch) =>
                 {
                     get_rootfs(arch, s)?
                 }
@@ -100,7 +121,22 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
                         }
                         _ => {}
                     };
-                    run_debootstrap(deb_src, repo, &rootfs_dir, &ex_pkgs)?;
+
+                    let comp_mode = Cli::static_compatibility_mode(None);
+
+                    if comp_mode {
+                        get_rootfs_from_old_docker_image(
+                            docker_dir,
+                            repo.ghcr_repos()
+                                .first()
+                                .expect("Empty GHCR REPO"),
+                            &rootfs_dir,
+                        )?
+                    }
+
+                    if !comp_mode {
+                        run_debootstrap(deb_src, repo, &rootfs_dir, &ex_pkgs)?
+                    }
                 }
             }
         }
@@ -110,7 +146,9 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
             src.create_src_list(
                 repo.get_series(),
                 &mirror_dir,
+                repo.get_title_date().as_deref(),
                 *repo.get_components(),
+                repo.get_deb_arch().as_deref(),
             )?;
             move_mirror_list_to_rootfs(&mirror_dir, &rootfs_dir, *repo.get_deb822())?
         }
@@ -119,6 +157,32 @@ pub(crate) fn obtain<'a, I: IntoIterator<Item = &'a Repository<'a>>>(
 
         pack_tar_as_root(&rootfs_dir, tar_path, true);
     }
+    Ok(())
+}
+
+fn get_rootfs_from_old_docker_image(
+    docker_dir: &Path,
+    repo: &str,
+    rootfs_dir: &Path,
+) -> anyhow::Result<()> {
+    log::info!("Creating the container: {repo}");
+
+    let container = run_and_get_stdout("docker", &["create", repo])?;
+    let id = container.trim();
+
+    let tar = docker_dir.join("base.tar");
+    {
+        let osstr = OsStr::new;
+        let mut args = TinyVec::<[&OsStr; 4]>::new();
+        args.extend(["export", id, "-o"].map(osstr));
+        args.push(tar.as_ref());
+        log::info!("cmd: docker, args: {args:?}");
+        run("docker", &args, true);
+    }
+    run("docker", &["rm", id], true);
+
+    extract_tar_as_root(&tar, rootfs_dir)?;
+    force_remove_item_as_root(tar);
     Ok(())
 }
 
@@ -233,9 +297,9 @@ fn patch_deb_rootfs(rootfs_dir: &Path, repo: &Repository<'_>) {
     run_nspawn(
         rootfs_dir,
         format!(
-            "apt-get dist-upgrade --assume-yes {apt_arg} ;
+            "apt-get dist-upgrade --fix-broken --assume-yes {apt_arg} ;
             for i in gpgv apt-utils eatmydata whiptail; do
-                apt-get install --assume-yes {apt_arg} $i
+                apt-get install --fix-broken --assume-yes {apt_arg} $i
             done
             apt-get clean"
         ),
@@ -244,6 +308,20 @@ fn patch_deb_rootfs(rootfs_dir: &Path, repo: &Repository<'_>) {
             "LANG=C",
             // "container=lxc",
         ],
+    );
+
+    run_nspawn(
+        rootfs_dir,
+        "chown -Rv 0:0 /usr/local/etc/apt/mirrors /etc/apt/sources.list.d",
+        false,
+        &["LANG=C"],
+    );
+
+    run_nspawn(
+        rootfs_dir,
+        "apt-get install --fix-broken --assume-yes",
+        false,
+        &["LANG=C.UTF-8"],
     );
 }
 
@@ -263,6 +341,10 @@ fn run_debootstrap(
     let osstr = OsStr::new;
     let mut args = TinyVec::<[&OsStr; 10]>::new();
     let mut ex_packages_arr = TinyVec::<[&str; 32]>::new();
+    let os_name = repo.get_osname();
+
+    #[allow(clippy::useless_asref)]
+    let is_uuu = matches!(os_name.as_ref(), "ubuntu" | "Ubuntu");
 
     {
         // ubuntu-minimal:
@@ -289,7 +371,6 @@ fn run_debootstrap(
             "nano",
             "nftables",
             "procps",
-            "udev",
             "vim",
             "vim-common",
             "vim-tiny",
@@ -311,9 +392,14 @@ fn run_debootstrap(
 
     let ex_pkgs_comma_str = ex_packages_arr.join(",");
 
+    let deb_src_url = deb_src.get_url();
+    if deb_src_url.scheme() == "https" {
+        args.push(osstr("--no-check-gpg"));
+    }
+
     args.extend(
         [
-            "--no-check-gpg",
+            "--verbose",
             "--exclude",
             &ex_pkgs_comma_str,
             "--components",
@@ -340,13 +426,26 @@ fn run_debootstrap(
         _ => suite,
     };
 
-    let os_name = repo.get_osname();
+    if Cli::static_auto_add_extra_suites(None) {
+        let uuu_suites = ["updates", "backports", "security"]
+            .map(|x| format!("{real_name}-{x}"))
+            .join(",");
+
+        static S: OnceLock<String> = OnceLock::new();
+        S.get_or_init(|| uuu_suites);
+
+        if is_uuu {
+            args.push(osstr("--extra-suites"));
+            args.push(osstr(S.get().expect("Invalid suites")));
+        }
+    }
+
     fix_script_link(real_name, os_name)?;
 
     args.push(osstr(real_name));
 
     args.push(rootfs_dir.as_ref());
-    args.push(osstr(deb_src.get_url().as_str()));
+    args.push(osstr(deb_src_url.as_str()));
 
     run_as_root("/usr/sbin/debootstrap", &args, true);
 
@@ -382,7 +481,7 @@ struct ReleaseUUU {
     archive: String,
 }
 
-/// When using devel as `suite`, the build may fail. So we need to get its real name, e.g., nobel
+/// When using devel as `suite`, the build may fail. So we need to get its real name, e.g., noble
 fn get_the_real_name_of_ubuntu_devel(url: &Url) -> &'static str {
     static N: OnceLock<String> = OnceLock::new();
 

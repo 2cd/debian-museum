@@ -27,5 +27,6 @@ pub(crate) const fn mirrors() -> [Mirror<'static>; 2] {
 }
 
 pub(crate) const fn include_pkgs() -> &'static str {
-    "freexian-archive-keyring,ca-certificates,apt-transport-https"
+    // "freexian-archive-keyring,ca-certificates,apt-transport-https"
+    "freexian-archive-keyring,ca-certificates"
 }

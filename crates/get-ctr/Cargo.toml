@@ -1,25 +1,29 @@
 [package]
 name = "get-ctr"
-version = "0.0.0-alpha.8"
+version = "0.0.0-alpha.12"
 edition = "2021"
 
 [dependencies]
-ahash = "0.8.7"
-anyhow = "1.0.79"
+ahash = "0.8.11"
+anyhow = "1.0.81"
 # bincode = { version = "2.0.0-rc.3", features = ["serde"] }
-clap = { version = "4.4.18", features = ["derive"] }
-derive_more = { version = "0.99.17", default-features = false, features = [
+clap = { version = "4.5.4", features = ["derive"] }
+derive_more = { version = "1.0.0-beta.6", default-features = false, features = [
     "deref",
     "from",
     "display",
 ] }
 getset = "0.1.2"
 libc = { version = "0.2.153", default-features = false }
-log = "0.4.20"
+log = "0.4.21"
+regex = { version = "1.10.4", default-features = false, features = [
+    "std",
+    "unicode-perl",
+] }
 ron = "0.8.1"
-serde = { version = "1.0.196", features = ["derive"] }
-serde_with = "3.6.0"
-serde_yaml = "0.9.31"
+serde = { version = "1.0.197", features = ["derive"] }
+serde_with = "3.7.0"
+serde_yaml = "0.9.34+deprecated"
 threadpool = "1.8.1"
 time = { version = "0.3.34", features = ["serde", "serde-human-readable"] }
 tinyvec = { version = "1.6.0", features = ["serde", "alloc"] }
@@ -41,4 +45,5 @@ default-features = false
 features = ["env-logger"]
 
 [dev-dependencies]
-toml = "0.8.8"
+serde_json = "1.0.115"
+toml = "0.8.12"
