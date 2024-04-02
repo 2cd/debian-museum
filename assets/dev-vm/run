@@ -1,42 +1,69 @@
 #!/usr/bin/env zsh
 set -fexo pipefail
 #
-# Depends: qemu-system-x86 (>= 7), virtiofsd (>= 1), podman, coreutils, awk
+# Depends: qemu-system-x86 (>= 7), virtiofsd (>= 1), podman | lxc, coreutils, awk
 #
-virtio_fsd=true
+# true | false
+# kvm=false
 kvm=true
+
+virtio_fsd=true
+
 name=debian
+
+# TCP port range: 1024 ~ 65535
 ssh_port=9022
-socket_dir=${XDG_RUNTIME_DIR:-/run/user/$UID}
+
+# "podman" | "lxc"
+sandbox=podman
 # ------------------
+socket_dir=${XDG_RUNTIME_DIR:-/run/user/$UID}
+
+warn() {
+    print -P >&2 -- '%F{yellow}[WARN]%f' $*
+}
+panic() {
+    print -P >&2 -- '%F{red}[ERROR]%f' $*
+    exit 1
+}
+info() {
+    print -P >&2 -- '%F{cyan}[INFO]%f' $*
+}
 if [[ ! -e /dev/kvm || $(uname -m) != x86_64 ]] {
-    print DISABLE KVM
+    warn DISABLE KVM
     kvm=false
 }
 
 vfsd_bin=/usr/libexec/virtiofsd
 if [[ ! -e $vfsd_bin ]] {
-    print DISABLE VIRTIO FSD
+    warn DISABLE VIRTIO-FSD
     virtio_fsd=false
 }
 
 if {$virtio_fsd} {
-    mkdir -pv $socket_dir
+    if [[ ! -e $socket_dir ]] {
+        mkdir -pv $socket_dir || socket_dir=$(mktemp -d)
+    }
+
     sock_file=$socket_dir/${name}-vfsd.sock
     rm -fv $sock_file ||:
     pid_f=${sock_file}.pid
     if [[ -e $pid_f ]] {
-        print $pid_f
+        info "pid file: $pid_f"
         pid=$(< $pid_f)
         kill -s TERM $pid ||:
     }
 
-    print $sock_file
-    # lxc_ns=(
-    #     lxc-usernsexec
-    #     -m b:0:1000:1
-    #     -m b:1:100000:65536
-    # )
+    info "socket file: $sock_file"
+    lxc_ns=(
+        lxc-usernsexec
+        -m b:0:1000:1
+        -m b:1:100000:65536
+    )
+    podman_ns=(
+        podman
+        unshare
+    )
     vfsd=(
         $vfsd_bin
         --socket-path=$sock_file
@@ -44,10 +71,15 @@ if {$virtio_fsd} {
         --announce-submounts
         --sandbox chroot
     )
-    podman unshare -- $vfsd &
+    case $sandbox {
+        (lxc)    $lxc_ns    -- $vfsd & ;;
+        (podman) $podman_ns -- $vfsd & ;;
+        (*) panic "Please change the value of sandbox to 'podman' or 'lxc' (e.g., sandbox=lxc)" ;;
+    }
 }
 
 qemu_cmd=(
+    # qemu-system-amd64
     qemu-system-x86_64
 )
 
@@ -60,8 +92,10 @@ args=(
     -smp $(nproc)
     # vda
     -drive file=disk.raw,format=raw,if=virtio
+
     # vdb
     -drive file=usr.qcow2,if=virtio
+
     # vdc
     -drive file=var.qcow2,if=virtio
 
@@ -89,7 +123,7 @@ memory=$(
 args+=(
     -m $memory
 )
-# virtio fs
+
 if {$virtio_fsd} {
     args+=(
         -chardev
@@ -111,16 +145,18 @@ if {$kvm} {
         -cpu  qemu64-v1
     )
 }
-ls -lah $socket_dir
+
+info 'Waiting for %F{blue}virtio_fsd%f socket to be created'
+# timeout 10s
 for i ({1..100}) {
     if [[ -e $sock_file ]] {
         break
     }
-    print Waiting for virtio_fs socket to be created
+    info $i
     sleep 0.1
 }
 if [[ ! -e $sock_file ]] {
-    print -Pr 'Please %F{red}disable %F{cyan}VirtioFS%f (i.e., virtio_fsd=false)'
-    exit 1
+    panic 'Please %F{red}disable %F{cyan}VirtioFSD%f (i.e., virtio_fsd=false)'
 }
+
 $qemu_cmd $args $*
