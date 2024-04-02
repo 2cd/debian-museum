@@ -16,7 +16,6 @@ on:
 
 jobs:
   docker:
-    runs-on: ${{matrix.machine}}
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +31,10 @@ jobs:
           - arch: rv64gc
             target: riscv64gc-unknown-linux-gnu
             platform: linux/riscv64
-            machine: arm64
+            # machine: arm64
+    runs-on: self-hosted
+
+    # ${{matrix.machine}}
     defaults:
       run:
         shell: zsh --pipefail -fex {0}
