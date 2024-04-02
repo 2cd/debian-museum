@@ -1,8 +1,10 @@
 #!/usr/bin/env zsh
 set -fexo pipefail
 #
-# Depends: qemu-system-x86 (>= 7), virtiofsd (>= 1), podman | lxc, coreutils, awk
+# Depends: qemu-system-x86 (>= 7), coreutils, awk
+# Recommends: virtiofsd (>= 1), podman | lxc
 #
+
 # true | false
 # kvm=false
 kvm=true
@@ -18,7 +20,7 @@ ssh_port=9022
 sandbox=podman
 # ------------------
 socket_dir=${XDG_RUNTIME_DIR:-/run/user/$UID}
-
+src_dir=${0:a:h}
 warn() {
     print -P >&2 -- '%F{yellow}[WARN]%f' $*
 }
@@ -34,10 +36,13 @@ if [[ ! -e /dev/kvm || $(uname -m) != x86_64 ]] {
     kvm=false
 }
 
-vfsd_bin=/usr/libexec/virtiofsd
-if [[ ! -e $vfsd_bin ]] {
-    warn DISABLE VIRTIO-FSD
-    virtio_fsd=false
+if {$virtio_fsd} {
+    for vfsd_bin (${src_dir}/virtiofsd /usr/libexec/virtiofsd) {
+        if [[ ! -e $vfsd_bin ]] {
+            warn DISABLE VIRTIO-FSD
+            virtio_fsd=false
+        }
+    }
 }
 
 if {$virtio_fsd} {

@@ -3,8 +3,10 @@
 Step1: install deps
 
 ```sh
-sudo apt install qemu-system-x86 podman virtiofsd
-sudo apt install virtiofsd || sudo install -Dm755 ./virtiofsd /usr/libexec/virtiofsd
+sudo apt install qemu-system-x86 podman
+
+# optional:
+sudo apt install virtiofsd
 ```
 
 Step2: fix KVM Permissions (Optional):
