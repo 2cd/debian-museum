@@ -150,7 +150,11 @@ jobs:
               vdc var
             )
 
-            for d (vdb vdc) {
+            for i (mount reboot) {
+              cp /bin/busybox /tmp/$i
+            }
+
+            for d (vdc vdb) {
               value=$map[$d]
               parted -s /dev/$d mklabel gpt
               parted -s /dev/$d mkpart ${value}-p1 0% 100%
@@ -159,17 +163,19 @@ jobs:
               mount /dev/${d}1 /tmp/$value
               cp -a /$value /tmp
               print -R "LABEL=vm-$value /$value ext4 defaults 0 0" >> /etc/fstab
-              cp /bin/busybox /tmp/reboot
-              rm -rf /${value}/* /${value}/.* ||:
+              rm -rf /${value}/* ||:
+              rm -rf /${value}/.* ||:
+              /tmp/mount /dev/${d}1 /$value
             }
-            /tmp/reboot || reboot
+
+            /tmp/reboot || /sbin/reboot
           args: |
             -F
             vm.sshconf
 
       - name: wait ssh
         run: |
-          sleep 7
+          sleep 10
           for i ({1..100}) {
             print $i
             case $(ssh -F vm.sshconf vm echo OK ||:) {
