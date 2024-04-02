@@ -118,6 +118,7 @@ jobs:
       - name: run vm
         run: |
           sudo apt-get install -y qemu-system-x86
+          qemu-img create -f qcow2 usr.qcow2 10G
           qemu-img create -f qcow2 var.qcow2 20G
           cp ${{env.DEV_DIR}}/run .
           sudo sysctl -w fs.file-max=1000000
@@ -144,15 +145,24 @@ jobs:
             systemctl start media-sd.mount
             ls -lah /media/sd ||:
 
-            parted -s /dev/vdb mklabel gpt
-            parted -s /dev/vdb mkpart var-p1 0% 100%
-            mkfs.ext4 -L vm-var /dev/vdb1
-            mkdir -p /tmp/var
-            mount /dev/vdb1 /tmp/var
-            cp -a /var /tmp
-            print -r 'LABEL="vm-var" /var ext4 defaults 0 0' >> /etc/fstab
-            rm -rf /var/* /var/.* ||:
-            reboot
+            local -A map=(
+              vdb usr
+              vdc var
+            )
+
+            for d (vdb vdc) {
+              value=$map[$d]
+              parted -s /dev/$d mklabel gpt
+              parted -s /dev/$d mkpart ${value}-p1 0% 100%
+              mkfs.ext4 -L vm-$value /dev/${d}1
+              mkdir -p /tmp/$value
+              mount /dev/${d}1 /tmp/$value
+              cp -a /$value /tmp
+              print -R "LABEL=vm-$value /$value ext4 defaults 0 0" >> /etc/fstab
+              cp /bin/busybox /tmp/reboot
+              rm -rf /${value}/* /${value}/.* ||:
+            }
+            /tmp/reboot || reboot
           args: |
             -F
             vm.sshconf

@@ -58,7 +58,11 @@ args=(
     # -display curses
 
     -smp $(nproc)
+    # vda
     -drive file=disk.raw,format=raw,if=virtio
+    # vdb
+    -drive file=usr.qcow2,if=virtio
+    # vdc
     -drive file=var.qcow2,if=virtio
 
     -name $name
