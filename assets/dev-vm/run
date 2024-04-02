@@ -112,14 +112,15 @@ if {$kvm} {
     )
 }
 ls -lah $socket_dir
-if [[ ! -e $sock_file ]] {
+for i ({1..100}) {
+    if [[ -e $sock_file ]] {
+        break
+    }
     print Waiting for virtio_fs socket to be created
-    sleep 0.2
+    sleep 0.1
 }
 if [[ ! -e $sock_file ]] {
-    sleep 0.3
-}
-if [[ ! -e $sock_file ]] {
-    sleep 0.5
+    print -Pr 'Please %F{red}disable %F{cyan}VirtioFS%f (i.e., virtio_fsd=false)'
+    exit 1
 }
 $qemu_cmd $args $*
