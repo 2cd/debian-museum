@@ -213,7 +213,7 @@ jobs:
             apt-get install -y debootstrap systemd-container docker.io
             apt-get install -t experimental -y qemu-user-static
             apt-get autopurge -y
-            apt clean
+            apt-get clean
 
             for dir (/root /var /usr) {
               dd if=/dev/zero of=$dir/zero bs=1M || {
@@ -261,6 +261,7 @@ jobs:
           files+=sha256.txt
 
           args=(
+            --posix
             --use-compress-program='zstdmt --long -18v'
             -cf dev-vm_x64.tar.zst
             $files
