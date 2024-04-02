@@ -178,7 +178,7 @@ jobs:
 
       - name: wait ssh
         run: |
-          sleep 12
+          sleep 10
           for i ({1..100}) {
             print $i
             case $(ssh -F vm.sshconf vm echo OK ||:) {
@@ -212,6 +212,9 @@ jobs:
             apt-get install -t experimental -y qemu-user-static
             apt-get autopurge -y
             apt clean
+            dd if=/dev/zero of=/root/zero || {
+                rm -v /root/zero
+            }
             rm -vf /var/lib/apt/lists/*.* ||:
             poweroff
           args: |
@@ -237,7 +240,7 @@ jobs:
             vm.ed25519*
             run
             disk.raw
-            var.qcow2
+            *.qcow2
             virtiofsd
             Readme.md
             connect-to-ssh
