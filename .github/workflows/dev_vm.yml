@@ -117,7 +117,6 @@ jobs:
 
       - name: run vm
         run: |
-          sudo apt-get install -y qemu-system-x86
           qemu-img create -f qcow2 usr.qcow2 5G
           qemu-img create -f qcow2 var.qcow2 10G
           cp ${{env.DEV_DIR}}/run .
@@ -140,6 +139,7 @@ jobs:
         with:
           host: vm
           run: |
+            set -fexo pipefail
             update-grub
             systemctl enable media-sd.automount
             systemctl start media-sd.mount
@@ -191,6 +191,7 @@ jobs:
         with:
           host: vm
           run: |
+            set -fexo pipefail
             export DEBIAN_FRONTEND=noninteractive
             df -Th
             lsblk
