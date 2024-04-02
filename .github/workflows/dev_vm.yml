@@ -207,8 +207,10 @@ jobs:
             apt update
             apt-get install apt-utils whiptail -y
             apt-get upgrade -y
+            apt-get dist-upgrade -fy
             apt-get install -y debootstrap systemd-container docker.io
             apt-get install -t experimental -y qemu-user-static
+            apt-get autopurge -y
             apt clean
             rm -vf /var/lib/apt/lists/*.* ||:
             poweroff
