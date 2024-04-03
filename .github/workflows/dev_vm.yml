@@ -158,14 +158,16 @@ jobs:
             set -fexo pipefail
             export DEBIAN_FRONTEND=noninteractive
 
+            systemctl enable media-sd.automount
+            systemctl start media-sd.mount || journalctl -xe 2>/dev/null
+
             systemctl set-default multi-user.target
+
             update-grub
 
             apt-get autopurge -y ^python 2>&1 >/dev/null
             apt-get install -y linux-image-cloud-amd64
 
-            systemctl enable media-sd.automount
-            systemctl start media-sd.mount
             ls -lah /media/sd ||:
             ln -svf /media/sd /root/
             lsblk ||:
