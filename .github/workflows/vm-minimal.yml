@@ -156,7 +156,7 @@ jobs:
             apt-install ifupdown qemu-guest-agent udev
             printf "%s\n" "auto enp0s2" "iface enp0s2 inet dhcp" >/etc/network/interfaces.d/qemu-nat.conf
             cd $(mktemp -d)
-            print -R 'nameserver 10.0.2.3' > resolv.conf
+            printf "%s\n" 'nameserver 10.0.2.3' 'nameserver 1.1.1.1' > resolv.conf
             install -m644 resolv.conf /etc/resolv.conf
             # serial@ttyS0
             cp /usr/lib/systemd/system/serial-getty@.service /etc/systemd/system/serial-getty@ttyS0.service
