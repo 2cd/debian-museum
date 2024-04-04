@@ -1,0 +1,45 @@
+#!/usr/bin/env zsh
+set -fexo pipefail
+#
+# This is only suitable for use in a non-interactive environment.
+# In most cases, you should use `apt install`, instead of this script.
+#
+typeset -x DEBIAN_FRONTEND=noninteractive
+# ------------------------------------------
+apt_update_cache=/var/cache/apt/pkgcache.bin
+
+# Unit: seconds
+minimum_update_interval=600
+# ------------------------------------------
+
+as_root=""
+for cmd (doas sudo) {
+    if (($+commands[$cmd])) {
+        as_root=$cmd
+        break
+    }
+}
+
+# For older 32-bit versions of debian, **the year 2038 problem** (a.k.a., Y2038, Y2K38, Unix Y2K) may be encountered.
+# Note: Newer 32-bit debian has `t64` support and does not have this problem.
+last_update=$(stat -c %Y $apt_update_cache ||print 0)
+current_time=$(date +%s ||print 0)
+current_year=$(date +%Y)
+long_bit=$(getconf LONG_BIT)
+if ((current_time - last_update >= minimum_update_interval)) {
+    $as_root apt-get update
+}
+# To avoid Y2K38, always run apt update for long_bit smaller than 64-bit.
+if ((long_bit < 64 && current_year >= 2038)) {
+    $as_root apt-get update
+}
+
+for pkg ($*) {
+    args=(
+        install
+        --assume-yes
+        --fix-broken
+        $pkg
+    )
+    $as_root apt-get $args
+}

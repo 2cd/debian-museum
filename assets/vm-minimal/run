@@ -1,0 +1,234 @@
+#!/usr/bin/env zsh
+set -fexo pipefail
+# --------
+# Value range: 1024 ~ 65535
+integer ssh_port=9022
+
+kvm=true
+name=debian
+
+no_graphic=true
+
+qemu_cmd=qemu-system-x86_64
+extra_qemu_args=(
+    # -chardev
+    #     "socket,id=char1,path=$sock_file"
+    #
+    $*
+)
+
+# Before running a virtual machine, first obtain the available memory on the host, and then allocate memory to the virtual machine based on a specific percentage of the available memory.
+#
+# 80 means using 80% of the host's available memory (RAM).
+# 90.0 => 90.0/100.0  = 90.0%
+# 5e-2 => 0.05/100.0  = 0.05%
+#
+# Assuming that the total memory of the host is 24G, and only 10G is available, then 80% is 8G, i.e., the VM will use 8G of memory.
+# 20G available RAM *  90% =  18G
+# 1T available RAM * 0.05% = 0.5G
+#
+# The data type of this variable is double (a.k.a., f64), f64 can take on very large values, but the actual range of values for this variable is 0.0 to 100.0
+# You can only use floating point (std: IEEE 754) or integer. Attention: String will be converted to 0.000000000e+00
+# Disable when 0.
+float memory_percentage=90.0
+
+# After applying `memory_percentage`, limit the maximum memory with `max_memory`.
+#
+# Sample 1:
+#   available memory:   10G
+#   memory_percentage: 50.0
+#   max_memory:        4096
+#   10G * 50% = 5G, since 4096M < 5G, the VM ends up using 4096M instead of 5G.
+#
+# Sample 2:
+#   available memory:    2G
+#   memory_percentage: 50.0
+#   max_memory:        2048
+#   2G * 50% = 1G, since 1G < 2048M, the VM ends up using 1G instead of 2048M.
+#
+# Disable when 0
+# It is not necessary to manually add Unit (Megabytes (MB)).
+integer max_memory=0
+
+# For virtio-blk: The 1st disk is vda, the 2nd is vdb, and the 3rd is vdc.
+#
+# For RAW format images, use the `.img` or `.raw` extension.
+disk_arr=(
+    disk.img
+    #
+    # data.qcow2
+    # var.img
+    # usr.qcow2
+    # win-data.vhdx
+)
+
+# For NAT networks, if you need to access a virtual machine's port, you must expose it.
+#
+# If:
+#   host-addr = 8443  => 0.0.0.0:8443
+#   vm-port   = 443
+# then:
+#   accessing `0.0.0.0:8443` is equivalent to accessing port `443` on VM.
+#
+# If:
+#   host-addr    =  127.0.0.1:8022/tcp
+#   vm-port      =  22
+# then:
+#   accessing `127.0.0.1:8022` is equivalent to accessing port `22` on VM.
+#
+#
+# Map=(Key  Value)
+#
+# Value = optional VM internal address + VM port
+#
+# About Key:
+#     key =  optional host address + host port + optional protocol
+#
+#     8443      ==  8443/tcp & 8443/udp == 0.0.0.0:8443/tcp & 0.0.0.0:8443/udp
+#     8080/udp  ==  0.0.0.0:8080/udp
+#     8080/tcp  ==  0.0.0.0:8080/tcp
+#
+local -A hostfwd_map=(
+    # key                         # value
+    # [host]                      # [guest] (Virtual Machine)
+    # -------------------------------------
+    # 8443/udp                    443
+    # 8022/tcp                    22
+    #
+    127.0.0.1:${ssh_port}/tcp     9022
+)
+# ----------------------------
+# ----------------------------
+# ----------------------------
+hostfwd_rules=""
+# anonymous function
+() {
+    for k v (${(kv)hostfwd_map}) {
+        # k.split('/').last()
+        local p=${k[(ws^/^)-1]}
+        local protocol=""
+        case $p {
+            (tcp|udp) protocol=$p
+        }
+
+        # k.trim_end_glob("/*")
+        local host=${k%/*}
+
+        # host.split(':').collect()
+        local host_arr=( ${(s^:^)host} )
+        #
+        local host_addr=""
+        if (($#host_arr == 2)) {
+            host_addr=$host_arr[1]
+        }
+        local host_port=$host_arr[-1]
+        #
+        #
+        local guest_arr=( ${(s^:^)v} )
+        #
+        local guest_addr=""
+        if (($#guest_arr == 2)) {
+            guest_addr=$guest_arr[1]
+        }
+        local guest_port=$guest_arr[-1]
+
+        hostfwd_rules+=",hostfwd=${protocol}:${host_addr}:${host_port}-${guest_addr}:${guest_port}"
+    }
+}
+# ----------------------------
+args=(
+    -machine q35,accel=kvm:tcg
+    -smp $(nproc)
+    -name $name
+)
+if {$no_graphic} {
+    args+=(
+        -nographic
+        # -vga none
+        # -display none
+        # -display curses
+    )
+}
+
+for disk ($disk_arr) {
+    args+=-drive
+    local drive_arg="file=$disk,if=virtio"
+    case ${disk:e} {
+        (img|raw) drive_arg+=',format=raw'
+    }
+    args+=$drive_arg
+}
+
+args+=(
+    -kernel  boot/vmlinuz
+    -initrd  boot/initrd.img
+    -append  "root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
+
+    # TL;DR. Press Ctrl+A, and then Press C, finally Press Enter.
+    # The stdio is multiplexed here.
+    # By default, this control sequence is Ctrl+a followed by c. (i.e., Press Ctrl+a first, then release, and then press c), you can switch between the QEMU monitor and the serial console.
+    -serial  mon:stdio
+
+    -nic  "user,model=virtio-net-pci$hostfwd_rules"
+)
+# ----------------------------
+# MEMORY
+calculate_memory() {
+    if ((memory_percentage == 0.0)) {
+        memory=$max_memory
+    }
+
+    # For compatibility with `busybox free`, don't add extra arguments for `free`.
+    #
+    # for line in run(["free"])?.filter(|x| x.contains("Mem: "))
+    for line ( ${"$(env LANG=C free)"[(fr)Mem: *]} ) {
+        local ava=${line[(ws^ ^)-1]}
+        # /1000, not /1024
+        available_memory=$((ava/1000))
+        break
+    }
+
+    local mem int_mem
+    mem=$((available_memory * memory_percentage/100))
+
+    if ((max_memory == 0 || mem < max_memory)) {
+        integer int_mem=$mem
+        print $int_mem
+        return
+    }
+
+    print $max_memory
+}
+
+memory=$(calculate_memory)
+
+# I have tested Debian Sid (Linux 6.7.9 cloud kernel).
+# If the memory is less than 96 MB, the kernel will panic.
+# Even when the memory is exactly 96 MB, there is still a chance of panic.
+# Therefore, it’s advisable to use a size of 97 MB+. Older systems and systems without systemd should consume less memory.
+if ((memory < 96)) {
+    memory=98
+}
+args+=(
+    -m
+    $memory
+)
+# ----------------------------
+warn() {
+    print -P >&2 -- '%F{yellow}[WARN]%f' $*
+}
+if [[ ! -e /dev/kvm || $(uname -m) != x86_64 ]] {
+    warn DISABLE KVM
+    kvm=false
+}
+if {$kvm} {
+    args+=(
+        -cpu  host
+    )
+} else {
+    args+=(
+        -cpu  qemu64-v1
+    )
+}
+# ----------------------------
+$qemu_cmd $args $extra_qemu_args

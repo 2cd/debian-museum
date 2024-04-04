@@ -1,0 +1,280 @@
+name: minimal virtual machine
+# auto-task.start-build-time = ?
+
+env:
+  DEV_DIR: assets/vm-minimal
+  VM_SHUTDOWN: "ssh -F ssh/vm.sshconf vm poweroff ||:"
+  DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
+  #   DEBIAN_FRONTEND: noninteractive
+
+on:
+  push:
+    # branches: ["build"]
+    paths:
+      - .github/workflows/vm-minimal.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      arch: x64
+    defaults:
+      run:
+        shell: zsh --pipefail -fex {0}
+    steps:
+      - name: install zsh
+        shell: sh -e {0}
+        run: ${{ vars.INSTALL_ZSH }}
+
+      - uses: actions/checkout@v4
+
+      - name: export rootfs
+        id: export_rootfs
+        run: |
+          sudo mkdir -pv rootfs/usr/local/bin/
+          for p ('/'  'rootfs/') {
+            sudo cp -pv ${DEV_DIR}/scripts/* ${p}usr/local/bin
+          }
+          apt-install systemd-container &
+          task=$!
+
+          image=ghcr.io/2cd/debian-sid:${{env.arch}}
+          docker pull $image
+          name=$(docker create $image)
+          docker export $name -o rootfs.tar
+          sudo tar -C rootfs --overwrite -xf rootfs.tar
+          docker rm $name
+          wait $task
+
+      - name: setup ssh server
+        # id: setup_sshd
+        env:
+          mirror_src: "rootfs/etc/apt/sources.list.d/mirror.sources"
+        run: |
+          tmux new-session -d -s install_qemu 'apt-install qemu-system-x86'
+
+          sudo cp $mirror_src ${mirror_src}.bak
+          awk_args=(
+            -v true=1
+            -v false=0
+            '/experimental/{
+              cond = true
+            }
+            /-debug/{
+              cond = false
+            }
+            /snapshot\.debian/ {
+              if ($1 == "URIs:") {
+                sub($0, sprintf("%s https://cloudflaremirrors.com/debian/", $1))
+              }
+            }
+            cond && /Enabled:/{
+              sub("no", "yes")
+              cond = false
+            }
+            { print }'
+            ${mirror_src}.bak
+          )
+          awk $awk_args | sudo tee ${mirror_src}
+          sudo rm -vf rootfs/etc/resolv.conf
+          for i (zsh busybox) {
+            file=$commands[$i]
+            bin=/usr/local/bin/$i
+            if [[ -e $bin ]] {
+              file=$bin
+            }
+            sudo cp -vf $file rootfs/bin/
+          }
+          uuu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
+          if [[ -e $uuu_keyring ]] {
+            sudo cp -vf $uuu_keyring rootfs$uuu_keyring
+          }
+
+          single_arg=$(<<'CTR_ARG'
+            for i (zsh busybox) {
+              ln -vf /bin/$i /bin/${i}-static
+            }
+
+            apt-install
+            apt-get upgrade -y
+            apt-install openssh-server
+            ssh-keygen -A ||:
+
+            # allow root to login without passwd in TTY
+            sed -E '/^root:/ s@(root:)[^:]+(:)@\1\2@' -i /etc/shadow
+
+            chsh -s /bin/zsh
+          CTR_ARG
+          )
+          sudo systemd-nspawn -E "${{env.DEB_ENV}}" -D rootfs zsh -fexc "$single_arg"
+
+          cp -va ${{env.DEV_DIR}}/ssh .
+
+          key=ssh/vm.ed25519
+          ssh-keygen -t ed25519 -f $key -N ""
+          ssh_client_d=rootfs/root/.ssh
+          for i ($ssh_client_d) {
+            sudo install -Dm600 ${key}.pub $i/authorized_keys
+            sudo chmod 700 -v $i
+          }
+          sshd_cfg=ssh/vm.sshd.conf
+          sudo install -Dm600 $sshd_cfg rootfs/etc/ssh/sshd_config.d/vm.conf
+          unlink $sshd_cfg
+          sudo cp -a rootfs kernel_r
+          sudo systemd-nspawn -D kernel_r sh -c 'apt-install linux-image-cloud-amd64'
+
+      - name: copy kernel
+        run: |
+          ${{env.VM_SHUTDOWN}}
+          mkdir -p boot
+          for f (vmlinuz 'initrd.img') {
+            real_path=$(realpath kernel_r/$f)
+            real_fname=${real_path:t}
+            cp -v $real_path boot/$f
+            ln -svf $f boot/$real_fname
+          }
+          for f (config System) {
+            cp -v kernel_r/boot/${f}* boot/ ||:
+          }
+          machinectl list
+          tmux new-session -d -s nspawn 'sudo systemd-nspawn -bD rootfs'
+          sleep 2
+          # sudo rm -rf kernel_r
+          while {! ssh -F ssh/vm.sshconf vm exit} {
+            sleep 1
+          }
+
+      - name: setup dhcp-network & serial
+        uses: 2moe/local-ssh-action@v0
+        with:
+          host: vm
+          args: |
+            -F
+            ssh/vm.sshconf
+          run: |
+            set -fexo pipefail
+            apt-install ifupdown qemu-guest-agent udev
+            printf "%s\n" "auto enp0s2" "iface enp0s2 inet dhcp" >/etc/network/interfaces.d/qemu-nat.conf
+            cd $(mktemp -d)
+            print -R 'nameserver 10.0.2.3' > resolv.conf
+            install -m644 resolv.conf /etc/resolv.conf
+            # serial@ttyS0
+            cp /usr/lib/systemd/system/serial-getty@.service /etc/systemd/system/serial-getty@ttyS0.service
+            systemctl disable systemd-networkd-wait-online.service
+            sed '/ExecStart=/ s@- $TERM@--autologin root --local-line ttyS0 xterm@' -i /etc/systemd/system/serial-getty@ttyS0.service
+            apt-get autopurge -y
+            apt-get clean
+            ls -lh /var/cache/apt
+            rm -vf /var/lib/apt/lists/*.* ||:
+
+      - name: disk partition
+        id: disk_partition
+        run: |
+          ${{env.VM_SHUTDOWN}}
+          if ((! $+commands[qemu-img])) {
+            apt-install
+          }
+          qemu-img --version
+          qemu-img create -f raw disk.img 1G
+          print -R ,,L | sudo sfdisk disk.img
+
+          loop_dev=$(sudo losetup -f)
+          sudo losetup $loop_dev disk.img
+          sudo losetup --all
+          sudo kpartx -va $loop_dev
+          p1=/dev/mapper/${loop_dev:t}p1
+
+          outputs=(
+            "dev=$loop_dev"
+            "p1=$p1"
+          )
+          printf "%s\n" $outputs >> $GITHUB_OUTPUT
+          #
+          sudo mkfs.ext4 -FL rootfs $p1
+          sudo mkdir -p disk
+          #
+          sudo mount -v $p1 disk
+          lsblk
+          #
+          sudo cp -a rootfs/* disk
+          sudo umount -lvf disk
+
+      - name: run vm
+        run: |
+          cp -vf 2>/dev/null ${{env.DEV_DIR}}/* . ||:
+          sudo adduser $USER kvm ||:
+          sudo chmod 666 /dev/kvm ||:
+          tmux new-session -d -s run-vm ./run
+
+      - name: wait ssh
+        run: |
+          apt-install autossh
+          autossh -F ssh/vm.sshconf vm echo OK ||:
+
+      - name: clean trash in VM
+        uses: 2moe/local-ssh-action@v0
+        with:
+          host: vm
+          args: |
+            -F
+            ssh/vm.sshconf
+          run: |
+            ls -lh /var/cache/apt
+            df -Th
+            journalctl --rotate ||:
+            journalctl --vacuum-time=1s ||:
+            df -Th
+            dd if=/dev/zero of=/root/zero bs=1M || {
+              rm -vf /root/zero
+            }
+
+      - name: pack vm
+        run: |
+          ${{env.VM_SHUTDOWN}}
+          sleep 2
+          loop_dev=${{steps.disk_partition.outputs.dev}}
+          sudo kpartx -dv $loop_dev ||:
+          sudo losetup --detach $loop_dev ||:
+          while {lsof disk.img} {
+            sleep 1
+          }
+          img_arr=(
+            qcow2,img,qcow2
+            raw,qcow2,img
+          )
+          for v ($img_arr) {
+            fmt_arr=( ${(s^,^)v} )
+            qemu_fmt=$fmt_arr[1]
+            src_fmt=$fmt_arr[2]
+            dst_fmt=$fmt_arr[3]
+            echo qemu-img convert -O $qemu_fmt disk.$src_fmt disk.$dst_fmt
+            echo unlink disk.$src_fmt
+          }
+          files=(
+            run
+            *.img
+            Readme.md
+            connect-to-ssh
+          )
+          for f ($files ssh/* boot/*) {
+            sha256sum $f >> sha256.txt
+          }
+          for f (ssh boot sha256.txt) {
+            files+=$f
+          }
+
+          args=(
+            --posix
+            --use-compress-program='zstdmt --long -18v'
+            -cf vm-minimal_${{env.arch}}.tar.zst
+            $files
+          )
+          tar $args
+
+      - name: release
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          tag_name: unstable
+          files: |
+            *.tar.zst
