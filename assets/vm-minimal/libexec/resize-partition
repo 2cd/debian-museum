@@ -1,0 +1,135 @@
+#!/usr/bin/env zsh
+set -fexo pipefail
+# Depends: e2fsprogs-extra | e2fsprogs, sfdisk | fdisk (>= 2.26.2), awk, coreutils
+# Recommends: btrfs-progs, mount, util-linux
+# ----------------
+sfdisk=/sbin/sfdisk
+resize2fs=/usr/sbin/resize2fs
+
+# ----------------
+# ----------------
+typeset -x LANG=C
+
+error() {
+    print -P >&2 -- "%F{red}[ERROR]%f" $*
+}
+
+check_deps() {
+    local bin
+    for bin ($sfdisk $resize2fs) {
+        if [[ ! -e $bin ]] {
+            local name=${bin:t}
+            local cmd=$commands[$name]
+            if ((#cmd)) {
+                #
+                case $name {
+                    (sfdisk)    sfdisk=$cmd    ;;
+                    (resize2fs) resize2fs=$cmd ;;
+                    (*)         exit 127       ;;
+                }
+                continue
+            }
+            error Please install %F{green}${bin}%f first
+            exit 127
+        }
+    }
+}
+if ((UID != 0)) {
+    error Please run it as root
+    exit 1
+}
+get_unpartitioned_disks() {
+    disk_arr=(
+        $(
+            sfdisk -F 2>&1 | awk -v true=1 -v false=0 'BEGIN {
+                force = false
+            }
+            /GPT PMBR size mismatch / {
+                force = true
+            }
+            /Unpartitioned space / {
+                # $3=/dev/vda:
+                bytes = $6
+                if (bytes == 0 && !force) {
+                    next
+                }
+                if (force) {
+                    force = false
+                }
+                split($3, device, ":")
+                dev = device[1]
+                print(dev)
+            }'
+        )
+    )
+    if ((! #disk_arr)) {
+        df -T | awk '/\/$/ {
+            if ($2 ~ /^ext/) {
+                cmd = sprintf("resize2fs %s", $1)
+                system(cmd)
+            }
+            # if ($2 == "btrfs") {
+            #     system("btrfs filesystem resize max /")
+            # }
+        }'
+        exit 0
+        # debug: disk_arr=(/dev/vdb)
+    }
+}
+
+extend_partitions() {
+    local d
+    for d ($disk_arr) {
+        print -R ',+' | sfdisk --no-reread $d
+    }
+}
+
+resize_devs() {
+    # sample: dev_fs_map=(
+    #      #[key]       #[value]
+    #     /dev/vda1     ext4
+    #     /dev/vda2     btrfs
+    # )
+    local -A dev_fs_map=($(
+        #
+        for d ($disk_arr) {
+            dev_node_arr=(
+                $(sfdisk --json $d | awk -F'"' '/"node":/ {print($4)}')
+            )
+
+            for node ($dev_node_arr) {
+                print $node
+
+                # If you don't have util-linux installed, then the result of fstype will be empty.
+                fs_type=$(blkid -o value -s TYPE $node ||:)
+
+                case $fs_type {
+                    ("") print ext4     ;;
+                    (*)  print $fs_type ;;
+                }
+            }
+        }
+    ))
+    #
+    for dev fstype (${(kv)dev_fs_map}) {
+        #
+        case $fstype {
+            (btrfs)
+                tmp_mount_point=$(mktemp -d)
+                mount -v $dev $tmp_mount_point
+                # If you don't have btrfs-progs installed, then this will just exit (127).
+                btrfs filesystem resize max $tmp_mount_point
+                umount -lvf $tmp_mount_point
+                rmdir $tmp_mount_point
+            ;;
+            (*)
+                resize2fs $dev || print >&2 "%F{yellow}[WARN]%f Failed to resize the ext4/ext3 partition: $dev"
+            ;;
+        }
+    }
+}
+
+check_deps
+get_unpartitioned_disks
+extend_partitions
+resize_devs

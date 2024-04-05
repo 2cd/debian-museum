@@ -1,12 +1,13 @@
 #!/usr/bin/env zsh
 set -fexo pipefail
+# Depends: qemu-system-x86 | qemu-system-x86-64-headless
 # --------
 # Value range: 1024 ~ 65535
 integer ssh_port=9022
 
-kvm=true
 name=debian
-
+# kvm=false
+kvm=true
 no_graphic=true
 
 qemu_cmd=qemu-system-x86_64
@@ -16,6 +17,8 @@ extra_qemu_args=(
     #
     $*
 )
+
+external_kernel=true
 
 # Before running a virtual machine, first obtain the available memory on the host, and then allocate memory to the virtual machine based on a specific percentage of the available memory.
 #
@@ -153,6 +156,7 @@ if {$no_graphic} {
 for disk ($disk_arr) {
     args+=-drive
     local drive_arg="file=$disk,if=virtio"
+
     case ${disk:e} {
         (img|raw) drive_arg+=',format=raw'
     }
@@ -160,17 +164,21 @@ for disk ($disk_arr) {
 }
 
 args+=(
-    -kernel  boot/vmlinuz
-    -initrd  boot/initrd.img
-    -append  "root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
-
     # TL;DR. Press Ctrl+A, and then Press C, finally Press Enter.
     # The stdio is multiplexed here.
     # By default, this control sequence is Ctrl+a followed by c. (i.e., Press Ctrl+a first, then release, and then press c), you can switch between the QEMU monitor and the serial console.
     -serial  mon:stdio
 
-    -nic  "user,model=virtio-net-pci$hostfwd_rules"
+    -nic "user,model=virtio-net-pci$hostfwd_rules"
 )
+
+if {$external_kernel} {
+    args+=(
+        -kernel  boot/vmlinuz
+        -initrd  boot/initrd.img
+        -append  "root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
+    )
+}
 # ----------------------------
 # MEMORY
 calculate_memory() {
@@ -231,4 +239,7 @@ if {$kvm} {
     )
 }
 # ----------------------------
+# current_exe()?.parent().set_workdir()
+cd ${0:a:h}
+
 $qemu_cmd $args $extra_qemu_args

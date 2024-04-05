@@ -1,0 +1,13 @@
+# /etc/systemd/system/unsafe-resize-partition.service
+[Unit]
+Description=Resize Disk Partitions at Startup
+After=local-fs.target
+
+[Service]
+#Type=oneshot
+#TimeoutStartSec=15
+Type=simple
+ExecStart=/usr/libexec/tmm/qemu/resize-partition
+
+[Install]
+WantedBy=multi-user.target

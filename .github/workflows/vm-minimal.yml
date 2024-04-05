@@ -122,6 +122,8 @@ jobs:
           unlink $sshd_cfg
 
           sudo cp -v ${{env.DEV_DIR}}/systemd/* rootfs/etc/systemd/system/
+
+          sudo install -Dm700 ${{env.DEV_DIR}}/libexec/resize-partition rootfs/usr/libexec/tmm/qemu/resize-partition
           sudo cp -a rootfs kernel_r
           sudo systemd-nspawn -D kernel_r sh -c 'apt-install linux-image-cloud-amd64'
 
@@ -155,7 +157,7 @@ jobs:
             ssh/vm.sshconf
           run: |
             set -fexo pipefail
-            apt-install ifupdown qemu-guest-agent udev
+            apt-install ifupdown qemu-guest-agent udev fdisk
             printf "%s\n" "auto enp0s2" "iface enp0s2 inet dhcp" >/etc/network/interfaces.d/qemu-nat.conf
             cd $(mktemp -d)
             printf "%s\n" 'nameserver 10.0.2.3' 'nameserver 1.1.1.1' > resolv.conf
@@ -166,7 +168,12 @@ jobs:
 
             systemctl disable systemd-networkd-wait-online.service
             systemctl set-default multi-user.target
-            systemctl enable add-cloudflare-dns.service
+            for service (
+              add-cloudflare-dns.service
+              unsafe-resize-partition.service
+            ) {
+              systemctl enable $service
+            }
 
             apt-get autopurge -y
             apt-get clean

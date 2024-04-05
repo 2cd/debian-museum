@@ -1,2 +1,25 @@
-#!/bin/sh -ex
-ssh -F ssh/vm.sshconf vm "$@"
+#!/usr/bin/env zsh
+set -fe
+# Depends: openssh-client
+# -----------------------
+# current_exe()?.parent().set_workdir()
+cd ${0:a:h}
+
+args=($*)
+
+# if args.not_contains("-q")
+if ((! args[(I)-q])) {
+    print -P >&2 -- "%F{green}ssh %F{cyan}-F%f ssh/vm.sshconf %F{yellow}vm%f $args"
+}
+
+ssh_args=(
+    # config file
+    -F ssh/vm.sshconf
+
+    # hostname
+    vm
+
+    # cli args
+    $args
+)
+ssh $ssh_args

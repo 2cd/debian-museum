@@ -1,0 +1,40 @@
+#!/usr/bin/env zsh
+set -fe
+# Depends: openssh-client
+# ---------------------
+host_dir="$PWD/Downloads"
+
+# ---------------------
+# ---------------------
+src=$0
+src_dir=${src:a:h}
+# if args.is_empty()
+if ((! #)) {
+    usage=$(<<USAGE
+    %F{yellow}Usage%f:
+        %F{green}get-file-from-vm%f [vm-file-path-1] [vm-file-path-2] ,..
+
+    %F{blue}Example%f:
+        %F{green}${src}%f /etc/os-release /etc/issue
+USAGE
+    )
+
+    print -P -- $usage
+    exit 0
+}
+
+mkdir -pv $host_dir
+cd $src_dir
+for f ($*) {
+    print -P >&2 -- "scp %F{cyan}-r%f vm:$f %F{blue}${host_dir}%f"
+    scp_args=(
+        # config file
+        -F ssh/vm.sshconf
+
+        # recursive copying (including directories)
+        -r vm:$f
+
+        $host_dir
+    )
+    scp $scp_args
+}

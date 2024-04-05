@@ -1,0 +1,61 @@
+#!/usr/bin/env zsh
+set -fe
+# Depends: openssh-client
+# ---------------------
+vm_dir='/root/Downloads'
+create_vm_dir=true
+
+# ---------------------
+# ---------------------
+src=$0
+src_dir=${src:a:h}
+# if args.is_empty()
+if ((! #)) {
+    usage=$(<<USAGE
+    %F{yellow}Usage%f:
+        %F{green}send-file-to-vm%f [host-path-1] [host-path-2] ,..
+
+    %F{blue}Example%f:
+        %F{green}${src}%f Readme.md disk.img
+USAGE
+    )
+
+    print -P -- $usage
+    exit 0
+}
+
+vm_sshconf=${src_dir}/ssh/vm.sshconf
+scp_conf=${vm_sshconf:h}/vm-scp.sshconf
+if [[ ! -e $scp_conf ]] {
+    awk_args=(
+        -v
+        key=${src_dir}/ssh/vm.ed25519
+        '/IdentityFile/{sub($2, key)} {print}'
+        $vm_sshconf
+    )
+    awk $awk_args > $scp_conf
+}
+
+if {$create_vm_dir} {
+    ssh_args=(
+        # quiet
+        -q
+        # config file
+        -F $scp_conf
+        # hostname
+        vm
+        # run `mkdir` on vm
+        mkdir -p "$vm_dir"
+    )
+    ssh $ssh_args ||:
+}
+
+print -P >&2 -- "scp %F{cyan}-r%f $* vm:%F{blue}${vm_dir}%f"
+scp_args=(
+    # config file
+    -F  $scp_conf
+    # recursive copying (including directories)
+    -r  $*
+    vm:$vm_dir
+)
+scp $scp_args
