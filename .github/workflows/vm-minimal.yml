@@ -264,10 +264,12 @@ jobs:
             echo unlink disk.$src_fmt
           }
           files=(
-            run
             *.img
+            run
             Readme.md
             connect-to-ssh
+            get-file-from-vm
+            send-file-to-vm
           )
           for f ($files ssh/* boot/*) {
             sha256sum $f >> sha256.txt
