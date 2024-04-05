@@ -141,15 +141,17 @@ files=(
 
 ### install docker
 
-Minimal vm uses an "external" kernel.
+Minimal VM uses an "external" kernel.
 You need to install an "internal" kernel in the virtual machine, otherwise docker will not work.
 
-> You can also use a DEV VM with built-in docker.
+Run the following command in the virtual machine.
 
 ```sh
 apt update
 apt install linux-image-cloud-amd64 docker.io
 ```
+
+> You can also use a DEV VM with docker pre-installed.
 
 ## TODO
 

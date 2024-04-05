@@ -47,7 +47,6 @@ jobs:
           wait $task
 
       - name: setup ssh server
-        # id: setup_sshd
         env:
           mirror_src: "rootfs/etc/apt/sources.list.d/mirror.sources"
         run: |

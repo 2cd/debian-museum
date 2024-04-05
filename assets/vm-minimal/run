@@ -1,69 +1,41 @@
 #!/usr/bin/env zsh
 set -fexo pipefail
 # Depends: qemu-system-x86 | qemu-system-x86-64-headless
+# Suggests: virtiofsd (>= 1), podman | lxc
 # --------
 # Value range: 1024 ~ 65535
 integer ssh_port=9022
 
-name=debian
-# kvm=false
+name=debian-vm-minimal
+
+# If "/dev/kvm" does not exist, or the current architecture is incompatible with the virtual machine architecture, then it will automatically disable KVM (i.e., kvm=false).
 kvm=true
+kvm_cpu=host
+not_kvm_cpu=qemu64-v1
+qemu_machine=q35
+
+# NO GUI
 no_graphic=true
 
 qemu_cmd=qemu-system-x86_64
 extra_qemu_args=(
-    # -chardev
-    #     "socket,id=char1,path=$sock_file"
-    #
     $*
 )
-
-external_kernel=true
-
-# Before running a virtual machine, first obtain the available memory on the host, and then allocate memory to the virtual machine based on a specific percentage of the available memory.
-#
-# 80 means using 80% of the host's available memory (RAM).
-# 90.0 => 90.0/100.0  = 90.0%
-# 5e-2 => 0.05/100.0  = 0.05%
-#
-# Assuming that the total memory of the host is 24G, and only 10G is available, then 80% is 8G, i.e., the VM will use 8G of memory.
-# 20G available RAM *  90% =  18G
-# 1T available RAM * 0.05% = 0.5G
-#
-# The data type of this variable is double (a.k.a., f64), f64 can take on very large values, but the actual range of values for this variable is 0.0 to 100.0
-# You can only use floating point (std: IEEE 754) or integer. Attention: String will be converted to 0.000000000e+00
-# Disable when 0.
-float memory_percentage=90.0
-
-# After applying `memory_percentage`, limit the maximum memory with `max_memory`.
-#
-# Sample 1:
-#   available memory:   10G
-#   memory_percentage: 50.0
-#   max_memory:        4096
-#   10G * 50% = 5G, since 4096M < 5G, the VM ends up using 4096M instead of 5G.
-#
-# Sample 2:
-#   available memory:    2G
-#   memory_percentage: 50.0
-#   max_memory:        2048
-#   2G * 50% = 1G, since 1G < 2048M, the VM ends up using 1G instead of 2048M.
-#
-# Disable when 0
-# It is not necessary to manually add Unit (Megabytes (MB)).
-integer max_memory=0
 
 # For virtio-blk: The 1st disk is vda, the 2nd is vdb, and the 3rd is vdc.
 #
 # For RAW format images, use the `.img` or `.raw` extension.
 disk_arr=(
     disk.img
+    # disk.qcow2
     #
     # data.qcow2
     # var.img
     # usr.qcow2
     # win-data.vhdx
 )
+
+external_kernel=true
 
 # For NAT networks, if you need to access a virtual machine's port, you must expose it.
 #
@@ -100,8 +72,81 @@ local -A hostfwd_map=(
     #
     127.0.0.1:${ssh_port}/tcp     9022
 )
+
+
+# Before running a virtual machine, first obtain the available memory on the host, and then allocate memory to the virtual machine based on a specific percentage of the available memory.
+#
+# 80 means using 80% of the host's available memory (RAM).
+# 90.0 => 90.0/100.0  = 90.0%
+# 5e-2 => 0.05/100.0  = 0.05%
+#
+# Assuming that the total memory of the host is 24G, and only 10G is available, then 80% is 8G, i.e., the VM will use 8G of memory.
+# 20G available RAM *  90% =  18G
+# 1T available RAM * 0.05% = 0.5G
+#
+# The data type of this variable is double (a.k.a., f64), f64 can take on very large values, but the actual range of values for this variable is 0.0 to 100.0
+# You can only use floating point (std: IEEE 754) or integer. Attention: String will be converted to 0.000000000e+00
+# Disable when 0.
+float memory_percentage=90.0
+
+# After applying `memory_percentage`, limit the maximum memory with `max_memory`.
+#
+# Sample 1:
+#   available memory:   10G
+#   memory_percentage: 50.0
+#   max_memory:        4096
+#   10G * 50% = 5G, since 4096M < 5G, the VM ends up using 4096M instead of 5G.
+#
+# Sample 2:
+#   available memory:    2G
+#   memory_percentage: 50.0
+#   max_memory:        2048
+#   2G * 50% = 1G, since 1G < 2048M, the VM ends up using 1G instead of 2048M.
+#
+# Disable when 0
+# It is not necessary to manually add Unit (Megabytes (MB)).
+integer max_memory=0
+
+
+# Here's a description from the official website:
+#
+#   > Virtiofs is a shared file system that lets virtual machines access a directory tree on the host.
+#   > Virtiofs is not a network file system repurposed for virtualization, it is specifically designed to take advantage of the locality of virtual machines and the hypervisor.
+#   > The goal of virtiofs is to provide local file system semantics between multiple virtual machines sharing a directory tree. This is especially useful for lightweight VMs and container workloads, where shared volumes are a requirement.
+#
+# Note: If you have enabled virtio_fsd (i.e., virtio_fsd=true), run the following command in the virtual machine.
+#
+#   systemctl start media-sd.mount
+#   systemctl enable media-sd.automount
+#
+# Finally, access the "/media/sd" directory.
+#
+# Requires: Host Linux Kernel >= 5.4, QEMU >= 5.0
+virtio_fsd=false
+shared_dir=$PWD
+
+# To prevent virtiofsd from running as root, some isolation is required.
+#
+# "podman" | "lxc"
+sandbox=podman
 # ----------------------------
 # ----------------------------
+# ----------------------------
+socket_dir=${XDG_RUNTIME_DIR:-/run/user/$UID}
+
+# current_exe()?.parent()
+src_dir=${0:a:h}
+
+warn() {
+    print -P >&2 -- '%F{yellow}[WARN]%f' $*
+}
+panic() {
+    print -P >&2 -- '%F{red}[ERROR]%f' $*
+    exit 1
+}
+info() {
+    print -P >&2 -- '%F{cyan}[INFO]%f' $*
+}
 # ----------------------------
 hostfwd_rules=""
 # anonymous function
@@ -121,18 +166,22 @@ hostfwd_rules=""
         local host_arr=( ${(s^:^)host} )
         #
         local host_addr=""
+        # if host_arr.len() == 2
         if (($#host_arr == 2)) {
             host_addr=$host_arr[1]
         }
+        # host_arr.last()
         local host_port=$host_arr[-1]
         #
-        #
+        # v.split(":").collect()
         local guest_arr=( ${(s^:^)v} )
         #
         local guest_addr=""
+        # if guest_arr.len() == 2
         if (($#guest_arr == 2)) {
             guest_addr=$guest_arr[1]
         }
+        # guest_arr.last()
         local guest_port=$guest_arr[-1]
 
         hostfwd_rules+=",hostfwd=${protocol}:${host_addr}:${host_port}-${guest_addr}:${guest_port}"
@@ -140,7 +189,10 @@ hostfwd_rules=""
 }
 # ----------------------------
 args=(
-    -machine q35,accel=kvm:tcg
+    # When KVM is not supported, it will automatically fallback to TCG.
+    -machine ${qemu_machine},accel=kvm:tcg
+
+    # Auto-detect the number of host cpu cores
     -smp $(nproc)
     -name $name
 )
@@ -153,20 +205,30 @@ if {$no_graphic} {
     )
 }
 
-for disk ($disk_arr) {
-    args+=-drive
-    local drive_arg="file=$disk,if=virtio"
+# add disks
+() {
+    for disk ($disk_arr) {
+        args+=-drive
+        local drive_arg="file=$disk,if=virtio"
 
-    case ${disk:e} {
-        (img|raw) drive_arg+=',format=raw'
+        case ${disk:e} {
+            (img|raw) drive_arg+=',format=raw'
+        }
+        args+=$drive_arg
     }
-    args+=$drive_arg
 }
 
 args+=(
     # TL;DR. Press Ctrl+A, and then Press C, finally Press Enter.
-    # The stdio is multiplexed here.
+    #
+    # The STDIO is multiplexed here.
     # By default, this control sequence is Ctrl+a followed by c. (i.e., Press Ctrl+a first, then release, and then press c), you can switch between the QEMU monitor and the serial console.
+    #
+    # `-serial mon:stdio` is equivalent to:
+    #       -chardev stdio,mux=on,id=char0
+    #       -mon chardev=char0,mode=readline
+    #       -serial chardev:char0
+    #
     -serial  mon:stdio
 
     -nic "user,model=virtio-net-pci$hostfwd_rules"
@@ -183,7 +245,8 @@ if {$external_kernel} {
 # MEMORY
 calculate_memory() {
     if ((memory_percentage == 0.0)) {
-        memory=$max_memory
+        print $max_memory
+        return
     }
 
     # For compatibility with `busybox free`, don't add extra arguments for `free`.
@@ -222,24 +285,132 @@ args+=(
     $memory
 )
 # ----------------------------
-warn() {
-    print -P >&2 -- '%F{yellow}[WARN]%f' $*
-}
-if [[ ! -e /dev/kvm || $(uname -m) != x86_64 ]] {
-    warn DISABLE KVM
-    kvm=false
-}
-if {$kvm} {
-    args+=(
-        -cpu  host
+check_virtio_fsd() {
+    if {! $virtio_fsd} {
+        return
+    }
+
+    for vfsd_bin (${src_dir}/virtiofsd /usr/libexec/virtiofsd /usr/sbin/virtiofsd) {
+        if [[ -e $vfsd_bin ]] {
+            virtio_fsd=true
+            break
+        } else {
+            virtio_fsd=false
+        }
+    }
+
+    if {! $virtio_fsd} {
+        warn DISABLE VIRTIO-FSD
+        return
+    }
+
+    #
+    if [[ ! -e $socket_dir ]] {
+        mkdir -pv $socket_dir || socket_dir=$(mktemp -d)
+    }
+
+    sock_file=$socket_dir/${name}-vfsd.sock
+    rm -fv $sock_file ||:
+    pid_f=${sock_file}.pid
+    if [[ -e $pid_f ]] {
+        info "pid file: $pid_f"
+        pid=$(< $pid_f)
+        kill -s TERM $pid ||:
+    }
+
+    info "socket file: $sock_file"
+    lxc_ns=(
+        lxc-usernsexec
+        -m b:0:1000:1
+        -m b:1:100000:65536
     )
-} else {
+    podman_ns=(
+        podman
+        unshare
+    )
+    vfsd=(
+        $vfsd_bin
+        --socket-path=$sock_file
+        --shared-dir $shared_dir
+        --announce-submounts
+        --sandbox chroot
+    )
+    case $sandbox {
+        (lxc)    $lxc_ns    -- $vfsd & ;;
+        (podman) $podman_ns -- $vfsd & ;;
+        (*) panic "Please change the value of sandbox to 'podman' or 'lxc' (e.g., sandbox=lxc)" ;;
+    }
+}
+
+add_virtio_fsd_args() {
+    if {! $virtio_fsd} {
+        return
+    }
+
     args+=(
-        -cpu  qemu64-v1
+        -chardev
+            "socket,id=char1,path=$sock_file"
+        -device
+            vhost-user-fs-pci,queue-size=1024,chardev=char1,tag=sd
+        -object
+            "memory-backend-memfd,id=mem,size=${memory}M,share=on"
+        -numa
+            node,memdev=mem
+    )
+
+    info 'Waiting for %F{blue}virtio_fsd%f socket to be created'
+    # timeout 10s
+    for i ({1..100}) {
+        if [[ -e $sock_file ]] {
+            break
+        }
+        info $i
+        sleep 0.1
+    }
+    if [[ ! -e $sock_file ]] {
+        panic 'Please %F{red}disable %F{cyan}VirtioFSD%f (i.e., virtio_fsd=false)'
+    }
+}
+# ----------------------------
+check_kvm() {
+    if {! $kvm} {
+        return
+    }
+    disable_kvm=false
+
+    case $(uname -m) {
+        (x86_64|amd64)
+            if [[ ! -e /dev/kvm ]] {
+                disable_kvm=true
+            }
+        ;;
+        (*) disable_kvm=true ;;
+    }
+
+    if {$disable_kvm} {
+        warn DISABLE KVM
+        kvm=false
+    }
+}
+
+set_qemu_cpu() {
+    if {$kvm} {
+        args+=(
+            -cpu  $kvm_cpu
+        )
+        return
+    }
+
+    args+=(
+        -cpu  $not_kvm_cpu
     )
 }
 # ----------------------------
-# current_exe()?.parent().set_workdir()
-cd ${0:a:h}
-
+check_virtio_fsd
+add_virtio_fsd_args
+check_kvm
+set_qemu_cpu
+cd $src_dir
+# ----------------------------
+# If you want to debug it (i.e., find out what was done before running qemu), comment out the following line. (i.e., +#)
 $qemu_cmd $args $extra_qemu_args

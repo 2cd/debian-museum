@@ -9,13 +9,13 @@ set -fexo pipefail
 # kvm=false
 kvm=true
 
-virtio_fsd=true
 
 name=debian
 
 # TCP port range: 1024 ~ 65535
 ssh_port=9022
 
+virtio_fsd=true
 # "podman" | "lxc"
 sandbox=podman
 # ------------------
