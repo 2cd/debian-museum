@@ -239,7 +239,7 @@ jobs:
             send-file-to-vm
           )
           for f ($files boot/* ssh/*) {
-            b3sum $f ||: >> blake3.txt
+            b3sum $f >> blake3.txt ||:
           }
           for f (boot ssh blake3.txt) {
             files+=$f
