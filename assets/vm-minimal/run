@@ -1,41 +1,98 @@
 #!/usr/bin/env zsh
 set -fexo pipefail
-# Depends: qemu-system-x86 | qemu-system-x86-64-headless
+# Depends: qemu-system
 # Suggests: virtiofsd (>= 1), podman | lxc
 # --------
 # Value range: 1024 ~ 65535
 integer ssh_port=9022
 
 name=debian-vm-minimal
-
+qemu_arch=x64
+# --------------
+#
+# KVM & MACHINE
+#
 # If "/dev/kvm" does not exist, or the current architecture is incompatible with the virtual machine architecture, then it will automatically disable KVM (i.e., kvm=false).
 kvm=true
+#
 kvm_cpu=host
-not_kvm_cpu=qemu64-v1
-qemu_machine=q35
+#
+# qemu-system-x86_64 -cpu help
+not_kvm_cpu_x64=qemu64-v1
+#
+# qemu-system-aarch64 -cpu help
+not_kvm_cpu_arm64=cortex-a55
 
-# NO GUI
-no_graphic=true
 
-qemu_cmd=qemu-system-x86_64
+# qemu-system-x86_64 -machine help
+machine_x64=q35
+#
+# qemu-system-aarch64 -machine help
+machine_arm64=virt
+#
+# When KVM is not supported, it will automatically fallback to TCG.
+qemu_accel="kvm:tcg"
+#
+# extra_machine_options=",virtualization=on"
+extra_machine_options=""
+# --------------
+#
+# CMD
+#
+qemu_cmd_x64=qemu-system-x86_64
+qemu_cmd_arm64=qemu-system-aarch64
+
 extra_qemu_args=(
+    # -vnc  127.0.0.1:1
+    #
     $*
 )
 
+# NO GUI
+no_graphic=true
+# --------------
+#
+# DISK
+#
 # For virtio-blk: The 1st disk is vda, the 2nd is vdb, and the 3rd is vdc.
 #
 # For RAW format images, use the `.img` or `.raw` extension.
 disk_arr=(
     disk.img
-    # disk.qcow2
     #
     # data.qcow2
     # var.img
     # usr.qcow2
     # win-data.vhdx
 )
+# --------------
+#
+# EFI
+#
+# For arm64(aarch64) debian sid, efi/uboot must be enabled, otherwise the system will not boot.
+enable_efi=false
 
+efi_compatibility_mode=true
+
+# Flash Device binary image
+efi_fd_file=boot/EFI.fd
+
+#  For `grub-efi` (<= 2.12), vars is required. For `refind`, it can be absent.
+efi_vars_file=boot/VARS.qcow2
+auto_create_efi_vars_file=true
+# --------------
+#
+# KERNEL
+#
 external_kernel=true
+kernel_file=boot/vmlinuz
+initrd_file=boot/initrd.img
+kernel_command_line="root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
+# --------------
+#
+# NETWORK
+#
+enable_nat_network=true
 
 # For NAT networks, if you need to access a virtual machine's port, you must expose it.
 #
@@ -73,7 +130,10 @@ local -A hostfwd_map=(
     127.0.0.1:${ssh_port}/tcp     9022
 )
 
-
+# --------------
+#
+# MEMORY
+#
 # Before running a virtual machine, first obtain the available memory on the host, and then allocate memory to the virtual machine based on a specific percentage of the available memory.
 #
 # 80 means using 80% of the host's available memory (RAM).
@@ -107,7 +167,10 @@ float memory_percentage=90.0
 # It is not necessary to manually add Unit (Megabytes (MB)).
 integer max_memory=0
 
-
+# --------------
+#
+# VIRTIO FSD
+#
 # Here's a description from the official website:
 #
 #   > Virtiofs is a shared file system that lets virtual machines access a directory tree on the host.
@@ -188,9 +251,10 @@ hostfwd_rules=""
     }
 }
 # ----------------------------
+machine_var_name="machine_${qemu_arch}"
+
 args=(
-    # When KVM is not supported, it will automatically fallback to TCG.
-    -machine ${qemu_machine},accel=kvm:tcg
+    -machine ${(P)machine_var_name},accel=${qemu_accel}${extra_machine_options}
 
     # Auto-detect the number of host cpu cores
     -smp $(nproc)
@@ -203,6 +267,11 @@ if {$no_graphic} {
         # -display none
         # -display curses
     )
+} else {
+    #
+    case $qemu_arch {
+        (arm64) args+=(-device ramfb)
+    }
 }
 
 # add disks
@@ -230,16 +299,36 @@ args+=(
     #       -serial chardev:char0
     #
     -serial  mon:stdio
-
-    -nic "user,model=virtio-net-pci$hostfwd_rules"
 )
+
+if {$enable_nat_network} {
+    args+=(
+        -nic "user,model=virtio-net-pci$hostfwd_rules"
+    )
+}
 
 if {$external_kernel} {
     args+=(
-        -kernel  boot/vmlinuz
-        -initrd  boot/initrd.img
-        -append  "root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
+        -kernel  $kernel_file
+        -initrd  $initrd_file
+        -append  $kernel_command_line
     )
+}
+
+if {$enable_efi} {
+    if {$efi_compatibility_mode} {
+        args+=( -bios ${efi_fd_file})
+    } else {
+        args+=( -drive file=${efi_fd_file},if=pflash,format=raw,unit=0,readonly=on)
+    }
+    args+=(
+        -drive file=${efi_vars_file},if=pflash,unit=1
+    )
+    if {$auto_create_efi_vars_file} {
+        if [[ ! -e $efi_vars_file ]] {
+            qemu-img create -f qcow2 $efi_vars_file 64M
+        }
+    }
 }
 # ----------------------------
 # MEMORY
@@ -252,7 +341,7 @@ calculate_memory() {
     # For compatibility with `busybox free`, don't add extra arguments for `free`.
     #
     # for line in run(["free"])?.filter(|x| x.contains("Mem: "))
-    for line ( ${"$(env LANG=C free)"[(fr)Mem: *]} ) {
+    for line ( ${"$(env LC_ALL=C free)"[(fr)Mem: *]} ) {
         local ava=${line[(ws^ ^)-1]}
         # /1000, not /1024
         available_memory=$((ava/1000))
@@ -376,15 +465,22 @@ check_kvm() {
     if {! $kvm} {
         return
     }
-    disable_kvm=false
+    local disable_kvm=false
+    local host_arch=$(uname -m)
 
-    case $(uname -m) {
-        (x86_64|amd64)
-            if [[ ! -e /dev/kvm ]] {
-                disable_kvm=true
-            }
-        ;;
-        (*) disable_kvm=true ;;
+    local -A map=(
+        x86_64          x64
+        amd64           x64
+        aarch64         arm64
+        arm64           arm64
+    )
+
+    if [[ $map[$host_arch]  == $qemu_arch ]] {
+        if [[ ! -e /dev/kvm ]] {
+            disable_kvm=true
+        }
+    } else {
+        disable_kvm=true
     }
 
     if {$disable_kvm} {
@@ -395,15 +491,14 @@ check_kvm() {
 
 set_qemu_cpu() {
     if {$kvm} {
-        args+=(
-            -cpu  $kvm_cpu
-        )
+        args+=( -cpu  $kvm_cpu )
         return
     }
 
-    args+=(
-        -cpu  $not_kvm_cpu
-    )
+    local var_name="not_kvm_cpu_$qemu_arch"
+    local cpu=${(P)var_name}
+
+    args+=( -cpu  $cpu )
 }
 # ----------------------------
 check_virtio_fsd
@@ -412,5 +507,7 @@ check_kvm
 set_qemu_cpu
 cd $src_dir
 # ----------------------------
+qemu_cmd_var="qemu_cmd_$qemu_arch"
+
 # If you want to debug it (i.e., find out what was done before running qemu), comment out the following line. (i.e., +#)
-$qemu_cmd $args $extra_qemu_args
+${(P)qemu_cmd_var} $args $extra_qemu_args

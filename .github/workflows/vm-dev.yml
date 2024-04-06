@@ -11,8 +11,8 @@ env:
   QEMU_PKG: x86
 
 on:
-  # schedule:
-  #   - cron: '0 11 28 */2 *'
+  schedule:
+    - cron: '0 11 28 */2 *'
   push:
     paths:
       - .github/workflows/vm-dev.yml
@@ -75,8 +75,14 @@ jobs:
             GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,4000000"
             APPEND_GRUB_CFG
 
+            # aarch64:
+              ttyAMA0
+
             update-grub
-            print -R "LABEL=rootfs / ext4 defaults,rw,noatime 0 1" >> /etc/fstab
+            >> /etc/fstab<<'FSTAB'
+            LABEL=rootfs /    ext4   defaults,rw,noatime 0 1
+            tmpfs       /tmp  tmpfs  defaults,nofail     0 0
+            FSTAB
 
       - name: change the config
         run: |

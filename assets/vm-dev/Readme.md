@@ -22,3 +22,6 @@ Next, reboot the virtual machine using the `reboot` command.
 Finally, the `unsafe-resize-partition.service` (systemd) will automatically resize the disk partition size.
 
 If it does not work, please feel free to report an issue.
+
+> Before reporting, please include the log.
+> Run `journalctl -u unsafe-resize-partition.service` and get the output.

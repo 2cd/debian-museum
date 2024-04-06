@@ -6,7 +6,6 @@ env:
   VM_SHUTDOWN: "ssh -F ssh/vm.sshconf vm poweroff ||:"
   DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
   #   DEBIAN_FRONTEND: noninteractive
-
 on:
   push:
     # branches: ["build"]
@@ -15,14 +14,25 @@ on:
 
 jobs:
   build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - arch: arm64
+            deb_arch: arm64
+            qemu_pkg_arch: arm
+          - arch: x64
+            deb_arch: amd64
+            qemu_pkg_arch: x86
     runs-on: ubuntu-latest
     env:
-      arch: x64
+      NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
     defaults:
       run:
         shell: zsh --pipefail -fex {0}
     steps:
       - name: install zsh
+        if: runner.arch == 'X64'
         shell: sh -e {0}
         run: ${{ vars.INSTALL_ZSH }}
 
@@ -38,19 +48,24 @@ jobs:
           apt-install systemd-container &
           task=$!
 
-          image=ghcr.io/2cd/debian-sid:${{env.arch}}
+          image=ghcr.io/2cd/debian-sid:${{matrix.arch}}
           docker pull $image
           name=$(docker create $image)
           docker export $name -o rootfs.tar
           sudo tar -C rootfs --overwrite -xf rootfs.tar
+          unlink rootfs.tar
           docker rm $name
           wait $task
+
+      - name: install qemu-user
+        if: env.NOT_X86
+        run: apt-install qemu-user-static
 
       - name: setup ssh server
         env:
           mirror_src: "rootfs/etc/apt/sources.list.d/mirror.sources"
         run: |
-          tmux new-session -d -s install_qemu 'apt-install qemu-system-x86'
+          tmux new-session -d -s install_qemu 'apt-install qemu-system-${{matrix.qemu_pkg_arch}}'
 
           sudo cp $mirror_src ${mirror_src}.bak
           awk_args=(
@@ -124,11 +139,10 @@ jobs:
 
           sudo install -Dm700 ${{env.DEV_DIR}}/libexec/resize-partition rootfs/usr/libexec/tmm/qemu/resize-partition
           sudo cp -a rootfs kernel_r
-          sudo systemd-nspawn -D kernel_r sh -c 'apt-install linux-image-cloud-amd64'
+          sudo systemd-nspawn -D kernel_r sh -c 'apt-install linux-image-cloud-${{matrix.deb_arch}}'
 
       - name: copy kernel
         run: |
-          ${{env.VM_SHUTDOWN}}
           mkdir -p boot
           for f (vmlinuz 'initrd.img') {
             real_path=$(realpath kernel_r/$f)
@@ -139,13 +153,30 @@ jobs:
           for f (config System) {
             cp -v kernel_r/boot/${f}* boot/ ||:
           }
-          machinectl list
           tmux new-session -d -s nspawn 'sudo systemd-nspawn -bD rootfs'
           sleep 2
           # sudo rm -rf kernel_r
           while {! ssh -F ssh/vm.sshconf vm exit} {
             sleep 1
           }
+      - name: set network & serial name
+        id: set_serial_name
+        run: |
+          case ${{matrix.arch}} {
+            (x64|x86)
+              network_iface=enp0s2
+              tty_serial=ttyS0
+            ;;
+            (*)
+              network_iface=enp0s1
+              tty_serial=ttyAMA0
+            ;;
+          }
+          outputs=(
+            "network=$network_iface"
+            "tty=$tty_serial"
+          )
+          printf "%s\n" $outputs >> $GITHUB_OUTPUT
 
       - name: setup dhcp-network & serial
         uses: 2moe/local-ssh-action@v0
@@ -157,13 +188,16 @@ jobs:
           run: |
             set -fexo pipefail
             apt-install ifupdown qemu-guest-agent udev fdisk
-            printf "%s\n" "auto enp0s2" "iface enp0s2 inet dhcp" >/etc/network/interfaces.d/qemu-nat.conf
+            network_iface=${{steps.set_serial_name.outputs.network}}
+            tty_serial=${{steps.set_serial_name.outputs.tty}}
+
+            printf "%s\n" "auto $network_iface" "iface $network_iface inet dhcp" >/etc/network/interfaces.d/qemu-nat.conf
             cd $(mktemp -d)
             printf "%s\n" 'nameserver 10.0.2.3' 'nameserver 1.1.1.1' > resolv.conf
             install -m644 resolv.conf /etc/resolv.conf
-            # serial@ttyS0
-            cp /usr/lib/systemd/system/serial-getty@.service /etc/systemd/system/serial-getty@ttyS0.service
-            sed '/ExecStart=/ s@- $TERM@--autologin root --local-line ttyS0 xterm@' -i /etc/systemd/system/serial-getty@ttyS0.service
+            # serial
+            cp /usr/lib/systemd/system/serial-getty@.service /etc/systemd/system/serial-getty@${tty_serial}.service
+            sed '/ExecStart=/ s@- $TERM@--autologin root --local-line - xterm@' -i /etc/systemd/system/serial-getty@${tty_serial}.service
 
             systemctl disable systemd-networkd-wait-online.service
             systemctl set-default multi-user.target
@@ -211,15 +245,50 @@ jobs:
           sudo cp -a rootfs/* disk
           sudo umount -lvf disk
 
-      - name: run vm
+      - name: configure kvm
         run: |
           cp -vf 2>/dev/null ${{env.DEV_DIR}}/* . ||:
           sudo adduser $USER kvm ||:
           sudo chmod 666 /dev/kvm ||:
-          tmux new-session -d -s run-vm ./run
 
-      - name: wait ssh
+      - if: matrix.arch != 'x64'
         run: |
+          enable_efi=true
+          tty_serial=${{steps.set_serial_name.outputs.tty}}
+
+          if [[ ${{matrix.arch}} == x86 ]] {
+            enable_efi=false
+          }
+
+          sed_args=(
+            -E
+            -e 's@^(qemu_arch)=.*@\1=${{matrix.arch}}@'
+          )
+          if {$enable_efi} {
+            sed_args+=(
+              -e 's@^(enable_efi)=.*@\1=true@'
+              -e "s@( console)=ttyS0,@\1=${tty_serial},@"
+              )
+          }
+          sed_args+=( -i run )
+          sed $sed_args
+
+      - name: download EFI
+        if: env.NOT_X86
+        run: |
+          unset url
+          case ${{matrix.arch}} {
+            (arm64) url='https://retrage.github.io/edk2-nightly/bin/RELEASEAARCH64_QEMU_EFI.fd' ;;
+            # (riscv64) url='https://retrage.github.io/edk2-nightly/bin/RELEASERISCV64_VIRT.fd' ;;
+          }
+          if (($+url)) {
+            curl -Lo boot/EFI.fd $url
+            exit
+          }
+
+      - name: run vm & wait ssh
+        run: |
+          tmux new-session -d -s run-vm ./run
           apt-install autossh
           autossh -F ssh/vm.sshconf vm echo OK ||:
 
@@ -243,9 +312,9 @@ jobs:
       - name: pack vm
         run: |
           ${{env.VM_SHUTDOWN}}
-          loop_dev=${{steps.disk_partition.outputs.dev}}
-          sudo kpartx -dv $loop_dev ||:
-          sudo losetup --detach $loop_dev ||:
+          # loop_dev=${{steps.disk_partition.outputs.dev}}
+          # sudo kpartx -dv $loop_dev ||:
+          # sudo losetup --detach $loop_dev ||:
           apt-install b3sum
           while {lsof disk.img} {
             sleep 1
@@ -269,7 +338,7 @@ jobs:
           args=(
             --posix
             --use-compress-program='zstdmt --long -18v'
-            -cf vm-minimal_${{env.arch}}.tar.zst
+            -cf vm-minimal_${{matrix.arch}}.tar.zst
             $files
           )
           tar $args

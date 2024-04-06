@@ -5,19 +5,37 @@
 Alpine
 
 ```sh
+# If the VM is x64 arch:
 apk add qemu-system-x86_64
+
+# If the VM is arm64 arch:
+apk add qemu-system-aarch64
+
+# If the VM is rv64 arch:
+apk add qemu-system-riscv64
+
+# If the VM is loong64 arch:
+apk add qemu-system-loongarch64
 ```
 
 Android Termux
 
 ```sh
+# If the VM is x64 arch:
 pkg i qemu-system-x86-64-headless
+
+# If the VM is arm64 arch:
+pkg i qemu-system-aarch64-headless
 ```
 
 ArchLinux
 
 ```sh
-paru -Sy qemu-system-x86
+# If the VM is x64 arch:
+pkg i qemu-system-x86
+
+# If the VM is arm64 arch:
+pkg i qemu-system-aarch64
 ```
 
 Debian, Ubuntu, Kali, Mint, ...
@@ -25,13 +43,17 @@ Debian, Ubuntu, Kali, Mint, ...
 ```sh
 # run apt as root (e.g., sudo apt update)
 apt update
-apt install qemu-system-x86
+apt install qemu-system
 ```
 
 Fedora
 
 ```sh
+# If the VM is x64 arch:
 dnf install qemu-system-x86
+
+# If the VM is arm64 arch:
+dnf install qemu-system-aarch64
 ```
 
 ## Step2: fix KVM permissions (Optional)
@@ -148,11 +170,13 @@ Run the following command in the virtual machine.
 
 ```sh
 apt update
-apt install linux-image-cloud-amd64 docker.io
+apt install docker.io
+
+# If the VM is x64 arch:
+apt install linux-image-cloud-amd64
+
+# If the VM is arm64 arch:
+apt install linux-image-cloud-arm64
 ```
 
 > You can also use a DEV VM with docker pre-installed.
-
-## TODO
-
-- add arm64(aarch64) virtual machine
