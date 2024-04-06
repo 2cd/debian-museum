@@ -287,10 +287,13 @@ jobs:
           }
 
       - name: run vm & wait ssh
+        timeout-minutes: 15
         run: |
           tmux new-session -d -s run-vm ./run
-          apt-install autossh
-          autossh -F ssh/vm.sshconf vm echo OK ||:
+          sleep 2
+          while {! ssh -F ssh/vm.sshconf vm exit} {
+            sleep 1
+          }
 
       - name: clean trash in VM
         uses: 2moe/local-ssh-action@v0
