@@ -21,9 +21,9 @@ jobs:
           - arch: arm64
             deb_arch: arm64
             qemu_pkg_arch: arm
-          # - arch: x64
-          #   deb_arch: amd64
-          #   qemu_pkg_arch: x86
+          - arch: x64
+            deb_arch: amd64
+            qemu_pkg_arch: x86
     runs-on: ubuntu-latest
     env:
       NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
@@ -134,7 +134,11 @@ jobs:
 
           sudo install -Dm700 ${{env.DEV_DIR}}/libexec/resize-partition rootfs/usr/libexec/tmm/qemu/resize-partition
           sudo cp -a rootfs kernel_r
-          sudo systemd-nspawn -D kernel_r sh -c 'apt-install linux-image-cloud-${{matrix.deb_arch}}'
+          case ${{matrix.deb_arch}} {
+            (arm64|amd64) kernel=linux-image-cloud-${{matrix.deb_arch}} ;;
+            (*)           kernel=linux-image-${{matrix.deb_arch}}       ;;
+          }
+          sudo systemd-nspawn -D kernel_r sh -c "apt-install $kernel"
 
       - name: copy kernel
         run: |

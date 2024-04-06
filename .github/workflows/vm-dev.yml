@@ -6,25 +6,36 @@ env:
   DEV_DIR: assets/vm-dev
   VM_MIN_DIR: assets/vm-minimal
   VM_SHUTDOWN: "ssh -F ssh/vm.sshconf vm poweroff ||:"
-  ARCH: x64
-  DEB_ARCH: amd64
-  QEMU_PKG: x86
+  SSH_VM: "ssh -F ssh/vm.sshconf vm"
 
 on:
-  schedule:
-    - cron: '0 11 28 */2 *'
+  # schedule:
+  #   - cron: "0 11 28 */2 *"
   push:
     paths:
       - .github/workflows/vm-dev.yml
 
 jobs:
   build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - arch: arm64
+            deb_arch: arm64
+            qemu_pkg_arch: arm
+          - arch: x64
+            deb_arch: amd64
+            qemu_pkg_arch: x86
     runs-on: ubuntu-latest
+    env:
+      NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
     defaults:
       run:
         shell: zsh --pipefail -fex {0}
     steps:
       - name: install zsh
+        if: runner.arch == 'X64'
         shell: sh -e {0}
         run: ${{ vars.INSTALL_ZSH }}
 
@@ -32,11 +43,11 @@ jobs:
 
       - name: download qemu image
         env:
-          url: "https://github.com/2cd/debian-museum/releases/download/unstable/vm-minimal_${{env.ARCH}}.tar.zst"
+          url: "https://github.com/2cd/debian-museum/releases/download/unstable/vm-minimal_${{matrix.arch}}.tar.zst"
         run: |
           sudo cp -pv ${VM_MIN_DIR}/scripts/* /usr/local/bin
           apt-install aria2
-          apt-install qemu-system-${{env.QEMU_PKG}} &
+          apt-install qemu-system-${{matrix.qemu_pkg_arch}} &
           task=$!
           aria2c -s5 -x5 -k1m --no-conf -o min.tzst "$url"
           tar -xf min.tzst
@@ -47,17 +58,38 @@ jobs:
           sed -E '/^integer / s@(ssh_port)=.*@\1=9023@' -i run
           cat ssh/vm.sshconf
           wait $task
+
+      - name: create EFI BOOT disk
+        if: env.NOT_X86
+        env:
+          disk: boot/FAT32-EFI.img
+        run: |
+          qemu-img create -f raw $disk 128M
+          print -R ',,U' | sudo sfdisk --label gpt $disk
+          sed -E 's@^(\s{2,})(disk.img)$@\1\2\n\1boot/FAT32-EFI.img@' -i run
+
+          loop_dev=$(sudo losetup -f)
+          sudo losetup $loop_dev $disk
+          sudo losetup --all
+          sudo kpartx -va $loop_dev
+          p1=/dev/mapper/${loop_dev:t}p1
+          sudo mkfs.vfat -F32 -n BOOT $p1
+          sudo kpartx -dv $loop_dev ||:
+          sudo losetup --detach $loop_dev ||:
+          cat run
+
       - name: run vm
+        timeout-minutes: 5
         run: |
           qemu-img resize disk.img +2G
           sudo chmod 666 -v /dev/kvm
           tmux new-session -d -s run-vm ./run
           sleep 2
-          while {! ssh -F ssh/vm.sshconf vm exit} {
+          while {! ${{env.SSH_VM}} exit} {
             sleep 1
           }
 
-      - name: install grub & kernel
+      - name: install kernel
         uses: 2moe/local-ssh-action@v0
         with:
           host: vm
@@ -65,26 +97,73 @@ jobs:
             -F
             ssh/vm.sshconf
           run: |
-            apt-install grub2 linux-image-cloud-${{env.DEB_ARCH}}
-            grub-install /dev/vda
+            NOT_X86=${{env.NOT_X86}}
+            cmt="# "
+            if { $NOT_X86 } {
+              cmt=""
+            }
 
-            >> /etc/default/grub <<'APPEND_GRUB_CFG'
+            >> /etc/fstab <<FSTAB
+            LABEL=rootfs /          ext4   defaults,rw,noatime 0 1
+            ${cmt}LABEL=BOOT   /boot/efi  vfat   umask=0077          0 1
+            tmpfs        /tmp       tmpfs  defaults,nofail     0 0
+            FSTAB
+
+            lsblk -f
+
+            apt-install
+            case ${{matrix.deb_arch}} {
+              (arm64|amd64) apt-install linux-image-cloud-${{matrix.deb_arch}} ;;
+              (*)           apt-install linux-image-${{matrix.deb_arch}}       ;;
+            }
+
+      - name: reboot vm
+        if: env.NOT_X86
+        timeout-minutes: 5
+        run: |
+          ${{env.SSH_VM}} reboot ||:
+          sleep 7
+          while {! ${{env.SSH_VM}} exit} {
+            sleep 1
+          }
+
+      - name: install grub
+        uses: 2moe/local-ssh-action@v0
+        with:
+          host: vm
+          args: |
+            -F
+            ssh/vm.sshconf
+          run: |
+            NOT_X86=${{env.NOT_X86}}
+            lsblk -f
+            df -Th
+
+            if {! $NOT_X86 } {
+              apt-install grub2
+              grub-install /dev/vda
+            }
+
+            if { $NOT_X86 } {
+              apt-install grub-efi
+              grub-install
+            }
+
+            serial=ttyS0
+            if { $NOT_X86 } {
+              serial=ttyAMA0
+            }
+            >> /etc/default/grub <<APPEND_GRUB_CFG
             GRUB_TIMEOUT=1
             GRUB_TERMINAL="console serial"
             GRUB_CMDLINE_LINUX_DEFAULT=""
-            GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,4000000"
+            GRUB_CMDLINE_LINUX="console=tty0 console=${serial},4000000"
+            GRUB_SERIAL_COMMAND="serial --speed=4000000"
             APPEND_GRUB_CFG
-
-            # aarch64:
-              ttyAMA0
-
             update-grub
-            >> /etc/fstab<<'FSTAB'
-            LABEL=rootfs /    ext4   defaults,rw,noatime 0 1
-            tmpfs       /tmp  tmpfs  defaults,nofail     0 0
-            FSTAB
 
       - name: change the config
+        timeout-minutes: 7
         run: |
           ${{env.VM_SHUTDOWN}}
           while {lsof disk.img} {
@@ -99,8 +178,8 @@ jobs:
           sed $sed_args
           tmux new-session -d -s run-vm ./run
           cat run
-          sleep 2
-          while {! ssh -F ssh/vm.sshconf vm exit} {
+          sleep 6
+          while {! ${{env.SSH_VM}} exit} {
             sleep 1
           }
 
@@ -136,6 +215,7 @@ jobs:
             sleep 1
           }
           qemu-img convert -O qcow2 disk.img disk.qcow2
+          ls -lh disk.img disk.qcow2
           unlink disk.img
           sed_args=(
             -E
@@ -143,6 +223,11 @@ jobs:
             -i run
           )
           sed $sed_args
+
+          # rm -fv boot/{initrd.*,System.map-*,vmlinuz*} ||:
+          rm -fv boot/initrd.*     ||:
+          rm -fv boot/System.map-* ||:
+          rm -fv boot/vmlinuz*     ||:
 
           files=(
             disk.qcow2
@@ -152,17 +237,17 @@ jobs:
             get-file-from-vm
             send-file-to-vm
           )
-          for f ($files ssh/*) {
-            b3sum $f >> blake3.txt
+          for f ($files boot/* ssh/*) {
+            b3sum $f ||: >> blake3.txt
           }
-          for f (ssh blake3.txt) {
+          for f (boot ssh blake3.txt) {
             files+=$f
           }
 
           args=(
             --posix
             --use-compress-program='zstdmt --long -18v'
-            -cf vm-dev_${{env.ARCH}}.tar.zst
+            -cf vm-dev_${{matrix.arch}}.tar.zst
             $files
           )
           tar $args
