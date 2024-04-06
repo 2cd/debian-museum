@@ -91,14 +91,9 @@ jobs:
           )
           awk $awk_args | sudo tee ${mirror_src}
           sudo rm -vf rootfs/etc/resolv.conf
-          for i (zsh busybox) {
-            file=$commands[$i]
-            bin=/usr/local/bin/$i
-            if [[ -e $bin ]] {
-              file=$bin
-            }
-            sudo cp -vf $file rootfs/bin/
-          }
+
+          docker run --rm -v $PWD/rootfs/bin/:/host ghcr.io/2moe/zsh-static:${{matrix.arch}} cp -v zsh busybox /host
+
           uuu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
           if [[ -e $uuu_keyring ]] {
             sudo cp -vf $uuu_keyring rootfs$uuu_keyring
