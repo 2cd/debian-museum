@@ -1,2 +1,0 @@
-#!/bin/sh -ex
-ssh -F vm.sshconf vm "$@"

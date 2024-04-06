@@ -1,14 +1,21 @@
 name: DEV virtual machine
 # auto-task.start-build-time = ?
 env:
-  DEBIAN_FRONTEND: noninteractive
+  # DEBIAN_FRONTEND: noninteractive
+  # DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
+  DEV_DIR: assets/vm-dev
+  VM_MIN_DIR: assets/vm-minimal
+  VM_SHUTDOWN: "ssh -F ssh/vm.sshconf vm poweroff ||:"
+  ARCH: x64
+  DEB_ARCH: amd64
+  QEMU_PKG: x86
 
 on:
   # schedule:
   #   - cron: '0 11 28 */2 *'
   push:
     paths:
-      - .github/workflows/dev_vm.yml
+      - .github/workflows/vm-dev.yml
 
 jobs:
   build:
@@ -27,285 +34,132 @@ jobs:
 
       - name: download qemu image
         env:
-          url: 'https://cdimage.debian.org/cdimage/cloud/sid/daily/latest/debian-sid-nocloud-amd64-daily.tar.xz'
+          url: "https://github.com/2cd/debian-museum/releases/download/unstable/vm-minimal_${{env.ARCH}}.tar.zst"
         run: |
-          df -Th
-          lsblk
-          sudo apt update
-          apt_install() {
-            sudo apt-get install -y $*
-          }
-          apt_install aria2
-          apt_install qemu-system-x86 systemd-container &
-
-          aria2c -s5 -x5 -k1m --no-conf -o disk.txz "$url"
-          tar --use-compress-program='xz -T0 -dv' -xf disk.txz
-
-      - name: get start offset of rootfs partition
-        id: get_start_offset
-        run: |
-          fdisk_cmd=(
-            sudo env LANG=C /sbin/fdisk --list disk.raw
-          )
-          awk_cmd=(
-            busybox awk
-            '/([0-9]+[[:space:]]+){3,}[0-9]+(\.[0-9]+)?G/ {
-              print($2)
-            }'
-          )
-          fdisk_output=$(
-            $fdisk_cmd
-          )
-          integer start=$(
-            print $fdisk_output | $awk_cmd
-          )
-          print -R "start=$((start * 512))" >> $GITHUB_OUTPUT
-
-      - name: apt fix-broken
-        run: |
-          while {! sudo apt-get install -f} {
-            sleep 1
-          }
-
-      - name: mount rootfs partition
-        run: |
-          mkdir -p rootfs
-          sudo mount -o loop,offset=${{steps.get_start_offset.outputs.start}} ./disk.raw rootfs
-
-      - name: generate local ssh-key
-        run: |
-          key=vm.ed25519
-          ssh-keygen -t ed25519 -f $key -N ""
-          ssh_client_d=rootfs/root/.ssh
-          for i ($ssh_client_d) {
-            sudo install -Dm600 ${key}.pub $i/authorized_keys
-            sudo chmod 700 -v $i
-          }
-
-      - name: run vm rootfs as container
-        run: |
-          sudo rm -vf rootfs/etc/resolv.conf
-          for i (zsh busybox) {
-              file=$commands[$i]
-              bin=/usr/local/bin/$i
-              if [[ -e $bin ]] {
-                  file=$bin
-              }
-
-              sudo cp -vf $file rootfs/bin/
-          }
-          uuu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
-          if [[ -e $uuu_keyring ]] {
-              sudo cp -vf $uuu_keyring rootfs$uuu_keyring
-          }
-          sudo cp -vf ${{env.DEV_DIR}}/systemd/* rootfs/etc/systemd/system/
-
-          single_arg=$(<<'CTR_ARG'
-              sed_args=(
-                -E
-                -e  '/Suites/ s@( sid).*@\1 experimental@'
-                -e  '$a\Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg'
-                -i.bak  /etc/apt/sources.list.d/debian.sources
-              )
-              sed $sed_args
-              printf "%s\n" 'https://cloudflaremirrors.com/debian' >> /etc/apt/mirrors/debian.list
-
-              apt update
-              apt-get install -y ifupdown parted
-              printf "%s\n" "auto enp0s2" "iface enp0s2 inet dhcp" >/etc/network/interfaces.d/dhcp.conf
-              ssh-keygen -A
-              printf "%s\n" "TCPKeepAlive yes" "ClientAliveInterval 100" "ClientAliveCountMax 36" >> /etc/ssh/sshd_config.d/36-keep-alive.conf
-              chsh -s /bin/zsh
-              cd /etc/default/grub.d/ || exit 1
-              print -R 'GRUB_TIMEOUT=1' > 15_timeout.cfg
-              print -R 'GRUB_TERMINAL="serial"' > 40_serial.cfg
-          CTR_ARG
-          )
-          sudo systemd-nspawn -D rootfs zsh -fexc "$single_arg"
-          sudo umount -lvf rootfs
-      - name: install virtiofsd
-        env:
-          url: "https://gitlab.com/virtio-fs/virtiofsd/uploads/2cf9068046720699531407101f2bcb60/virtiofsd-v1.10.1.zip"
-          file: "target/x86_64-unknown-linux-musl/release/virtiofsd"
-        run: |
-          curl -Lo v.zip $url
-          unzip -o v.zip
-          sudo install -Dm755 $file /usr/libexec/virtiofsd
-
+          sudo cp -pv ${VM_MIN_DIR}/scripts/* /usr/local/bin
+          apt-install aria2
+          apt-install qemu-system-${{env.QEMU_PKG}} &
+          task=$!
+          aria2c -s5 -x5 -k1m --no-conf -o min.tzst "$url"
+          tar -xf min.tzst
+          mv -vf Readme.md Readme.minimal-vm.md ||:
+          cp -vf ${{env.DEV_DIR}}/* . ||:
+          unlink min.tzst
+          sed -E 's@(Port).*[0-9]$@\1 9023@' -i ssh/vm.sshconf
+          sed -E '/^integer / s@(ssh_port)=.*@\1=9023@' -i run
+          cat ssh/vm.sshconf
+          wait $task
       - name: run vm
         run: |
-          qemu-img create -f qcow2 usr.qcow2 5G
-          qemu-img create -f qcow2 var.qcow2 10G
-          cp ${{env.DEV_DIR}}/run .
-          sudo sysctl -w fs.file-max=1000000
-          sudo chmod 666 /dev/kvm
+          qemu-img resize disk.img +2G
+          sudo chmod 666 -v /dev/kvm
           tmux new-session -d -s run-vm ./run
-          # timeout 10 tmux attach-session -r -t run-vm ||:
-
-      - name: copy vm ssh config
-        env:
-          conf: vm.sshconf
-        run: |
-          install -m600 ${{env.DEV_DIR}}/$conf ./$conf
-          sudo apt-get install -y autossh
-          autossh -M0 -F vm.sshconf vm echo OK ||:
-
-      - name: Disk partitioning and mounting
-        uses: 2moe/local-ssh-action@v0
-        with:
-          host: vm
-          run: |
-            set -fexo pipefail
-            export DEBIAN_FRONTEND=noninteractive
-
-            systemctl enable media-sd.automount
-            systemctl start media-sd.mount || journalctl -xe 2>/dev/null
-
-            systemctl set-default multi-user.target
-
-            update-grub
-
-            apt-get autopurge -y ^python 2>&1 >/dev/null
-            apt-get install -y linux-image-cloud-amd64
-
-            ls -lah /media/sd ||:
-            ln -svf /media/sd /root/
-            lsblk ||:
-
-            local -A map=(
-              vdb usr
-              vdc var
-            )
-
-            for i (mount umount reboot rm) {
-              cp /bin/busybox /tmp/$i
-            }
-
-            for d (vdc vdb) {
-              value=$map[$d]
-              parted -s /dev/$d mklabel gpt
-              lsblk
-              parted -s /dev/$d mkpart ${value}-p1 0% 100%
-              lsblk
-
-              mkfs.ext4 -FL vm-$value /dev/${d}1
-              mkdir -pv /tmp/$value
-              mount /dev/${d}1 /tmp/$value
-              cp -a /$value /tmp
-              print -R "LABEL=vm-$value /$value ext4 defaults 0 0" >> /etc/fstab
-
-              /tmp/rm -rf /${value}/* ||:
-              /tmp/rm -rf /${value}/.* ||:
-              /tmp/mount /dev/${d}1 /$value || /tmp/mount -o bind /tmp/$value /$value
-            }
-            lsblk ||:
-            df -Th ||:
-            /sbin/reboot || /tmp/reboot
-          args: |
-            -F
-            vm.sshconf
-
-      - name: wait ssh
-        run: |
-          sleep 7
-          for i ({1..100}) {
-            print $i
-            case $(ssh -F vm.sshconf vm echo OK ||:) {
-              (OK) break  ;;
-              (*) sleep 1 ;;
-            }
-          }
-
-      - name: install qemu-user-static & docker
-        uses: 2moe/local-ssh-action@v0
-        with:
-          host: vm
-          args: |
-            -F
-            vm.sshconf
-          run: |
-            set -fexo pipefail
-
-            df -Th
-            lsblk
-            ls -lah /media/sd ||:
-
-            apt_install() {
-              apt-get install -y $*
-            }
-            for kernel (
-              $(
-                dpkg --list | awk -v usize=0 '
-                /[[:space:]]+linux-image-/ && !/-cloud-/ {
-                    print($2)
-                }'
-              )
-            ) {
-              apt-get autopurge -y $kernel
-            }
-
-            apt_install apt-utils whiptail qemu-guest-agent -y
-            apt-get upgrade -y
-            apt-get dist-upgrade -fy
-
-            apt_install debootstrap systemd-container docker.io
-            systemctl disable systemd-networkd-wait-online.service
-
-            apt_install -t experimental qemu-user-static
-            apt-get autopurge -y
-            apt-get clean
-
-            for dir (/root /var /usr) {
-              dd if=/dev/zero of=$dir/zero bs=1M || {
-                rm -v $dir/zero
-              }
-            }
-            rm -vf /var/lib/apt/lists/*.* ||:
-            poweroff
-
-      - name: pack vm to tar+zstd
-        run: |
-          cp -vf /usr/libexec/virtiofsd .
-
-          for i (Readme.md connect-to-ssh) {
-            cp -vf ${{env.DEV_DIR}}/$i .
-          }
-
-          while {lsof disk.raw} {
-            print wait disk.raw
+          sleep 2
+          while {! ssh -F ssh/vm.sshconf vm exit} {
             sleep 1
           }
 
-          for file (*.qcow2) {
-            qemu-img convert -O qcow2 $file _$file
-            ls -lh $file _$file
-            mv -vf _$file $file
+      - name: install grub & kernel
+        uses: 2moe/local-ssh-action@v0
+        with:
+          host: vm
+          args: |
+            -F
+            ssh/vm.sshconf
+          run: |
+            apt-install grub2 linux-image-cloud-${{env.DEB_ARCH}}
+            grub-install /dev/vda
+
+            >> /etc/default/grub <<'APPEND_GRUB_CFG'
+            GRUB_TIMEOUT=1
+            GRUB_TERMINAL="console serial"
+            GRUB_CMDLINE_LINUX_DEFAULT=""
+            GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,4000000"
+            APPEND_GRUB_CFG
+
+            update-grub
+            print -R "LABEL=rootfs / ext4 defaults,rw,noatime 0 1" >> /etc/fstab
+
+      - name: change the config
+        run: |
+          ${{env.VM_SHUTDOWN}}
+          while {lsof disk.img} {
+            sleep 1
           }
-          qemu-img convert -O qcow2 disk.raw disk.qcow2
-          unlink disk.raw
-          qemu-img convert -O raw disk.qcow2 disk.raw
-          unlink disk.qcow2
+          qemu-img convert -O qcow2 disk.img disk.qcow2
+          unlink disk.img
+          sed_args=(
+            -E
+            -e '/debian-vm-minimal/ s@(name)=.*@\1=debian-vm-dev@'
+            -e 's@^(external_kernel)=.*@\1=false@'
+            -e 's@^(\s{2,})disk\.img$@\1disk.qcow2@'
+            -i run
+          )
+          sed $sed_args
+          tmux new-session -d -s run-vm ./run
+          cat run
+          sleep 2
+          while {! ssh -F ssh/vm.sshconf vm exit} {
+            sleep 1
+          }
+
+      - name: install docker & qemu-user
+        uses: 2moe/local-ssh-action@v0
+        with:
+          host: vm
+          args: |
+            -F
+            ssh/vm.sshconf
+          run: |
+            df -Th
+            apt-install docker.io
+            apt-install -t experimental qemu-user-static
+
+            systemctl disable systemd-networkd-wait-online.service
+            apt-get autopurge -y
+            apt-get clean
+            journalctl --rotate ||:
+            journalctl --vacuum-time=1s ||:
+            df -Th
+            ls -lh /var/cache/apt
+            rm -vf /var/lib/apt/lists/*.* ||:
+            dd if=/dev/zero of=/root/zero bs=1M || {
+              rm -vf /root/zero
+            }
+
+      - name: pack vm
+        run: |
+          ${{env.VM_SHUTDOWN}}
+          apt-install b3sum
+          while {lsof disk.img} {
+            sleep 1
+          }
+
+          qemu-img convert -O qcow2 disk.qcow2 disk.bak
+          ls -lh disk.bak disk.qcow2 ||:
+          mv -fv disk.qcow2 disk.bak
 
           files=(
-            vm.sshconf
-            vm.ed25519*
+            disk.qcow2
             run
-            disk.raw
-            *.qcow2
-            virtiofsd
-            Readme.md
+            Readme.*
             connect-to-ssh
+            get-file-from-vm
+            send-file-to-vm
           )
-          sha256sum $files > sha256.txt
-          files+=sha256.txt
+          for f ($files ssh/*) {
+            b3sum $f >> blake3.txt
+          }
+          for f (ssh blake3.txt) {
+            files+=$f
+          }
 
           args=(
             --posix
             --use-compress-program='zstdmt --long -18v'
-            -cf dev-vm_x64.tar.zst
+            -cf vm-dev_${{env.ARCH}}.tar.zst
             $files
           )
-
           tar $args
 
       - name: release

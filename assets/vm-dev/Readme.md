@@ -1,40 +1,24 @@
 # DEV VM
 
-Step1: install deps
+DEV VM is based on MINIMAL VM, with the following differences:
+
+- It comes with a "built-in" kernel and uses GRUB for booting.
+- Docker and qemu-user-static are pre-installed.
+
+Before starting the virtual machine, you can expand the disk using `qemu-img`:
 
 ```sh
-sudo apt install qemu-system-x86 podman
-
-# optional:
-sudo apt install virtiofsd
+qemu-img resize disk.qcow2 +10G
 ```
 
-Step2: fix KVM Permissions (Optional):
-
-Add the current user to the kvm user group.
-
-```sh
-sudo usermod -aG kvm "$(id -un)"
-```
-
-If it does not work, change the permission manually.
-
-```sh
-sudo chmod 666 -v /dev/shm
-```
-
-Step3: run
+Then run the virtual machine:
 
 ```sh
 ./run
 ```
 
-> localhost login: root
+Next, reboot the virtual machine using the `reboot` command.
 
-Step4: connect to ssh (Optional)
+Finally, the `unsafe-resize-partition.service` (systemd) will automatically resize the disk partition size.
 
-Open a new terminal window, then run:
-
-```sh
-./connect-to-ssh
-```
+If it does not work, please feel free to report an issue.

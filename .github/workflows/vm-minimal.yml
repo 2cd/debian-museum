@@ -243,25 +243,14 @@ jobs:
       - name: pack vm
         run: |
           ${{env.VM_SHUTDOWN}}
-          sleep 2
           loop_dev=${{steps.disk_partition.outputs.dev}}
           sudo kpartx -dv $loop_dev ||:
           sudo losetup --detach $loop_dev ||:
+          apt-install b3sum
           while {lsof disk.img} {
             sleep 1
           }
-          img_arr=(
-            qcow2,img,qcow2
-            raw,qcow2,img
-          )
-          for v ($img_arr) {
-            fmt_arr=( ${(s^,^)v} )
-            qemu_fmt=$fmt_arr[1]
-            src_fmt=$fmt_arr[2]
-            dst_fmt=$fmt_arr[3]
-            echo qemu-img convert -O $qemu_fmt disk.$src_fmt disk.$dst_fmt
-            echo unlink disk.$src_fmt
-          }
+
           files=(
             *.img
             run
@@ -271,9 +260,9 @@ jobs:
             send-file-to-vm
           )
           for f ($files ssh/* boot/*) {
-            sha256sum $f >> sha256.txt
+            b3sum $f >> blake3.txt
           }
-          for f (ssh boot sha256.txt) {
+          for f (ssh boot blake3.txt) {
             files+=$f
           }
 

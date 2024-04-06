@@ -34,12 +34,18 @@ if ((long_bit < 64 && current_year >= 2038)) {
     $as_root apt-get update
 }
 
-for pkg ($*) {
-    args=(
-        install
-        --assume-yes
-        --fix-broken
-        $pkg
-    )
-    $as_root apt-get $args
+args=()
+for a ($*) {
+    #
+    case $a {
+        (-y|--assume-yes|-f|--fix-broken) continue ;;
+        (*)                               args+=$a ;;
+    }
 }
+apt_args=(
+    install
+    $args
+    --assume-yes
+    --fix-broken
+)
+$as_root apt-get $apt_args
