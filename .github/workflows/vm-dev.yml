@@ -20,8 +20,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      DEV_DIR: assets/dev-vm
     defaults:
       run:
         shell: zsh --pipefail -fex {0}
