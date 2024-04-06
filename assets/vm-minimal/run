@@ -21,7 +21,7 @@ kvm_cpu=host
 not_kvm_cpu_x64=qemu64-v1
 #
 # qemu-system-aarch64 -cpu help
-not_kvm_cpu_arm64=cortex-a55
+not_kvm_cpu_arm64=cortex-a72
 
 
 # qemu-system-x86_64 -machine help

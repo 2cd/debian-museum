@@ -21,9 +21,9 @@ jobs:
           - arch: arm64
             deb_arch: arm64
             qemu_pkg_arch: arm
-          - arch: x64
-            deb_arch: amd64
-            qemu_pkg_arch: x86
+          # - arch: x64
+          #   deb_arch: amd64
+          #   qemu_pkg_arch: x86
     runs-on: ubuntu-latest
     env:
       NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
@@ -289,7 +289,8 @@ jobs:
       - name: run vm & wait ssh
         timeout-minutes: 15
         run: |
-          tmux new-session -d -s run-vm ./run
+          cat run
+          tmux new-session -d -s run-vm
           sleep 2
           while {! ssh -F ssh/vm.sshconf vm exit} {
             sleep 1
@@ -315,9 +316,9 @@ jobs:
       - name: pack vm
         run: |
           ${{env.VM_SHUTDOWN}}
-          # loop_dev=${{steps.disk_partition.outputs.dev}}
-          # sudo kpartx -dv $loop_dev ||:
-          # sudo losetup --detach $loop_dev ||:
+          loop_dev=${{steps.disk_partition.outputs.dev}}
+          sudo kpartx -dv $loop_dev ||:
+          sudo losetup --detach $loop_dev ||:
           apt-install b3sum
           while {lsof disk.img} {
             sleep 1
