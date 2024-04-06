@@ -224,6 +224,7 @@ jobs:
           )
           sed $sed_args
 
+          unlink blake3.txt ||:
           # rm -fv boot/{initrd.*,System.map-*,vmlinuz*} ||:
           rm -fv boot/initrd.*     ||:
           rm -fv boot/System.map-* ||:
