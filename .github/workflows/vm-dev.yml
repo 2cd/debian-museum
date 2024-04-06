@@ -86,13 +86,10 @@ jobs:
           while {lsof disk.img} {
             sleep 1
           }
-          qemu-img convert -O qcow2 disk.img disk.qcow2
-          unlink disk.img
           sed_args=(
             -E
             -e '/debian-vm-minimal/ s@(name)=.*@\1=debian-vm-dev@'
             -e 's@^(external_kernel)=.*@\1=false@'
-            -e 's@^(\s{2,})disk\.img$@\1disk.qcow2@'
             -i run
           )
           sed $sed_args
@@ -134,10 +131,14 @@ jobs:
           while {lsof disk.img} {
             sleep 1
           }
-
-          qemu-img convert -O qcow2 disk.qcow2 disk.bak
-          ls -lh disk.bak disk.qcow2 ||:
-          mv -fv disk.qcow2 disk.bak
+          qemu-img convert -O qcow2 disk.img disk.qcow2
+          unlink disk.img
+          sed_args=(
+            -E
+            -e 's@^(\s{2,})disk\.img$@\1disk.qcow2@'
+            -i run
+          )
+          sed $sed_args
 
           files=(
             disk.qcow2
