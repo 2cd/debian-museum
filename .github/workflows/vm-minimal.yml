@@ -187,7 +187,7 @@ jobs:
             ssh/vm.sshconf
           run: |
             set -fexo pipefail
-            apt-install ifupdown qemu-guest-agent udev fdisk
+            apt-install ifupdown qemu-guest-agent udev fdisk dosfstools
             network_iface=${{steps.set_serial_name.outputs.network}}
             tty_serial=${{steps.set_serial_name.outputs.tty}}
 
@@ -212,6 +212,9 @@ jobs:
             apt-get clean
             ls -lh /var/cache/apt
             rm -vf /var/lib/apt/lists/*.* ||:
+            df -Th
+            journalctl --rotate ||:
+            journalctl --vacuum-time=1s ||:
 
       - name: disk partition
         id: disk_partition
@@ -285,37 +288,10 @@ jobs:
             curl -Lo boot/EFI.fd $url
             exit
           }
-
-      - name: run vm & wait ssh
-        timeout-minutes: 15
-        run: |
           cat run
-          tmux new-session -d -s run-vm
-          sleep 2
-          while {! ssh -F ssh/vm.sshconf vm exit} {
-            sleep 1
-          }
-
-      - name: clean trash in VM
-        uses: 2moe/local-ssh-action@v0
-        with:
-          host: vm
-          args: |
-            -F
-            ssh/vm.sshconf
-          run: |
-            ls -lh /var/cache/apt
-            df -Th
-            journalctl --rotate ||:
-            journalctl --vacuum-time=1s ||:
-            df -Th
-            dd if=/dev/zero of=/root/zero bs=1M || {
-              rm -vf /root/zero
-            }
 
       - name: pack vm
         run: |
-          ${{env.VM_SHUTDOWN}}
           loop_dev=${{steps.disk_partition.outputs.dev}}
           sudo kpartx -dv $loop_dev ||:
           sudo losetup --detach $loop_dev ||:
