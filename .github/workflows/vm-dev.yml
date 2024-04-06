@@ -21,9 +21,9 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - arch: arm64
-            deb_arch: arm64
-            qemu_pkg_arch: arm
+          # - arch: arm64
+          #   deb_arch: arm64
+          #   qemu_pkg_arch: arm
           - arch: x64
             deb_arch: amd64
             qemu_pkg_arch: x86
@@ -60,7 +60,7 @@ jobs:
           wait $task
 
       - name: create EFI BOOT disk
-        if: env.NOT_X86
+        if: env.NOT_X86 == true
         env:
           disk: boot/FAT32-EFI.img
         run: |
@@ -118,7 +118,7 @@ jobs:
             }
 
       - name: reboot vm
-        if: env.NOT_X86
+        if: env.NOT_X86 == true
         timeout-minutes: 5
         run: |
           ${{env.SSH_VM}} reboot ||:

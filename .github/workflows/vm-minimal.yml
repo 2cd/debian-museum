@@ -18,9 +18,9 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - arch: arm64
-            deb_arch: arm64
-            qemu_pkg_arch: arm
+          # - arch: arm64
+          #   deb_arch: arm64
+          #   qemu_pkg_arch: arm
           - arch: x64
             deb_arch: amd64
             qemu_pkg_arch: x86
@@ -58,7 +58,7 @@ jobs:
           wait $task
 
       - name: install qemu-user
-        if: env.NOT_X86
+        if: env.NOT_X86 == true
         run: apt-install qemu-user-static
 
       - name: setup ssh server
@@ -276,7 +276,7 @@ jobs:
           sed $sed_args
 
       - name: download EFI
-        if: env.NOT_X86
+        if: env.NOT_X86 == true
         run: |
           unset url
           case ${{matrix.arch}} {
