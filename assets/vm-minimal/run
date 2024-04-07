@@ -120,7 +120,7 @@ kernel_file=boot/vmlinuz
 initrd_file=boot/initrd.img
 kernel_command_line="root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
 kernel_command_line_arm64="root=/dev/vda1 rw console=tty0 console=ttyAMA0,4000000"
-kernel_command_line_rv64gc="root=/dev/vda1 rw console=ttyS0,115200"
+kernel_command_line_rv64gc="root=/dev/vda1 rw console=ttyS0,4000000"
 # --------------
 #
 # NETWORK
