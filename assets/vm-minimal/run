@@ -15,7 +15,8 @@ qemu_arch=x64
 # If "/dev/kvm" does not exist, or the current architecture is incompatible with the virtual machine architecture, then it will automatically disable KVM (i.e., kvm=false).
 kvm=true
 #
-# When KVM is not supported, it will automatically fallback to TCG.
+# When KVM is not supported, it will automatically fallback.
+# kvm:xen:hvf:nvmm:whpx:tcg
 qemu_accel="kvm:tcg"
 #
 kvm_cpu=host
@@ -38,10 +39,10 @@ cpu_loong64=la464
 cpu_mips64le=Loongson-3A1000
 #
 # qemu-system-ppc64 -cpu help
-cpu_ppc64le="power8"
+cpu_ppc64le=power8
 #
 # qemu-system-s390x -cpu help
-cpu_s390x="z196.2"
+cpu_s390x=max
 
 # pc (Standard PC (i440FX + PIIX, 1996)), q35 (Standard PC (Q35 + ICH9, 2009)),
 # microvm, isapc, none, x-remote
@@ -138,6 +139,7 @@ kernel_command_line="root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
 kernel_command_line_arm64="root=/dev/vda1 rw console=tty0 console=ttyAMA0,4000000"
 kernel_command_line_rv64gc="root=/dev/vda1 rw console=ttyS0,4000000"
 kernel_command_line_ppc64le="root=/dev/vda1 rw console=tty0 console=hvc0"
+kernel_command_line_s390x="root=/dev/vda1 rw console=ttysclp0"
 # --------------
 #
 # NETWORK
@@ -155,6 +157,7 @@ nic_model_rv64gc="virtio-net-device"
 
 nic_compatibility_mode=false
 nic_compatibility_mode_rv64gc=true
+nic_compatibility_mode_s390x=true
 
 extra_nic_options=(
     #
