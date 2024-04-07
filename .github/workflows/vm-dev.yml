@@ -149,15 +149,16 @@ jobs:
               grub-install
             }
 
-            serial=ttyS0
-            if { $NOT_X86 } {
-              serial=ttyAMA0
+            case ${{matrix.arch}} {
+              (x64|x86) grub_cmd_linux="console=tty0 console=ttyS0"   ;;
+              (rv64gc)  grub_cmd_linux="console=ttyS0"                ;;
+              (*)       grub_cmd_linux="console=tty0 console=ttyAMA0" ;;
             }
             >> /etc/default/grub <<APPEND_GRUB_CFG
             GRUB_TIMEOUT=1
             GRUB_TERMINAL="console serial"
             GRUB_CMDLINE_LINUX_DEFAULT=""
-            GRUB_CMDLINE_LINUX="console=tty0 console=${serial},4000000"
+            GRUB_CMDLINE_LINUX="${grub_cmd_linux}"
             GRUB_SERIAL_COMMAND="serial --speed=4000000"
             APPEND_GRUB_CFG
             update-grub

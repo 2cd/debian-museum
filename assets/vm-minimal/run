@@ -22,17 +22,20 @@ kvm_cpu=host
 kvm_cpu_rv64gc=max
 kvm_cpu_loong64=max
 #
+#
+# CPU for Non-KVM:
+#
 # qemu-system-x86_64 -cpu help
-not_kvm_cpu_x64=qemu64-v1
+cpu_x64=qemu64-v1
 #
 # qemu-system-aarch64 -cpu help
-not_kvm_cpu_arm64=cortex-a72
+cpu_arm64=cortex-a72
 #
 # qemu-system-riscv64 -cpu help
-not_kvm_cpu_rv64gc=thead-c906
+cpu_rv64gc=sifive-u54
 #
 # la132, la464, max
-not_kvm_cpu_loong64=la464
+cpu_loong64=la464
 
 
 # pc (Standard PC (i440FX + PIIX, 1996)), q35 (Standard PC (Q35 + ICH9, 2009)),
@@ -48,8 +51,11 @@ machine_rv64gc=virt
 # none, virt (Loongson-3A5000 LS7A1000)
 machine_loong64=virt
 #
-# extra_machine_options=",virtualization=on"
-extra_machine_options=""
+#
+extra_machine_options=(
+    # virtualization=on
+    #
+)
 # ----------------------
 #
 # CMD
@@ -61,6 +67,8 @@ qemu_cmd_rv64gc=qemu-system-riscv64
 
 extra_qemu_args=(
     # -vnc  127.0.0.1:1
+    #
+    # -device  ramfb
     #
     $*
 )
@@ -80,17 +88,19 @@ no_graphic=true
 disk_arr=(
     disk.img
     #
-    # data.qcow2
     # var.img
-    # usr.qcow2
-    # win-data.vhdx
+    # 128GB-EXT4.img
+    # 1TB-BTRFS.raw
+    # 1PB-data.qcow2
+    # win-data-NTFS.vhdx
 )
 # --------------
 #
 # EFI
 #
-# For arm64(aarch64) debian trixie, efi/uboot must be enabled, otherwise the system will not boot.
+# For arm64(aarch64) debian trixie (qemu 9.0-rc), efi/uboot must be enabled, otherwise the system will not boot.
 enable_efi=false
+enable_efi_arm64=true
 
 efi_compatibility_mode=true
 
@@ -98,6 +108,7 @@ efi_compatibility_mode=true
 efi_fd_file=boot/EFI.fd
 
 #  For `grub-efi` (<= 2.12), vars is required. For `refind`, it can be absent.
+enable_efi_vars=true
 efi_vars_file=boot/VARS.qcow2
 auto_create_efi_vars_file=true
 # --------------
@@ -108,11 +119,29 @@ external_kernel=true
 kernel_file=boot/vmlinuz
 initrd_file=boot/initrd.img
 kernel_command_line="root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
+kernel_command_line_arm64="root=/dev/vda1 rw console=tty0 console=ttyAMA0,4000000"
+kernel_command_line_rv64gc="root=/dev/vda1 rw console=ttyS0,115200"
 # --------------
 #
 # NETWORK
 #
 enable_nat_network=true
+
+# qemu-system-x86_64 -nic model=help
+#
+# name: "usb-net"             bus: usb-bus
+# name: "virtio-net-device"   bus: virtio-bus
+# name: "virtio-net-pci"      bus: PCI
+#
+nic_model="virtio-net-pci"
+nic_model_rv64gc="virtio-net-device"
+
+nic_compatibility_mode=false
+nic_compatibility_mode_rv64gc=true
+
+extra_nic_options=(
+    #
+)
 
 # For NAT networks, if you need to access a virtual machine's port, you must expose it.
 #
@@ -232,6 +261,12 @@ info() {
 dbg() {
     print -P >&2 -- '%F{blue}[DEBUG]%f' $*
 }
+get_the_real_value() {
+    local key=$1
+    local var_name="${key}_${qemu_arch}"
+    local value=${(P)var_name}
+    print -R $value
+}
 # ----------------------------
 hostfwd_rules=""
 # anonymous function
@@ -273,10 +308,14 @@ hostfwd_rules=""
     }
 }
 # ----------------------------
-machine_var_name="machine_${qemu_arch}"
+machine_name=$(get_the_real_value machine)
 
+unset machine_opts
+for i ($extra_machine_options) {
+    machine_opts+=$(printf "%s" ",$i")
+}
 args=(
-    -machine ${(P)machine_var_name},accel=${qemu_accel}${extra_machine_options}
+    -machine ${machine_name},accel=${qemu_accel}${machine_opts}
 
     # Auto-detect the number of host cpu cores
     -smp $(nproc)
@@ -317,32 +356,98 @@ args+=(
     -serial  mon:stdio
 )
 
-if {$enable_nat_network} {
-    args+=(
-        -nic "user,model=virtio-net-pci$hostfwd_rules"
-    )
+# setup_qemu_network
+() {
+    if {$enable_nat_network} {
+        unset nic_opts
+        local nic_opts
+        for i ($extra_nic_options) {
+            nic_opts+=$(printf "%s" ",$i")
+        }
+
+        local model_value real_model
+        model_value=$(get_the_real_value nic_model)
+        real_model=$nic_model
+        # if model_value.is_not_empty()
+        if ((#model_value)) {
+            real_model=$model_value
+        }
+
+        local cm_value real_cm
+        cm_value=$(get_the_real_value nic_compatibility_mode)
+        real_cm=$nic_compatibility_mode
+        if ((#cm_value)) {
+            real_cm=$cm_value
+        }
+
+        # if nic_compatibility_mode is enabled:
+        if {$real_cm} {
+            args+=(
+                -device ${real_model},netdev=net0
+                -netdev "user,id=net0${hostfwd_rules}${nic_opts}"
+            )
+            return
+        }
+
+        args+=(
+            -nic "user,model=${real_model}${hostfwd_rules}${nic_opts}"
+        )
+    }
 }
 
-if {$external_kernel} {
+# setup external kernel
+() {
+    if {! $external_kernel} {
+        return
+    }
+
+    local cli_value real_cli
+
+    cli_value=$(get_the_real_value kernel_command_line)
+    real_cli=$kernel_command_line
+    if ((#cli_value)) {
+        real_cli=$cli_value
+    }
+
     args+=(
         -kernel  $kernel_file
         -initrd  $initrd_file
-        -append  $kernel_command_line
+        -append  $real_cli
     )
 }
 
-if {$enable_efi} {
+# setup EFI
+() {
+    local efi_value real_efi
+
+    efi_value=$(get_the_real_value enable_efi)
+    real_efi=$enable_efi
+    if ((#efi_value)) {
+        real_efi=$efi_value
+    }
+
+    if {! $real_efi} {
+        return
+    }
+
     if {$efi_compatibility_mode} {
         args+=( -bios ${efi_fd_file})
     } else {
         args+=( -drive file=${efi_fd_file},if=pflash,format=raw,unit=0,readonly=on)
     }
-    args+=(
-        -drive file=${efi_vars_file},if=pflash,unit=1
-    )
-    if {$auto_create_efi_vars_file} {
-        if [[ ! -e $efi_vars_file ]] {
-            qemu-img create -f qcow2 $efi_vars_file 64M
+
+    if {$enable_efi_vars} {
+        args+=(
+            -drive file=${efi_vars_file},if=pflash,unit=1
+        )
+        if {$auto_create_efi_vars_file} {
+            if [[ ! -e $efi_vars_file ]] {
+                case $qemu_arch {
+                    (rv64gc) size=32M ;;
+                    (*)      size=64M ;;
+                }
+                qemu-img create -f qcow2 $efi_vars_file $size
+            }
         }
     }
 }
@@ -390,7 +495,7 @@ args+=(
     $memory
 )
 # ----------------------------
-check_virtio_fsd() {
+check_and_run_virtio_fsd() {
     if {! $virtio_fsd} {
         return
     }
@@ -512,13 +617,11 @@ check_kvm() {
 }
 
 set_qemu_cpu() {
-    local cpu cpu_value var_name
+    local cpu cpu_value
 
     if {$kvm} {
+        cpu_value=$(get_the_real_value kvm_cpu)
         cpu=$kvm_cpu
-
-        var_name="kvm_cpu_$qemu_arch"
-        cpu_value=${(P)var_name}
 
         # if cpu_value.is_not_empty()
         if ((#cpu_value)) {
@@ -529,20 +632,17 @@ set_qemu_cpu() {
         return
     }
 
-    var_name="not_kvm_cpu_$qemu_arch"
-    cpu=${(P)var_name}
-
+    cpu=$(get_the_real_value cpu)
     args+=( -cpu  $cpu )
 }
 # ----------------------------
-check_virtio_fsd
+check_and_run_virtio_fsd
 add_virtio_fsd_args
 check_kvm
 set_qemu_cpu
 cd $src_dir
 # ----------------------------
-qemu_cmd_var="qemu_cmd_$qemu_arch"
-qemu_cmd=${(P)qemu_cmd_var}
+qemu_cmd=$(get_the_real_value qemu_cmd)
 dbg $qemu_cmd $args $extra_qemu_args
 
 # If you want to debug it (i.e., find out what was done before running qemu), comment out the following line. (i.e., +#)

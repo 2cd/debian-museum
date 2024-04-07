@@ -65,7 +65,6 @@ jobs:
           wait $task
 
       - name: install qemu-user
-        # 'true' is a string, not a bool value !!!
         if: fromJson(env.NOT_X86)
         run: apt-install qemu-user-static
 
@@ -79,7 +78,8 @@ jobs:
           awk_args=(
             -v true=1
             -v false=0
-            '/experimental/{
+            -v mirror_url='https://cloudflaremirrors.com/debian/'
+            '/experimental/ {
               cond = true
             }
             /-debug/{
@@ -87,7 +87,7 @@ jobs:
             }
             /snapshot\.debian/ {
               if ($1 == "URIs:") {
-                sub($0, sprintf("%s https://cloudflaremirrors.com/debian/", $1))
+                sub($0, sprintf("%s %s", $1, mirror_url))
               }
             }
             cond && /Enabled:/{
@@ -97,7 +97,12 @@ jobs:
             { print }'
             ${mirror_src}.bak
           )
-          awk $awk_args | sudo tee ${mirror_src}
+
+          case ${{matrix.arch}} {
+            (x64|arm64|rv64gc|ppc64le|s390x|mips64le)
+                awk $awk_args | sudo tee ${mirror_src}
+          }
+
           sudo rm -vf rootfs/etc/resolv.conf
 
           docker run --rm -v $PWD/rootfs/bin/:/host ghcr.io/2moe/zsh-static:${{matrix.arch}} cp zsh busybox /host
@@ -169,11 +174,10 @@ jobs:
       - name: set network & serial name
         id: set_serial_name
         run: |
+          tty_serial=ttyS0
           case ${{matrix.arch}} {
-            (x64|x86)
-              network_iface=enp0s2
-              tty_serial=ttyS0
-            ;;
+            (x64|x86) network_iface=enp0s2 ;;
+            (rv64gc)  network_iface=eth0   ;;
             (*)
               network_iface=enp0s1
               tty_serial=ttyAMA0
@@ -254,33 +258,15 @@ jobs:
           #
           sudo cp -a rootfs/* disk
           sudo umount -lvf disk
-
-      - name: configure kvm
-        run: |
           cp -vf 2>/dev/null ${{env.DEV_DIR}}/* . ||:
-          sudo adduser $USER kvm ||:
-          sudo chmod 666 /dev/kvm ||:
 
       - if: matrix.arch != 'x64'
         run: |
-          enable_efi=true
-          tty_serial=${{steps.set_serial_name.outputs.tty}}
-
-          if [[ ${{matrix.arch}} == x86 ]] {
-            enable_efi=false
-          }
-
           sed_args=(
             -E
             -e 's@^(qemu_arch)=.*@\1=${{matrix.arch}}@'
+            -i run
           )
-          if {$enable_efi} {
-            sed_args+=(
-              -e 's@^(enable_efi)=.*@\1=true@'
-              -e "s@( console)=ttyS0,@\1=${tty_serial},@"
-              )
-          }
-          sed_args+=( -i run )
           sed $sed_args
 
       - name: download EFI
@@ -291,7 +277,6 @@ jobs:
           unset url
           case ${{matrix.arch}} {
             (arm64)   url='https://retrage.github.io/edk2-nightly/bin/RELEASEAARCH64_QEMU_EFI.fd' ;;
-            (rv64gc)  url='https://retrage.github.io/edk2-nightly/bin/RELEASERISCV64_VIRT.fd'     ;;
             (loong64) url='https://mirrors.pku.edu.cn/loongarch/archlinux/images/QEMU_EFI_8.1.fd' ;;
           }
           if (($+url)) {
@@ -300,7 +285,6 @@ jobs:
             if ((size <= 4096)) {
               exit 1
             }
-            exit
           }
 
       - name: pack vm
