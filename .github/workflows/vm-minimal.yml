@@ -3,7 +3,7 @@ name: minimal virtual machine
 
 env:
   DEV_DIR: assets/vm-minimal
-  VM_SHUTDOWN: "ssh -F ssh/vm.sshconf vm poweroff ||:"
+  SSH_VM: "ssh -F ssh/vm.sshconf vm"
   DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
   #   DEBIAN_FRONTEND: noninteractive
 on:
@@ -21,9 +21,15 @@ jobs:
           # - arch: arm64
           #   deb_arch: arm64
           #   qemu_pkg_arch: arm
-          - arch: x64
-            deb_arch: amd64
-            qemu_pkg_arch: x86
+          # - arch: x64
+          #   deb_arch: amd64
+          #   qemu_pkg_arch: x86
+          - arch: rv64gc
+            deb_arch: riscv64
+            qemu_pkg_arch: misc
+          # - arch: loong64
+          #   deb_arch: loong64
+          #   qemu_pkg_arch: misc
     runs-on: ubuntu-latest
     env:
       NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
@@ -40,11 +46,10 @@ jobs:
 
       - name: export rootfs
         id: export_rootfs
+        env:
+          scripts: "${{env.DEV_DIR}}/scripts/*"
         run: |
-          sudo mkdir -pv rootfs/usr/local/bin/
-          for p ('/'  'rootfs/') {
-            sudo cp -pv ${DEV_DIR}/scripts/* ${p}usr/local/bin
-          }
+          sudo cp -pv ${{env.scripts}} /usr/local/bin
           apt-install systemd-container &
           task=$!
 
@@ -54,6 +59,7 @@ jobs:
           docker export $name -o rootfs.tar
           sudo tar -C rootfs --overwrite -xf rootfs.tar
           unlink rootfs.tar
+          sudo cp -pv ${{env.scripts}} rootfs/usr/local/bin
           docker rm $name
           wait $task
 
@@ -67,7 +73,7 @@ jobs:
         run: |
           tmux new-session -d -s install_qemu 'apt-install qemu-system-${{matrix.qemu_pkg_arch}}'
 
-          sudo cp $mirror_src ${mirror_src}.bak
+          sudo cp -vf $mirror_src ${mirror_src}.bak
           awk_args=(
             -v true=1
             -v false=0
@@ -92,7 +98,7 @@ jobs:
           awk $awk_args | sudo tee ${mirror_src}
           sudo rm -vf rootfs/etc/resolv.conf
 
-          docker run --rm -v $PWD/rootfs/bin/:/host ghcr.io/2moe/zsh-static:${{matrix.arch}} cp -v zsh busybox /host
+          docker run --rm -v $PWD/rootfs/bin/:/host ghcr.io/2moe/zsh-static:${{matrix.arch}} cp zsh busybox /host
 
           uuu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
           if [[ -e $uuu_keyring ]] {
@@ -155,7 +161,7 @@ jobs:
           tmux new-session -d -s nspawn 'sudo systemd-nspawn -bD rootfs'
           sleep 2
           # sudo rm -rf kernel_r
-          while {! ssh -F ssh/vm.sshconf vm exit} {
+          while {! ${{env.SSH_VM}} exit} {
             sleep 1
           }
       - name: set network & serial name
@@ -218,7 +224,7 @@ jobs:
       - name: disk partition
         id: disk_partition
         run: |
-          ${{env.VM_SHUTDOWN}}
+          ${{env.SSH_VM}} poweroff ||:
           if ((! $+commands[qemu-img])) {
             apt-install
           }
@@ -277,20 +283,27 @@ jobs:
 
       - name: download EFI
         if: env.NOT_X86 == true
+        env:
+          efi_file: boot/EFI.fd
         run: |
           unset url
           case ${{matrix.arch}} {
-            (arm64) url='https://retrage.github.io/edk2-nightly/bin/RELEASEAARCH64_QEMU_EFI.fd' ;;
-            # (riscv64) url='https://retrage.github.io/edk2-nightly/bin/RELEASERISCV64_VIRT.fd' ;;
+            (arm64)   url='https://retrage.github.io/edk2-nightly/bin/RELEASEAARCH64_QEMU_EFI.fd' ;;
+            (rv64gc)  url='https://retrage.github.io/edk2-nightly/bin/RELEASERISCV64_VIRT.fd'     ;;
+            (loong64) url='https://mirrors.pku.edu.cn/loongarch/archlinux/images/QEMU_EFI_8.1.fd' ;;
           }
           if (($+url)) {
-            curl -Lo boot/EFI.fd $url
+            curl -Lo "$efi_file" $url
+            size=$(stat -c %s "$efi_file")
+            if ((size <= 4096)) {
+              exit 1
+            }
             exit
           }
-          cat run
 
       - name: pack vm
         run: |
+          cat run
           loop_dev=${{steps.disk_partition.outputs.dev}}
           sudo kpartx -dv $loop_dev ||:
           sudo losetup --detach $loop_dev ||:

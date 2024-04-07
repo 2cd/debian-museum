@@ -2,45 +2,62 @@
 set -fexo pipefail
 # Depends: qemu-system
 # Suggests: virtiofsd (>= 1), podman | lxc
-# --------
+# -------------------------
 # Value range: 1024 ~ 65535
 integer ssh_port=9022
 
 name=debian-vm-minimal
 qemu_arch=x64
-# --------------
+# -------------------------
 #
 # KVM & MACHINE
 #
 # If "/dev/kvm" does not exist, or the current architecture is incompatible with the virtual machine architecture, then it will automatically disable KVM (i.e., kvm=false).
 kvm=true
 #
+# When KVM is not supported, it will automatically fallback to TCG.
+qemu_accel="kvm:tcg"
+#
 kvm_cpu=host
+kvm_cpu_rv64gc=max
+kvm_cpu_loong64=max
 #
 # qemu-system-x86_64 -cpu help
 not_kvm_cpu_x64=qemu64-v1
 #
 # qemu-system-aarch64 -cpu help
 not_kvm_cpu_arm64=cortex-a72
+#
+# qemu-system-riscv64 -cpu help
+not_kvm_cpu_rv64gc=thead-c906
+#
+# la132, la464, max
+not_kvm_cpu_loong64=la464
 
 
-# qemu-system-x86_64 -machine help
+# pc (Standard PC (i440FX + PIIX, 1996)), q35 (Standard PC (Q35 + ICH9, 2009)),
+# microvm, isapc, none, x-remote
 machine_x64=q35
 #
 # qemu-system-aarch64 -machine help
 machine_arm64=virt
 #
-# When KVM is not supported, it will automatically fallback to TCG.
-qemu_accel="kvm:tcg"
+# none, shakti_c, sifive_e (SiFive E), sifive_u (SiFive U), spike, virt
+machine_rv64gc=virt
+#
+# none, virt (Loongson-3A5000 LS7A1000)
+machine_loong64=virt
 #
 # extra_machine_options=",virtualization=on"
 extra_machine_options=""
-# --------------
+# ----------------------
 #
 # CMD
 #
 qemu_cmd_x64=qemu-system-x86_64
 qemu_cmd_arm64=qemu-system-aarch64
+qemu_cmd_loong64=qemu-system-loongarch64
+qemu_cmd_rv64gc=qemu-system-riscv64
 
 extra_qemu_args=(
     # -vnc  127.0.0.1:1
@@ -49,6 +66,9 @@ extra_qemu_args=(
 )
 
 # NO GUI
+#
+# It is designed for NO GUI, if you want to use GUI, then you need to set `no_graphic=false`, and add the related arguments manually. e.g., for arm64, you may need to add the ramfb device: extra_qemu_args+=( -device ramfb )
+#
 no_graphic=true
 # --------------
 #
@@ -69,12 +89,12 @@ disk_arr=(
 #
 # EFI
 #
-# For arm64(aarch64) debian sid, efi/uboot must be enabled, otherwise the system will not boot.
+# For arm64(aarch64) debian trixie, efi/uboot must be enabled, otherwise the system will not boot.
 enable_efi=false
 
 efi_compatibility_mode=true
 
-# Flash Device binary image
+# EFI Flash Device binary image
 efi_fd_file=boot/EFI.fd
 
 #  For `grub-efi` (<= 2.12), vars is required. For `refind`, it can be absent.
@@ -129,7 +149,6 @@ local -A hostfwd_map=(
     #
     127.0.0.1:${ssh_port}/tcp     9022
 )
-
 # --------------
 #
 # MEMORY
@@ -210,6 +229,9 @@ panic() {
 info() {
     print -P >&2 -- '%F{cyan}[INFO]%f' $*
 }
+dbg() {
+    print -P >&2 -- '%F{blue}[DEBUG]%f' $*
+}
 # ----------------------------
 hostfwd_rules=""
 # anonymous function
@@ -267,13 +289,7 @@ if {$no_graphic} {
         # -display none
         # -display curses
     )
-} else {
-    #
-    case $qemu_arch {
-        (arm64) args+=(-device ramfb)
-    }
 }
-
 # add disks
 () {
     for disk ($disk_arr) {
@@ -473,6 +489,12 @@ check_kvm() {
         amd64           x64
         aarch64         arm64
         arm64           arm64
+        loongarch64     loong64
+        loong64         loong64
+        riscv64         rv64gc
+        # armhf           armv7a
+        # armv7l          armv7a
+        # s390            s390x
     )
 
     if [[ $map[$host_arch]  == $qemu_arch ]] {
@@ -490,13 +512,25 @@ check_kvm() {
 }
 
 set_qemu_cpu() {
+    local cpu cpu_value var_name
+
     if {$kvm} {
-        args+=( -cpu  $kvm_cpu )
+        cpu=$kvm_cpu
+
+        var_name="kvm_cpu_$qemu_arch"
+        cpu_value=${(P)var_name}
+
+        # if cpu_value.is_not_empty()
+        if ((#cpu_value)) {
+            cpu=$cpu_value
+        }
+
+        args+=( -cpu  $cpu )
         return
     }
 
-    local var_name="not_kvm_cpu_$qemu_arch"
-    local cpu=${(P)var_name}
+    var_name="not_kvm_cpu_$qemu_arch"
+    cpu=${(P)var_name}
 
     args+=( -cpu  $cpu )
 }
@@ -508,6 +542,8 @@ set_qemu_cpu
 cd $src_dir
 # ----------------------------
 qemu_cmd_var="qemu_cmd_$qemu_arch"
+qemu_cmd=${(P)qemu_cmd_var}
+dbg $qemu_cmd $args $extra_qemu_args
 
 # If you want to debug it (i.e., find out what was done before running qemu), comment out the following line. (i.e., +#)
-${(P)qemu_cmd_var} $args $extra_qemu_args
+$qemu_cmd $args $extra_qemu_args
