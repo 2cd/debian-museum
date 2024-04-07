@@ -65,7 +65,8 @@ jobs:
           wait $task
 
       - name: install qemu-user
-        if: env.NOT_X86 == true
+        # 'true' is a string, not a bool value !!!
+        if: fromJson(env.NOT_X86)
         run: apt-install qemu-user-static
 
       - name: setup ssh server
@@ -283,7 +284,7 @@ jobs:
           sed $sed_args
 
       - name: download EFI
-        if: env.NOT_X86 == true
+        if: fromJson(env.NOT_X86)
         env:
           efi_file: boot/EFI.fd
         run: |

@@ -60,7 +60,7 @@ jobs:
           wait $task
 
       - name: create EFI BOOT disk
-        if: env.NOT_X86 == true
+        if: fromJson(env.NOT_X86)
         env:
           disk: boot/FAT32-EFI.img
         run: |
@@ -118,7 +118,7 @@ jobs:
             }
 
       - name: reboot vm
-        if: env.NOT_X86 == true
+        if: fromJson(env.NOT_X86)
         timeout-minutes: 5
         run: |
           ${{env.SSH_VM}} reboot ||:
