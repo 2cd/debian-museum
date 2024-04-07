@@ -163,11 +163,17 @@ jobs:
           for f (vmlinuz 'initrd.img') {
             real_path=$(realpath kernel_r/$f)
             real_fname=${real_path:t}
-            cp -v $real_path boot/$f
-            ln -svf $f boot/$real_fname
+            cp -v $real_path boot/$f || {
+              ls -lh kernel_r/boot/
+              files=(kernel_r/boot/${f}-*)
+              cp $files[1] boot/$f
+            }
+            if [[ $f != $real_fname ]] {
+              ln -svf $f boot/$real_fname
+            }
           }
           for f (config System) {
-            cp -v kernel_r/boot/${f}* boot/ ||:
+            cp -Lv kernel_r/boot/${f}* boot/ ||:
           }
           tmux new-session -d -s nspawn 'sudo systemd-nspawn -bD rootfs'
           sleep 2
