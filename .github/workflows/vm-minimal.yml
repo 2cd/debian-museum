@@ -161,18 +161,15 @@ jobs:
         run: |
           cp -a kernel_r/boot .
           for f (vmlinuz 'initrd.img') {
-            if [[ ! -e kernel_r/$f ]] {
+            k_file=kernel_r/$f
+            if [[ ! -e $k_file ]] {
               # fix ppc64le
-              f=vmlinux
+              k_file=kernel_r/vmlinux
             }
 
-            real_path=$(realpath kernel_r/$f)
+            real_path=$(realpath $k_file)
             real_fname=${real_path:t}
-            cp -v $real_path boot/$f || {
-              ls -lh kernel_r/boot/
-              files=(kernel_r/boot/${f}-*)
-              cp $files[1] boot/$f
-            }
+            cp -v $real_path boot/$f
             if [[ $f != $real_fname ]] {
               ln -svf $f boot/$real_fname
             }
