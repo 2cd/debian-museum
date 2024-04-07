@@ -35,8 +35,10 @@ cpu_rv64gc=sifive-u54
 cpu_loong64=la464
 #
 # qemu-system-ppc64 -cpu help
-cpu_ppc64le="PowerPC power8"
+cpu_ppc64le="power8"
 
+# qemu-system-s390x -cpu help
+cpu_s390x="z196.2"
 
 # pc (Standard PC (i440FX + PIIX, 1996)), q35 (Standard PC (Q35 + ICH9, 2009)),
 # microvm, isapc, none, x-remote
@@ -54,6 +56,9 @@ machine_loong64=virt
 # qemu-system-ppc64 -machine help
 machine_ppc64le=pseries
 
+# qemu-system-s390x -machine help
+machine_s390x=s390-ccw-virtio
+
 extra_machine_options=(
     # virtualization=on
     #
@@ -67,6 +72,7 @@ qemu_cmd_arm64=qemu-system-aarch64
 qemu_cmd_loong64=qemu-system-loongarch64
 qemu_cmd_rv64gc=qemu-system-riscv64
 qemu_cmd_ppc64le=qemu-system-ppc64
+qemu_cmd_s390x=qemu-system-s390x
 
 extra_qemu_args=(
     # -vnc  127.0.0.1:1
@@ -124,6 +130,7 @@ initrd_file=boot/initrd.img
 kernel_command_line="root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
 kernel_command_line_arm64="root=/dev/vda1 rw console=tty0 console=ttyAMA0,4000000"
 kernel_command_line_rv64gc="root=/dev/vda1 rw console=ttyS0,4000000"
+kernel_command_line_ppc64le="root=/dev/vda1 rw console=tty0 console=hvc0"
 # --------------
 #
 # NETWORK
@@ -218,6 +225,9 @@ float memory_percentage=90.0
 # It is not necessary to manually add Unit (Megabytes (MB)).
 integer max_memory=0
 
+# Note: power8 cpu (arch: ppc64le) must have an integer multiple of 256M.
+auto_resize_mem_to_256_multiple=false
+auto_resize_mem_to_256_multiple_ppc64le=true
 # --------------
 #
 # VIRTIO FSD
@@ -493,6 +503,26 @@ memory=$(calculate_memory)
 if ((memory < 96)) {
     memory=98
 }
+
+# Automatically resize the memory size to an integer multiple of 256.
+() {
+    auto_resize_mem=$(get_the_real_value auto_resize_mem_to_256_multiple)
+
+    if {$auto_resize_mem} {
+        if ((memory <= 256)) {
+            memory=256
+            return
+        }
+
+        local remainder=$((memory % 256))
+
+        if (( remainder == 0 )) {
+            return
+        }
+        memory=$(( memory - remainder ))
+    }
+}
+#
 args+=(
     -m
     $memory

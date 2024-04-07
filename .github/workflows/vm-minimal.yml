@@ -27,12 +27,15 @@ jobs:
           # - arch: rv64gc
           #   deb_arch: riscv64
           #   qemu_pkg_arch: misc
-          - arch: ppc64le
-            deb_arch: ppc64el
-            qemu_pkg_arch: ppc
           # - arch: loong64
           #   deb_arch: loong64
           #   qemu_pkg_arch: misc
+          - arch: ppc64le
+            deb_arch: ppc64el
+            qemu_pkg_arch: ppc
+          - arch: s390x
+            deb_arch: s390x
+            qemu_pkg_arch: misc
     runs-on: ubuntu-latest
     env:
       NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
@@ -190,12 +193,16 @@ jobs:
         run: |
           tty_serial=ttyS0
           case ${{matrix.arch}} {
-            (x64|x86) network_iface=enp0s2 ;;
-            (rv64gc)  network_iface=eth0   ;;
-            (*)
-              network_iface=enp0s1
+            (arm)
               tty_serial=ttyAMA0
+              network_iface=enp0s1
             ;;
+            (ppc64le)
+              tty_serial=hev0
+              network_iface=enp0s0
+            ;;
+            (rv64gc)  network_iface=eth0   ;;
+            (*)       network_iface=enp0s2 ;;
           }
           outputs=(
             "network=$network_iface"
