@@ -44,6 +44,12 @@ cpu_ppc64le=power8
 # qemu-system-s390x -cpu help
 cpu_s390x=max
 
+# Symmetric multiprocessing (Multiple CPU cores)
+smp=true
+smp_mips64le=false
+# If `smp=true`, and `max_cores=0`, then the number of cpu cores of the host is automatically detected.
+integer max_cores=0
+
 # pc (Standard PC (i440FX + PIIX, 1996)), q35 (Standard PC (Q35 + ICH9, 2009)),
 # microvm, isapc, none, x-remote
 machine_x64=q35
@@ -288,6 +294,14 @@ get_the_real_value() {
     local key=$1
     local var_name="${key}_${qemu_arch}"
     local value=${(P)var_name}
+    if ((#value)) {
+        print -R $value
+        return
+    }
+    value=${(P)key}
+    if ((! #value)) {
+        panic "\$$key is empty"
+    }
     print -R $value
 }
 # ----------------------------
@@ -339,11 +353,23 @@ for i ($extra_machine_options) {
 }
 args=(
     -machine ${machine_name},accel=${qemu_accel}${machine_opts}
-
-    # Auto-detect the number of host cpu cores
-    -smp $(nproc)
     -name $name
 )
+
+() {
+    enable_smp=$(get_the_real_value smp)
+    if {$enable_smp} {
+        local core_num=$max_cores
+        if ((max_cores == 0)) {
+            # Auto-detect the number of host cpu cores
+            core_num=$(nproc)
+        }
+        args+=(
+            -smp $core_num
+        )
+    }
+}
+
 if {$no_graphic} {
     args+=(
         -nographic
@@ -388,20 +414,11 @@ args+=(
             nic_opts+=$(printf "%s" ",$i")
         }
 
-        local model_value real_model
-        model_value=$(get_the_real_value nic_model)
-        real_model=$nic_model
-        # if model_value.is_not_empty()
-        if ((#model_value)) {
-            real_model=$model_value
-        }
+        local real_model
+        real_model=$(get_the_real_value nic_model)
 
-        local cm_value real_cm
-        cm_value=$(get_the_real_value nic_compatibility_mode)
-        real_cm=$nic_compatibility_mode
-        if ((#cm_value)) {
-            real_cm=$cm_value
-        }
+        local real_cm
+        real_value=$(get_the_real_value nic_compatibility_mode)
 
         # if nic_compatibility_mode is enabled:
         if {$real_cm} {
@@ -424,32 +441,24 @@ args+=(
         return
     }
 
-    local cli_value real_cli
+    local cli_value
 
     cli_value=$(get_the_real_value kernel_command_line)
-    real_cli=$kernel_command_line
-    if ((#cli_value)) {
-        real_cli=$cli_value
-    }
 
     args+=(
         -kernel  $kernel_file
         -initrd  $initrd_file
-        -append  $real_cli
+        -append  $cli_value
     )
 }
 
 # setup EFI
 () {
-    local efi_value real_efi
+    local efi_value
 
     efi_value=$(get_the_real_value enable_efi)
-    real_efi=$enable_efi
-    if ((#efi_value)) {
-        real_efi=$efi_value
-    }
 
-    if {! $real_efi} {
+    if {! $efi_value} {
         return
     }
 
@@ -516,7 +525,7 @@ if ((memory < 96)) {
 
 # Automatically resize the memory size to an integer multiple of 256.
 () {
-    auto_resize_mem=$(get_the_real_value auto_resize_mem_to_256_multiple)
+    local auto_resize_mem=$(get_the_real_value auto_resize_mem_to_256_multiple)
 
     if {$auto_resize_mem} {
         if ((memory <= 256)) {
@@ -633,16 +642,24 @@ check_kvm() {
     local host_arch=$(uname -m)
 
     local -A map=(
-        x86_64          x64
-        amd64           x64
-        aarch64         arm64
-        arm64           arm64
-        loongarch64     loong64
-        loong64         loong64
-        riscv64         rv64gc
-        # armhf           armv7a
-        # armv7l          armv7a
-        # s390            s390x
+        x86_64              x64
+        amd64               x64
+        aarch64             arm64
+        arm64               arm64
+        loongarch64         loong64
+        loong64             loong64
+        riscv64             rv64gc
+        ppc64le             ppc64le
+        ppc64el             ppc64le
+        powerpc64le         ppc64le
+        powerpc64el         ppc64le
+        s390                s390x
+        s390x               s390x
+        mips64              mips64le
+        mips64le            mips64le
+        mips64el            mips64le
+        # armhf             armv7a
+        # armv7l            armv7a
     )
 
     if [[ $map[$host_arch]  == $qemu_arch ]] {
@@ -660,15 +677,13 @@ check_kvm() {
 }
 
 set_qemu_cpu() {
-    local cpu cpu_value
-
     if {$kvm} {
         args+=( -cpu  $kvm_cpu )
         return
     }
 
-    cpu=$(get_the_real_value cpu)
-    args+=( -cpu  $cpu )
+    local cpu_value=$(get_the_real_value cpu)
+    args+=( -cpu  $cpu_value )
 }
 # ----------------------------
 check_and_run_virtio_fsd

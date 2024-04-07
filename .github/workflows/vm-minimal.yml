@@ -30,15 +30,15 @@ jobs:
           # - arch: loong64
           #   deb_arch: loong64
           #   qemu_pkg_arch: misc
-          # - arch: mips64le
-          #   deb_arch: mips64el
-          #   qemu_pkg_arch: mips
+          - arch: mips64le
+            deb_arch: mips64el
+            qemu_pkg_arch: mips
           # - arch: ppc64le
           #   deb_arch: ppc64el
           #   qemu_pkg_arch: ppc
-          - arch: s390x
-            deb_arch: s390x
-            qemu_pkg_arch: misc
+          # - arch: s390x
+          #   deb_arch: s390x
+          #   qemu_pkg_arch: misc
     runs-on: ubuntu-latest
     env:
       NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
@@ -159,10 +159,11 @@ jobs:
           case ${{matrix.arch}} {
             (arm64|x64)   kernel=cloud-${{matrix.deb_arch}} ;;
             (ppc64le)     kernel=powerpc64le                ;;
-            # linux-image-loongson-3
-            # linux-image-mips64r2el
-            # linux-image-octeon
-            (mips64le)    kernel=mips64r2el                 ;;
+            #
+            # loongson-3
+            # mips64r2el
+            # octeon
+            (mips64le)    kernel=loongson-3                 ;;
             (*)           kernel=${{matrix.deb_arch}}       ;;
           }
           sudo systemd-nspawn -D kernel_r sh -c "apt-install linux-image-${kernel}"
