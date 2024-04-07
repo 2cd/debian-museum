@@ -159,8 +159,13 @@ jobs:
 
       - name: copy kernel
         run: |
-          mkdir -p boot
+          cp -a kernel_r/boot .
           for f (vmlinuz 'initrd.img') {
+            if [[ ! -e kernel_r/$f ]] {
+              # fix ppc64le
+              f=vmlinux
+            }
+
             real_path=$(realpath kernel_r/$f)
             real_fname=${real_path:t}
             cp -v $real_path boot/$f || {
@@ -172,9 +177,7 @@ jobs:
               ln -svf $f boot/$real_fname
             }
           }
-          for f (config System) {
-            cp -Lv kernel_r/boot/${f}* boot/ ||:
-          }
+
           tmux new-session -d -s nspawn 'sudo systemd-nspawn -bD rootfs'
           sleep 2
           # sudo rm -rf kernel_r
