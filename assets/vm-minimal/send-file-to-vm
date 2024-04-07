@@ -44,7 +44,7 @@ if {$create_vm_dir} {
         -F $scp_conf
         # hostname
         vm
-        # run `mkdir` on vm
+        # run `mkdir` in vm
         mkdir -p "$vm_dir"
     )
     ssh $ssh_args ||:

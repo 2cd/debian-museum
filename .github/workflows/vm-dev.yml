@@ -21,12 +21,12 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          # - arch: arm64
-          #   deb_arch: arm64
-          #   qemu_pkg_arch: arm
-          - arch: x64
-            deb_arch: amd64
-            qemu_pkg_arch: x86
+          - arch: arm64
+            deb_arch: arm64
+            qemu_pkg_arch: arm
+          # - arch: x64
+          #   deb_arch: amd64
+          #   qemu_pkg_arch: x86
     runs-on: ubuntu-latest
     env:
       NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}

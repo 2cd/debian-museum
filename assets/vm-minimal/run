@@ -19,9 +19,6 @@ kvm=true
 qemu_accel="kvm:tcg"
 #
 kvm_cpu=host
-kvm_cpu_rv64gc=max
-kvm_cpu_loong64=max
-#
 #
 # CPU for Non-KVM:
 #
@@ -36,6 +33,9 @@ cpu_rv64gc=sifive-u54
 #
 # la132, la464, max
 cpu_loong64=la464
+#
+# qemu-system-ppc64 -cpu help
+cpu_ppc64le="PowerPC power8"
 
 
 # pc (Standard PC (i440FX + PIIX, 1996)), q35 (Standard PC (Q35 + ICH9, 2009)),
@@ -51,7 +51,9 @@ machine_rv64gc=virt
 # none, virt (Loongson-3A5000 LS7A1000)
 machine_loong64=virt
 #
-#
+# qemu-system-ppc64 -machine help
+machine_ppc64le=pseries
+
 extra_machine_options=(
     # virtualization=on
     #
@@ -64,6 +66,7 @@ qemu_cmd_x64=qemu-system-x86_64
 qemu_cmd_arm64=qemu-system-aarch64
 qemu_cmd_loong64=qemu-system-loongarch64
 qemu_cmd_rv64gc=qemu-system-riscv64
+qemu_cmd_ppc64le=qemu-system-ppc64
 
 extra_qemu_args=(
     # -vnc  127.0.0.1:1
@@ -620,15 +623,7 @@ set_qemu_cpu() {
     local cpu cpu_value
 
     if {$kvm} {
-        cpu_value=$(get_the_real_value kvm_cpu)
-        cpu=$kvm_cpu
-
-        # if cpu_value.is_not_empty()
-        if ((#cpu_value)) {
-            cpu=$cpu_value
-        }
-
-        args+=( -cpu  $cpu )
+        args+=( -cpu  $kvm_cpu )
         return
     }
 

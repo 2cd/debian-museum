@@ -24,9 +24,12 @@ jobs:
           # - arch: x64
           #   deb_arch: amd64
           #   qemu_pkg_arch: x86
-          - arch: rv64gc
-            deb_arch: riscv64
-            qemu_pkg_arch: misc
+          # - arch: rv64gc
+          #   deb_arch: riscv64
+          #   qemu_pkg_arch: misc
+          - arch: ppc64le
+            deb_arch: ppc64el
+            qemu_pkg_arch: ppc
           # - arch: loong64
           #   deb_arch: loong64
           #   qemu_pkg_arch: misc
