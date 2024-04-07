@@ -112,10 +112,12 @@ jobs:
             lsblk -f
 
             apt-install
-            case ${{matrix.deb_arch}} {
-              (arm64|amd64) apt-install linux-image-cloud-${{matrix.deb_arch}} ;;
-              (*)           apt-install linux-image-${{matrix.deb_arch}}       ;;
+            case ${{matrix.arch}} {
+              (arm64|x64)   kernel=cloud-${{matrix.deb_arch}} ;;
+              (ppc64le)     kernel=powerpc64le                ;;
+              (*)           kernel=${{matrix.deb_arch}}       ;;
             }
+            apt-install linux-image-${kernel}
 
       - name: reboot vm
         if: fromJson(env.NOT_X86)
