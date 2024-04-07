@@ -57,6 +57,7 @@ jobs:
           docker pull $image
           name=$(docker create $image)
           docker export $name -o rootfs.tar
+          sudo mkdir -pv rootfs
           sudo tar -C rootfs --overwrite -xf rootfs.tar
           unlink rootfs.tar
           sudo cp -pv ${{env.scripts}} rootfs/usr/local/bin
