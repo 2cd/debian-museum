@@ -15,7 +15,7 @@ on:
 jobs:
   build:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           # - arch: arm64
@@ -30,12 +30,15 @@ jobs:
           # - arch: loong64
           #   deb_arch: loong64
           #   qemu_pkg_arch: misc
-          - arch: ppc64le
-            deb_arch: ppc64el
-            qemu_pkg_arch: ppc
-          - arch: s390x
-            deb_arch: s390x
-            qemu_pkg_arch: misc
+          - arch: mips64le
+            deb_arch: mips64el
+            qemu_pkg_arch: mips
+          # - arch: ppc64le
+          #   deb_arch: ppc64el
+          #   qemu_pkg_arch: ppc
+          # - arch: s390x
+          #   deb_arch: s390x
+          #   qemu_pkg_arch: misc
     runs-on: ubuntu-latest
     env:
       NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
