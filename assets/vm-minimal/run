@@ -152,7 +152,7 @@ efi_fd_file=boot/EFI.fd
 
 #  For `grub-efi` (<= 2.12), vars is required. For `refind`, it can be absent.
 enable_efi_vars=true
-enable_efi_vars_loong64=true
+enable_efi_vars_loong64=false
 
 efi_vars_file=boot/VARS.qcow2
 auto_create_efi_vars_file=true

@@ -34,11 +34,11 @@ jobs:
           #   tty: ttyS0
           #   net: enp0s2
 
-          - arch: x86
-            deb_arch: i386
-            qemu_pkg_arch: x86
-            tty: ttyS0
-            net: enp0s2
+          # - arch: x86
+          #   deb_arch: i386
+          #   qemu_pkg_arch: x86
+          #   tty: ttyS0
+          #   net: enp0s2
 
           # - arch: rv64gc
           #   deb_arch: riscv64
@@ -46,11 +46,11 @@ jobs:
           #   tty: ttyS0
           #   net: eth0
 
-          # - arch: loong64
-          #   deb_arch: loong64
-          #   qemu_pkg_arch: misc
-          #   tty: ttyS0
-          #   net: enp0s1
+          - arch: loong64
+            deb_arch: loong64
+            qemu_pkg_arch: misc
+            tty: ttyS0
+            net: enp0s1
 
           # - arch: mips64le
           #   deb_arch: mips64el
@@ -399,10 +399,14 @@ jobs:
             -F
             dev/dev.conf
           run: |
+            chmod 777 -R rootfs
+            rm -rf rootfs/* ||:
             umount -lvf /dev/vdb
-            mkfs.ext4 -F /dev/vdb
-            mount /dev/vdb rootfs
-            cp -a no-kernel/* rootfs
+            mkfs.ext4 -FL data /dev/vdb
+            mkdir data
+            mount /dev/vdb data
+            ls -lah data
+            cp -a no-kernel/* data
 
       - name: Shutdown DEV-VM
         if: fromJSON(env.is_loong)
