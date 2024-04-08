@@ -137,6 +137,7 @@ disk_arr=(
 # For arm64(aarch64) debian trixie (qemu 9.0-rc), efi/uboot must be enabled, otherwise the system will not boot.
 enable_efi=false
 enable_efi_arm64=true
+enable_efi_loong64=true
 
 efi_compatibility_mode=true
 
@@ -145,6 +146,8 @@ efi_fd_file=boot/EFI.fd
 
 #  For `grub-efi` (<= 2.12), vars is required. For `refind`, it can be absent.
 enable_efi_vars=true
+enable_efi_vars_loong64=true
+
 efi_vars_file=boot/VARS.qcow2
 auto_create_efi_vars_file=true
 # --------------
@@ -475,9 +478,7 @@ args+=(
 
 # setup EFI
 () {
-    local efi_value
-
-    efi_value=$(get_the_real_value enable_efi)
+    local efi_value=$(get_the_real_value enable_efi)
 
     if {! $efi_value} {
         return
@@ -489,7 +490,9 @@ args+=(
         args+=( -drive file=${efi_fd_file},if=pflash,format=raw,unit=0,readonly=on)
     }
 
-    if {$enable_efi_vars} {
+    local enable_efi_vars_value=$(get_the_real_value enable_efi_vars)
+
+    if {$enable_efi_vars_value} {
         args+=(
             -drive file=${efi_vars_file},if=pflash,unit=1
         )

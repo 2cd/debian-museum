@@ -8,53 +8,77 @@ env:
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
   RELEASE_TAG: unstable
   ROOTFS_REPO: "debian-sid:"
+  FETCH: "aria2c -s5 -x5 -k1m --no-conf"
+  new_task: "tmux new-session -d"
   # ROOTFS_REPO: "debian:bookworm-"
 on:
   push:
     # branches: ["build"]
     paths:
       - .github/workflows/vm-minimal.yml
-
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         include:
+          - arch: arm64
+            deb_arch: arm64
+            qemu_pkg_arch: arm
+            tty: ttyAMA0
+            net: enp0s1
+
           - arch: x64
             deb_arch: amd64
             qemu_pkg_arch: x86
+            tty: ttyS0
+            net: enp0s2
 
-          # - arch: arm64
-          #   deb_arch: arm64
-          #   qemu_pkg_arch: arm
+          - arch: rv64gc
+            deb_arch: riscv64
+            qemu_pkg_arch: misc
+            tty: ttyS0
+            net: eth0
 
-          # - arch: rv64gc
-          #   deb_arch: riscv64
-          #   qemu_pkg_arch: misc
+          - arch: loong64
+            deb_arch: loong64
+            qemu_pkg_arch: misc
+            tty: ttyS0
+            net: enp0s1
 
-          # - arch: loong64
-          #   deb_arch: loong64
-          #   qemu_pkg_arch: misc
+          - arch: mips64le
+            deb_arch: mips64el
+            qemu_pkg_arch: mips
+            tty: ttyS0
+            net: enp0s3
 
-          # - arch: mips64le
-          #   deb_arch: mips64el
-          #   qemu_pkg_arch: mips
+          - arch: ppc64le
+            deb_arch: ppc64el
+            qemu_pkg_arch: ppc
+            tty: hev0
+            net: enp0s0
 
-          # - arch: mipsle
-          #   deb_arch: mipsel
-          #   qemu_pkg_arch: mips
+          - arch: s390x
+            deb_arch: s390x
+            qemu_pkg_arch: misc
+            tty: ttysclp0
+            # enP1p0s0
+            net: eno1
 
-          # - arch: ppc64le
-          #   deb_arch: ppc64el
-          #   qemu_pkg_arch: ppc
-
-          # - arch: s390x
-          #   deb_arch: s390x
-          #   qemu_pkg_arch: misc
     runs-on: ubuntu-latest
     env:
-      NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
+      non_x86: ${{ !contains(fromJSON('["x64", "x86"]'), matrix.arch) }}
+      neither_x86_nor_loong: ${{ !contains(fromJSON('["x64", "x86", "loong64"]'), matrix.arch) }}
+      non_loong: ${{ matrix.arch != 'loong64' }}
+      is_loong: ${{ matrix.arch == 'loong64' }}
+      deb_main_supported: ${{ contains(fromJSON('["x64", "x86", "arm64", "rv64gc", "ppc64le", "s390x", "mips64le"]'), matrix.arch) }}
+      DEBUG_MODE: false
+      #
+      # debug:
+      # non_loong: ${{ matrix.arch != 'x64' }}
+      # is_loong: ${{ matrix.arch == 'x64' }}
+      # deb_main_supported: ${{ contains(fromJSON('["x86", "arm64", "rv64gc", "ppc64le", "s390x", "mips64le"]'), matrix.arch) }}
+
     defaults:
       run:
         shell: zsh --pipefail -fex {0}
@@ -64,34 +88,6 @@ jobs:
         shell: sh -e {0}
         run: ${{ vars.INSTALL_ZSH }}
 
-      - name: set network & serial name
-        id: set_serial_name
-        run: |
-          tty_serial=ttyS0
-          case ${{matrix.arch}} {
-            (arm)
-              tty_serial=ttyAMA0
-              network_iface=enp0s1
-            ;;
-            (s390x)
-              tty_serial=ttysclp0
-              # altname enP1p0s0
-              network_iface=eno1
-            ;;
-            (ppc64le)
-              tty_serial=hev0
-              network_iface=enp0s0
-            ;;
-            (mips64le) network_iface=enp0s3 ;;
-            (rv64gc)   network_iface=eth0   ;;
-            (*)        network_iface=enp0s2 ;;
-          }
-          outputs=(
-            "network=$network_iface"
-            "tty=$tty_serial"
-          )
-          printf "%s\n" $outputs >> $GITHUB_OUTPUT
-
       - uses: actions/checkout@v4
 
       - name: export rootfs
@@ -100,7 +96,12 @@ jobs:
           scripts: "${{env.DEV_DIR}}/scripts/*"
         run: |
           sudo cp -pv ${{env.scripts}} /usr/local/bin
-          apt-install systemd-container &
+
+          pkgs=(aria2)
+          if { ${{env.non_loong}} } {
+            pkgs+=(systemd-container qemu-utils)
+          }
+          apt-install $pkgs &
           task=$!
 
           image=ghcr.io/2cd/${{env.ROOTFS_REPO}}${{matrix.arch}}
@@ -114,17 +115,37 @@ jobs:
           docker rm $name
           wait $task
 
-      - name: install qemu-user
-        if: fromJson(env.NOT_X86)
-        run: apt-install qemu-user-static
+      - name: fetch zsh & busybox for loong64
+        if: fromJSON(env.is_loong)
+        env:
+          url: "https://github.com/2moe/zsh-static-docker/releases/download/latest/zsh-${{matrix.arch}}.tar.zst"
+        run: |
+          ${{env.new_task}} "apt-install qemu-system-x86"
+          ${{env.FETCH}} -o a.tzst $url
+          mkdir -p zsh-tmp
+          tar -C zsh-tmp -xf a.tzst ||:
+          for bin (zsh-tmp/opt/bin/{zsh,busybox}) {
+            sudo install -Dm755 $bin rootfs/bin/${bin:t}
+          }
+          sudo rm -rf zsh-tmp a.tzst
 
-      - name: setup ssh server
+      - name: fetch zsh for non-loong64
+        if: fromJson(env.non_loong)
+        run: |
+          if { ${{ env.non_x86 }} } {
+            apt-install qemu-user-static &
+            task=$!
+          }
+          docker run --rm -v $PWD/rootfs/bin/:/host ghcr.io/2moe/zsh-static:${{matrix.arch}} cp zsh busybox /host
+          if { ${{ env.non_x86 }} } {
+            wait $task
+          }
+
+      - name: update mirror src
+        if: fromJSON(env.deb_main_supported)
         env:
           mirror_src: "rootfs/etc/apt/sources.list.d/mirror.sources"
         run: |
-          tmux new-session -d -s install_qemu 'apt-install qemu-system-${{matrix.qemu_pkg_arch}}'
-
-          sudo cp -vf $mirror_src ${mirror_src}.bak
           awk_args=(
             -v true=1
             -v false=0
@@ -132,7 +153,7 @@ jobs:
             '/experimental/ {
               cond = true
             }
-            /-debug/{
+            /-debug/ {
               cond = false
             }
             /snapshot\.debian/ {
@@ -140,23 +161,19 @@ jobs:
                 sub($0, sprintf("%s %s", $1, mirror_url))
               }
             }
-            cond && /Enabled:/{
+            cond && /Enabled:/ {
               sub("no", "yes")
               cond = false
             }
             { print }'
             ${mirror_src}.bak
           )
+          sudo cp -vf $mirror_src ${mirror_src}.bak
+          awk $awk_args | sudo tee ${mirror_src}
 
-          case ${{matrix.arch}} {
-            (x64|arm64|rv64gc|ppc64le|s390x|mips64le)
-                awk $awk_args | sudo tee ${mirror_src}
-          }
-
-          sudo rm -vf rootfs/etc/resolv.conf
-
-          docker run --rm -v $PWD/rootfs/bin/:/host ghcr.io/2moe/zsh-static:${{matrix.arch}} cp zsh busybox /host
-
+      - name: setup ssh server
+        run: |
+          sudo rm -vf rootfs/etc/resolv.conf ||:
           uuu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
           if [[ -e $uuu_keyring ]] {
             sudo cp -vf $uuu_keyring rootfs$uuu_keyring
@@ -178,7 +195,11 @@ jobs:
             chsh -s /bin/zsh
           CTR_ARG
           )
-          sudo systemd-nspawn -E "${{env.DEB_ENV}}" -D rootfs zsh -fexc "$single_arg"
+          print -R "$single_arg" > install-sshd.zsh
+
+          if { ${{env.non_loong}} } {
+            sudo systemd-nspawn -E "${{env.DEB_ENV}}" -D rootfs zsh -fexc "$single_arg"
+          }
 
           cp -va ${{env.DEV_DIR}}/ssh .
 
@@ -198,18 +219,92 @@ jobs:
           for f (${{env.DEV_DIR}}/libexec/*) {
             sudo install -Dm700 $f rootfs/usr/libexec/tmm/qemu/${f:t}
           }
-          sudo cp -a rootfs kernel_r
+
+      - name: install kernel
+        if: fromJSON(env.non_loong)
+        run: |
           case ${{matrix.arch}} {
             (arm64|x64)   kernel=cloud-${{matrix.deb_arch}} ;;
             (ppc64le)     kernel=powerpc64le                ;;
             #
-            # loongson-3
-            # mips64r2el
-            # octeon
+            # loongson-3, mips64r2el, octeon
             (mips64le)    kernel=loongson-3                 ;;
             (*)           kernel=${{matrix.deb_arch}}       ;;
           }
+          sudo cp -a rootfs kernel_r
           sudo systemd-nspawn -D kernel_r sh -c "apt-install linux-image-${kernel}"
+
+      - name: setup loongarch environment
+        if: fromJSON(env.is_loong)
+        timeout-minutes: 30
+        env:
+          url: "https://github.com/2cd/debian-museum/releases/download/unstable/vm-dev_x64.tar.zst"
+        run: |
+          ${{env.FETCH}} -o a.tzst $url
+          mkdir -pv dev
+          tar -C dev -xvf a.tzst
+          qemu-img create -f raw dev/data.raw 2G
+          sudo mkfs.ext4 -FL data dev/data.raw
+          sudo mkdir -p data
+          sudo mount -v dev/data.raw data
+          sudo cp -a rootfs/* install-sshd.zsh data
+          sudo umount -lvf data
+          sed_args=(
+            -E
+            # dev/vdb
+            -e 's@^(\s{2,})(disk.qcow2)$@\1\2\n\1data.raw@'
+            -e 's@^(hostfwd)(_rules=)@\1_map+=(127.0.0.1:9022  9022)\n\1\2@'
+            -i dev/run
+          )
+          sed $sed_args
+          cd dev
+          while {! sudo apt-get install} {
+            sleep 3
+          }
+          sudo chmod 666 -v /dev/kvm
+          ${{env.new_task}} ./run
+          sleep 3
+          sed -E 's@(IdentityFile)\s.*@\1 dev/ssh/vm.ed25519@' ssh/vm.sshconf > dev.conf
+          cat dev.conf
+          while {! ./connect-to-ssh exit} {
+            sleep 1
+          }
+
+      - name: install sshd & kernel for loongarch
+        if: fromJSON(env.is_loong)
+        uses: 2moe/local-ssh-action@v0
+        with:
+          host: vm
+          args: |
+            -F
+            dev/dev.conf
+          run: |
+            cd /root
+            mkdir -p rootfs
+            mount /dev/vdb rootfs
+
+            if { ${{env.DEBUG_MODE}} } {
+              src=/etc/apt/sources.list.d/mirror.sources
+              sed_cmd=(sed -E 's@(https://).*@\1cloudflaremirrors.com/debian/@g' -i $src)
+              systemd-nspawn -E "${{env.DEB_ENV}}" -D rootfs $sed_cmd
+            }
+
+            systemd-nspawn -E "${{env.DEB_ENV}}" -D rootfs zsh -fex /install-sshd.zsh
+            systemd-nspawn -D rootfs unlink /install-sshd.zsh
+            cp -a rootfs no-kernel
+            systemd-nspawn -D rootfs sh -c "apt-install linux-image-${{matrix.deb_arch}}"
+            cd rootfs
+            ls -lh . boot
+            tar -cf /root/kernel.tar boot initrd.* vmlinu*
+            ${{env.new_task}} 'systemd-nspawn -bD ../no-kernel'
+
+      - name: scp loongarch kernel.tar & unpack
+        if: fromJSON(env.is_loong)
+        run: |
+          mkdir -p kernel_r
+          ls -lh dev
+          ./dev/get-file-from-vm /root/kernel.tar
+          sudo tar -C kernel_r -xf Downloads/kernel.tar
 
       - name: copy kernel
         run: |
@@ -236,7 +331,7 @@ jobs:
             cp -v kernel_r/boot/${f}* boot/ ||:
           }
 
-          tmux new-session -d -s nspawn 'sudo systemd-nspawn -bD rootfs'
+          ${{env.new_task}} 'sudo systemd-nspawn -bD rootfs'
           sleep 2
           # sudo rm -rf kernel_r
           while {! ${{env.SSH_VM}} exit} {
@@ -252,9 +347,10 @@ jobs:
             ssh/vm.sshconf
           run: |
             set -fexo pipefail
-            apt-install ifupdown qemu-guest-agent udev fdisk dosfstools
-            network_iface=${{steps.set_serial_name.outputs.network}}
-            tty_serial=${{steps.set_serial_name.outputs.tty}}
+            apt-install ifupdown udev fdisk
+            apt-install qemu-guest-agent dosfstools ||:
+            network_iface=${{matrix.net}}
+            tty_serial=${{matrix.tty}}
 
             printf "%s\n" "auto $network_iface" "iface $network_iface inet dhcp" >/etc/network/interfaces.d/qemu-nat.conf
             cd $(mktemp -d)
@@ -285,12 +381,46 @@ jobs:
             journalctl --rotate ||:
             journalctl --vacuum-time=1s ||:
 
-      - name: disk partition
-        id: disk_partition
+      - name: quit systemd-container
         run: |
           ${{env.SSH_VM}} poweroff ||:
-          if ((! $+commands[qemu-img])) {
-            apt-install
+
+      - name: copy no-kernel rootfs to vdb
+        if: fromJSON(env.is_loong)
+        uses: 2moe/local-ssh-action@v0
+        with:
+          host: vm
+          args: |
+            -F
+            dev/dev.conf
+          run: |
+            umount -lvf /dev/vdb
+            mkfs.ext4 -F /dev/vdb
+            mount /dev/vdb rootfs
+            cp -a no-kernel/* rootfs
+
+      - name: Shutdown DEV-VM
+        if: fromJSON(env.is_loong)
+        run: |
+          ssh -F dev/dev.conf vm poweroff ||:
+
+      - name: mount loongarch data to rootfs
+        if: fromJSON(env.is_loong)
+        run: |
+          while {lsof dev/data.raw} {
+            sleep 1
+          }
+          sudo chmod 777 -R rootfs
+          sudo rm -rf rootfs
+          mkdir -p rootfs
+          sudo mount -v dev/data.raw rootfs
+
+      - name: disk partition
+        timeout-minutes: 30
+        id: disk_partition
+        run: |
+          while {! sudo apt-get install} {
+            sleep 2
           }
           qemu-img --version
           qemu-img create -f raw disk.img 1G
@@ -304,7 +434,7 @@ jobs:
 
           outputs=(
             "dev=$loop_dev"
-            "p1=$p1"
+            # "p1=$p1"
           )
           printf "%s\n" $outputs >> $GITHUB_OUTPUT
           #
@@ -328,7 +458,7 @@ jobs:
           sed $sed_args
 
       - name: download EFI
-        if: fromJson(env.NOT_X86)
+        if: fromJson(env.non_x86)
         env:
           efi_file: boot/EFI.fd
         run: |
@@ -338,7 +468,7 @@ jobs:
             (loong64) url='https://mirrors.pku.edu.cn/loongarch/archlinux/images/QEMU_EFI_8.1.fd' ;;
           }
           if (($+url)) {
-            curl -Lo "$efi_file" $url
+            ${{env.FETCH}} -o "$efi_file" $url
             size=$(stat -c %s "$efi_file")
             if ((size <= 4096)) {
               exit 1
@@ -352,9 +482,6 @@ jobs:
           sudo kpartx -dv $loop_dev ||:
           sudo losetup --detach $loop_dev ||:
           apt-install b3sum
-          while {lsof disk.img} {
-            sleep 1
-          }
 
           files=(
             *.img
