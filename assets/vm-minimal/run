@@ -33,7 +33,9 @@ qemu_accel="kvm:tcg"
 #
 kvm_cpu=host
 #
+#
 # CPU for Non-KVM:
+# Note: The CPU can be an empty string
 #
 # qemu-system-x86_64 -cpu help
 cpu_x64=qemu64-v1
@@ -59,11 +61,13 @@ cpu_s390x=max
 cpu_mips64le=Loongson-3A1000
 #
 # qemu-system-mipsel -cpu help
-cpu_mipsle=4Kc
+# 4KEc, 24Kc, 74Kf
+cpu_mipsle=4KEc
 
 # Symmetric multiprocessing (Multiple CPU cores)
 smp=true
 smp_mips64le=false
+smp_mipsle=false
 #
 # If `smp=true`, and `max_cores=0`, then the number of cpu cores of the host is automatically detected.
 integer max_cores=0
@@ -171,9 +175,9 @@ kernel_file=boot/vmlinuz
 initrd_file=boot/initrd.img
 kernel_command_line="root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
 kernel_command_line_arm64="root=/dev/vda1 rw console=tty0 console=ttyAMA0,4000000"
-kernel_command_line_rv64gc="root=/dev/vda1 rw console=ttyS0,4000000"
 kernel_command_line_ppc64le="root=/dev/vda1 rw console=tty0 console=hvc0"
 kernel_command_line_s390x="root=/dev/vda1 rw console=ttysclp0"
+kernel_command_line_mipsle="root=/dev/vda1 rw console=tty0 console=ttyS0 nokaslr"
 # --------------
 #
 # NETWORK
@@ -321,17 +325,25 @@ dbg() {
 }
 get_the_real_value() {
     local key=$1
+    local allow_empty=$2
+
     local var_name="${key}_${qemu_arch}"
     local value=${(P)var_name}
     if ((#value)) {
         print -R $value
         return
     }
+
     value=${(P)key}
-    if ((! #value)) {
-        panic "\$$key is empty"
+    if ((#value)) {
+        print -R $value
+        return
     }
-    print -R $value
+
+    if ((#allow_empty)) {
+        return
+    }
+    panic "\$$key is empty"
 }
 # ----------------------------
 hostfwd_rules=""
@@ -392,18 +404,20 @@ args=(-name  $name)
     )
 }
 
+# SMP
 () {
     enable_smp=$(get_the_real_value smp)
-    if {$enable_smp} {
-        local core_num=$max_cores
-        if ((max_cores == 0)) {
-            # Auto-detect the number of host cpu cores
-            core_num=$(nproc)
-        }
-        args+=(
-            -smp $core_num
-        )
+    if {! $enable_smp} {
+        return
     }
+    local core_num=$max_cores
+    if ((core_num == 0)) {
+        # Auto-detect the number of host cpu cores
+        core_num=$(nproc)
+    }
+    args+=(
+        -smp $core_num
+    )
 }
 
 if {$no_graphic} {
@@ -443,32 +457,28 @@ args+=(
 
 # setup_network
 () {
-    if {$enable_nat_network} {
-        unset nic_opts
-        local nic_opts
-        for i ($extra_nic_options) {
-            nic_opts+=$(printf "%s" ",$i")
-        }
-
-        local real_model
-        real_model=$(get_the_real_value nic_model)
-
-        local real_cm
-        real_value=$(get_the_real_value nic_compatibility_mode)
-
-        # if nic_compatibility_mode is enabled:
-        if {$real_cm} {
-            args+=(
-                -device ${real_model},netdev=net0
-                -netdev "user,id=net0${hostfwd_rules}${nic_opts}"
-            )
-            return
-        }
-
-        args+=(
-            -nic "user,model=${real_model}${hostfwd_rules}${nic_opts}"
-        )
+    if {! $enable_nat_network} {
+        return
     }
+
+    local nic_opts=""
+    for i ($extra_nic_options) {
+        nic_opts+=$(printf "%s" ",$i")
+    }
+
+    local model=$(get_the_real_value nic_model)
+    local compatibility_mode=$(get_the_real_value nic_compatibility_mode)
+
+    if {! $compatibility_mode} {
+        args+=( -nic "user,model=${model}${hostfwd_rules}${nic_opts}")
+        return
+    }
+
+    # if nic_compatibility_mode is enabled:
+    args+=(
+        -device ${model},netdev=net0
+        -netdev "user,id=net0${hostfwd_rules}${nic_opts}"
+    )
 }
 
 # setup external kernel
@@ -477,9 +487,7 @@ args+=(
         return
     }
 
-    local cli_value
-
-    cli_value=$(get_the_real_value kernel_command_line)
+    local cli_value=$(get_the_real_value kernel_command_line)
 
     args+=(
         -kernel  $kernel_file
@@ -490,9 +498,9 @@ args+=(
 
 # setup EFI
 () {
-    local efi_value=$(get_the_real_value enable_efi)
+    local enable_efi_bool=$(get_the_real_value enable_efi)
 
-    if {! $efi_value} {
+    if {! $enable_efi_bool} {
         return
     }
 
@@ -502,22 +510,29 @@ args+=(
         args+=( -drive file=${efi_fd_file},if=pflash,format=raw,unit=0,readonly=on)
     }
 
-    local enable_efi_vars_value=$(get_the_real_value enable_efi_vars)
+    local enable_efi_vars_bool=$(get_the_real_value enable_efi_vars)
 
-    if {$enable_efi_vars_value} {
-        args+=(
-            -drive file=${efi_vars_file},if=pflash,unit=1
-        )
-        if {$auto_create_efi_vars_file} {
-            if [[ ! -e $efi_vars_file ]] {
-                case $qemu_arch {
-                    (rv64gc) size=32M ;;
-                    (*)      size=64M ;;
-                }
-                qemu-img create -f qcow2 $efi_vars_file $size
-            }
-        }
+    if {! $enable_efi_vars_bool} {
+        return
     }
+
+    args+=(
+        -drive file=${efi_vars_file},if=pflash,unit=1
+    )
+
+    if {! $auto_create_efi_vars_file} {
+        return
+    }
+
+    if [[ -e $efi_vars_file ]] {
+        return
+    }
+
+    case $qemu_arch {
+        (rv64gc) size=32M ;;
+        (*)      size=64M ;;
+    }
+    qemu-img create -f qcow2 $efi_vars_file $size
 }
 # ----------------------------
 # MEMORY
@@ -534,12 +549,12 @@ calculate_memory() {
     for line ( ${"$(env LC_ALL=C free)"[(fr)Mem: *]} ) {
         local ava=${line[(ws^ ^)-1]}
         # /1000, not /1024
-        available_memory=$((ava/1000))
+        local available_memory=$((ava/1000))
         break
     }
 
-    local mem int_mem
-    mem=$((available_memory * memory_percentage/100))
+    local mem=$((available_memory * memory_percentage/100))
+    local int_mem
 
     if ((max == 0 || mem < max)) {
         integer int_mem=$mem
@@ -564,19 +579,20 @@ if ((memory < 96)) {
 () {
     local auto_resize_mem=$(get_the_real_value auto_resize_mem_to_256_multiple)
 
-    if {$auto_resize_mem} {
-        if ((memory <= 256)) {
-            memory=256
-            return
-        }
-
-        local remainder=$((memory % 256))
-
-        if (( remainder == 0 )) {
-            return
-        }
-        memory=$(( memory - remainder ))
+    if {! $auto_resize_mem} {
+        return
     }
+    if ((memory <= 256)) {
+        memory=256
+        return
+    }
+
+    local remainder=$((memory % 256))
+
+    if (( remainder == 0 )) {
+        return
+    }
+    memory=$(( memory - remainder ))
 }
 #
 args+=(
@@ -589,12 +605,11 @@ check_and_run_virtio_fsd() {
         return
     }
 
+    virtio_fsd=false
     for vfsd_bin (${src_dir}/virtiofsd /usr/libexec/virtiofsd /usr/sbin/virtiofsd) {
         if [[ -e $vfsd_bin ]] {
             virtio_fsd=true
             break
-        } else {
-            virtio_fsd=false
         }
     }
 
@@ -609,13 +624,13 @@ check_and_run_virtio_fsd() {
     }
 
     sock_file=$socket_dir/${name}-vfsd.sock
-    rm -fv $sock_file ||:
     pid_f=${sock_file}.pid
     if [[ -e $pid_f ]] {
         info "pid file: $pid_f"
         pid=$(< $pid_f)
         kill -s TERM $pid ||:
     }
+    unlink $sock_file ||:
 
     info "socket file: $sock_file"
     lxc_ns=(
@@ -737,15 +752,15 @@ detect_kvm() {
             case $qemu_arch {
                 (arm64|armhf) ;;
                 (arm*) enable_kvm=true ;;
-            }
+            };;
         (x86_64|amd64)
             case $qemu_arch {
-                (x86) enable_kvm=true ;;
-            }
+                (x86|i*86) enable_kvm=true ;;
+            };;
         (mips64*)
             case $qemu_arch {
                 (mipsle) enable_kvm=true ;;
-            }
+            };;
     }
 
     if {! $enable_kvm} {
@@ -756,11 +771,16 @@ detect_kvm() {
 
 set_qemu_cpu() {
     if {$kvm} {
+        if ((! #kvm_cpu)) {
+            return
+        }
         args+=( -cpu  $kvm_cpu )
-        return
     }
 
-    local cpu_value=$(get_the_real_value cpu)
+    local cpu_value=$(get_the_real_value cpu allow-empty)
+    if ((! #cpu_value)) {
+        return
+    }
     args+=( -cpu  $cpu_value )
 }
 # ----------------------------
