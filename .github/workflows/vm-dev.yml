@@ -7,15 +7,19 @@ env:
   VM_MIN_DIR: assets/vm-minimal
   VM_SHUTDOWN: "ssh -F ssh/vm.sshconf vm poweroff ||:"
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
+  new_task: "tmux new-session -d"
+  #
+  # sid:
   RELEASE_TAG: unstable
+  CODENAME: sid
   ROOTFS_REPO: "debian-sid:"
 
-# on:
-#   # schedule:
-#   #   - cron: "0 11 28 */2 *"
-#   push:
-#     paths:
-#       - .github/workflows/vm-dev.yml
+on:
+  # schedule:
+  #   - cron: "0 11 28 */2 *"
+  push:
+    paths:
+      - .github/workflows/vm-dev.yml
 
 jobs:
   build:
@@ -43,7 +47,9 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
+      # non_x86: ${{ !contains(fromJSON('["x64", "x86"]'), matrix.arch) }}
+      enable_efi: ${{ contains(fromJSON('["arm64", "loong64"]'), matrix.arch) }}
+
     defaults:
       run:
         shell: zsh --pipefail -fex {0}
@@ -57,7 +63,7 @@ jobs:
 
       - name: download qemu image
         env:
-          url: "https://github.com/2cd/debian-museum/releases/download/${{env.RELEASE_TAG}}/vm-minimal_${{matrix.arch}}.tar.zst"
+          url: "https://github.com/2cd/debian-museum/releases/download/${{env.RELEASE_TAG}}/vm-minimal_${{env.CODENAME}}_${{matrix.arch}}.tar.zst"
         run: |
           sudo cp -pv ${VM_MIN_DIR}/scripts/* /usr/local/bin
           apt-install aria2
@@ -74,7 +80,7 @@ jobs:
           wait $task
 
       - name: create EFI BOOT disk
-        if: fromJson(env.NOT_X86)
+        if: fromJson(env.enable_efi)
         env:
           disk: boot/FAT32-EFI.img
         run: |
@@ -97,7 +103,7 @@ jobs:
         run: |
           qemu-img resize disk.img +2G
           sudo chmod 666 -v /dev/kvm
-          tmux new-session -d -s run-vm ./run
+          ${{env.new_task}} ./run
           sleep 2
           while {! ${{env.SSH_VM}} exit} {
             sleep 1
@@ -111,9 +117,8 @@ jobs:
             -F
             ssh/vm.sshconf
           run: |
-            NOT_X86=${{env.NOT_X86}}
             cmt="# "
-            if { $NOT_X86 } {
+            if { ${{env.enable_efi}} {
               cmt=""
             }
 
@@ -128,13 +133,12 @@ jobs:
             apt-install
             case ${{matrix.arch}} {
               (arm64|x64)   kernel=cloud-${{matrix.deb_arch}} ;;
-              (ppc64le)     kernel=powerpc64le                ;;
               (*)           kernel=${{matrix.deb_arch}}       ;;
             }
             apt-install linux-image-${kernel}
 
       - name: reboot vm
-        if: fromJson(env.NOT_X86)
+        if: fromJson(env.enable_efi)
         timeout-minutes: 5
         run: |
           reboot
@@ -152,29 +156,24 @@ jobs:
             -F
             ssh/vm.sshconf
           run: |
-            NOT_X86=${{env.NOT_X86}}
             lsblk -f
             df -Th
 
-            if {! $NOT_X86 } {
+            if {! ${{env.enable_efi}} } {
               apt-install grub2
               grub-install /dev/vda
             }
 
-            if { $NOT_X86 } {
+            if { ${{env.enable_efi}} } {
               apt-install grub-efi
               grub-install
             }
 
-            case ${{matrix.arch}} {
-              (x64|x86|rv64gc) grub_cmd_linux="console=tty0 console=ttyS0"   ;;
-              (*)              grub_cmd_linux="console=tty0 console=ttyAMA0" ;;
-            }
-            >> /etc/default/grub <<APPEND_GRUB_CFG
+            >> /etc/default/grub <<"APPEND_GRUB_CFG"
             GRUB_TIMEOUT=1
             GRUB_TERMINAL="console serial"
             GRUB_CMDLINE_LINUX_DEFAULT=""
-            GRUB_CMDLINE_LINUX="${grub_cmd_linux}"
+            GRUB_CMDLINE_LINUX="console=tty0 console=${{matrix.tty}}"
             GRUB_SERIAL_COMMAND="serial --speed=4000000"
             APPEND_GRUB_CFG
             update-grub
@@ -195,7 +194,7 @@ jobs:
             -i run
           )
           sed $sed_args
-          tmux new-session -d -s run-vm ./run
+          ${{env.new_task}} ./run
           cat run
           sleep 6
           while {! ${{env.SSH_VM}} exit} {
@@ -244,11 +243,10 @@ jobs:
           )
           sed $sed_args
 
-          unlink blake3.txt ||:
-          # rm -fv boot/{initrd.*,System.map-*,vmlinuz*} ||:
+          unlink blake3.txt        ||:
           rm -fv boot/initrd.*     ||:
           rm -fv boot/System.map-* ||:
-          rm -fv boot/vmlinuz*     ||:
+          rm -fv boot/vmlinu*      ||:
 
           files=(
             disk.qcow2
@@ -268,7 +266,7 @@ jobs:
           args=(
             --posix
             --use-compress-program='zstdmt --long -18v'
-            -cf vm-dev_${{matrix.arch}}.tar.zst
+            -cf vm-dev_${{env.CODENAME}}_${{matrix.arch}}.tar.zst
             $files
           )
           tar $args
