@@ -55,7 +55,7 @@ jobs:
           cp -vf ${{env.DEV_DIR}}/* . ||:
           unlink min.tzst
           sed -E 's@(Port).*[0-9]$@\1 9023@' -i ssh/vm.sshconf
-          sed -E '/^integer / s@(ssh_port)=.*@\1=9023@' -i run
+          sed -E 's@^(integer\s+ssh_port)=.*@\1=9023@' -i run
           cat ssh/vm.sshconf
           wait $task
 
@@ -178,7 +178,7 @@ jobs:
             -E
             -e '/debian-vm-minimal/ s@(name)=.*@\1=debian-vm-dev@'
             -e 's@^(external_kernel)=.*@\1=false@'
-            '/^integer / s@(guest_ssh_port)=.*@\1=9023@'
+            -e 's@^(integer\s+guest_ssh_port)=.*@\1=9023@'
             -i run
           )
           sed $sed_args
