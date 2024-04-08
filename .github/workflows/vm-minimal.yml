@@ -6,11 +6,14 @@ env:
   DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
   DEV_DIR: assets/vm-minimal
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
+  # RELEASE_TAG: unstable
+  # ROOTFS_REPO: "debian-sid:"
+  #
   RELEASE_TAG: unstable
-  ROOTFS_REPO: "debian-sid:"
+  ROOTFS_REPO: "debian:bookworm-"
+  #
   FETCH: "aria2c -s5 -x5 -k1m --no-conf"
   new_task: "tmux new-session -d"
-  # ROOTFS_REPO: "debian:bookworm-"
 on:
   push:
     # branches: ["build"]
@@ -34,11 +37,11 @@ jobs:
           #   tty: ttyS0
           #   net: enp0s2
 
-          - arch: x86
-            deb_arch: i386
-            qemu_pkg_arch: x86
-            tty: ttyS0
-            net: ens3
+          # - arch: x86
+          #   deb_arch: i386
+          #   qemu_pkg_arch: x86
+          #   tty: ttyS0
+          #   net: ens3
 
           # - arch: rv64gc
           #   deb_arch: riscv64
@@ -57,6 +60,12 @@ jobs:
           #   qemu_pkg_arch: mips
           #   tty: ttyS0
           #   net: enp0s3
+
+          - arch: mipsle
+            deb_arch: mipsel
+            qemu_pkg_arch: mips
+            tty: ttyS0
+            net: enp0s3
 
           # - arch: ppc64le
           #   deb_arch: ppc64el
@@ -77,7 +86,7 @@ jobs:
       neither_x86_nor_loong: ${{ !contains(fromJSON('["x64", "x86", "loong64"]'), matrix.arch) }}
       non_loong: ${{ matrix.arch != 'loong64' }}
       is_loong: ${{ matrix.arch == 'loong64' }}
-      deb_main_supported: ${{ contains(fromJSON('["x64", "x86", "arm64", "rv64gc", "ppc64le", "s390x", "mips64le"]'), matrix.arch) }}
+      deb_main_supported: ${{ contains(fromJSON('["x64", "x86", "arm64", "rv64gc", "ppc64le", "s390x", "mips64le", "mipsle"]'), matrix.arch) }}
       DEBUG_MODE: false
       #
       # debug:
@@ -234,6 +243,8 @@ jobs:
             #
             # loongson-3, mips64r2el, octeon
             (mips64le)    kernel=loongson-3                 ;;
+            # loongson-3, mips32r2el, octeon, 4kc-malta
+            (mipsle)    kernel=4kc-malta                    ;;
             (*)           kernel=${{matrix.deb_arch}}       ;;
           }
           sudo cp -a rootfs kernel_r

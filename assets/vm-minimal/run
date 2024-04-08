@@ -50,14 +50,16 @@ cpu_rv64gc=sifive-u54
 # la132, la464, max
 cpu_loong64=la464
 #
-# qemu-system-mips64el -cpu help
-cpu_mips64le=Loongson-3A1000
-#
 # qemu-system-ppc64 -cpu help
 cpu_ppc64le=power8
 #
 # qemu-system-s390x -cpu help
 cpu_s390x=max
+# qemu-system-mips64el -cpu help
+cpu_mips64le=Loongson-3A1000
+#
+# qemu-system-mipsel -cpu help
+cpu_mipsle=4Kc
 
 # Symmetric multiprocessing (Multiple CPU cores)
 smp=true
@@ -81,14 +83,17 @@ machine_rv64gc=virt
 # none, virt (Loongson-3A5000 LS7A1000)
 machine_loong64=virt
 #
-# qemu-system-mips64el -machine help
-machine_mips64le=loongson3-virt
-#
 # qemu-system-ppc64 -machine help
 machine_ppc64le=pseries
 #
 # qemu-system-s390x -machine help
 machine_s390x=s390-ccw-virtio
+#
+# qemu-system-mips64el -machine help
+machine_mips64le=loongson3-virt
+#
+# qemu-system-mipsel -machine help
+machine_mipsle=malta
 
 extra_machine_options=(
     # virtualization=on
@@ -104,6 +109,7 @@ qemu_cmd_arm64=qemu-system-aarch64
 qemu_cmd_rv64gc=qemu-system-riscv64
 qemu_cmd_loong64=qemu-system-loongarch64
 qemu_cmd_mips64le=qemu-system-mips64el
+qemu_cmd_mipsle=qemu-system-mipsel
 qemu_cmd_ppc64le=qemu-system-ppc64
 qemu_cmd_s390x=qemu-system-s390x
 

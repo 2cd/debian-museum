@@ -11,7 +11,7 @@ apk add qemu-system-x86_64
 # If the VM is arm64 arch:
 apk add qemu-system-aarch64
 
-# If the VM is rv64 arch:
+# If the VM is rv64gc arch:
 apk add qemu-system-riscv64
 
 # If the VM is loong64 arch:
@@ -177,6 +177,12 @@ apt install linux-image-cloud-amd64
 
 # If the VM is arm64 arch:
 apt install linux-image-cloud-arm64
+
+# If the VM is rv64gc arch:
+apt install linux-image-riscv64
+
+# If the VM is loong64 arch:
+apt install linux-image-loong64
 ```
 
 > You can also use a DEV VM with docker pre-installed.
