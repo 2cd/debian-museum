@@ -97,9 +97,9 @@ jobs:
         run: |
           sudo cp -pv ${{env.scripts}} /usr/local/bin
 
-          pkgs=(aria2)
+          pkgs=(aria2 qemu-utils)
           if { ${{env.non_loong}} } {
-            pkgs+=(systemd-container qemu-utils)
+            pkgs+=(systemd-container)
           }
           apt-install $pkgs &
           task=$!
@@ -129,17 +129,15 @@ jobs:
           }
           sudo rm -rf zsh-tmp a.tzst
 
+      - name: install qemu-user
+        if: fromJson(env.neither_x86_nor_loong)
+        run: apt-install qemu-user-static
+
       - name: fetch zsh for non-loong64
         if: fromJson(env.non_loong)
-        run: |
-          if { ${{ env.non_x86 }} } {
-            apt-install qemu-user-static &
-            task=$!
-          }
-          docker run --rm -v $PWD/rootfs/bin/:/host ghcr.io/2moe/zsh-static:${{matrix.arch}} cp zsh busybox /host
-          if { ${{ env.non_x86 }} } {
-            wait $task
-          }
+        env:
+          img: ghcr.io/2moe/zsh-static:${{matrix.arch}}
+        run: docker run --rm -v $PWD/rootfs/bin/:/host $img cp zsh busybox /host
 
       - name: update mirror src
         if: fromJSON(env.deb_main_supported)
