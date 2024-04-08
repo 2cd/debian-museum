@@ -702,7 +702,8 @@ detect_kvm() {
             case $qemu_arch {
                 (arm*) enable_kvm=true ;;
             };;
-        (armv7*)
+        # armv8m is arm32
+        (armv8m|armv7*)
             case $qemu_arch {
                 (arm64) ;;
                 (arm*) enable_kvm=true ;;
