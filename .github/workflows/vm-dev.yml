@@ -199,6 +199,7 @@ jobs:
           run: |
             df -Th
             apt-install docker.io
+            apt-install systemd-container tmux ||:
             apt-install -t experimental qemu-user-static
 
             systemctl disable systemd-networkd-wait-online.service
