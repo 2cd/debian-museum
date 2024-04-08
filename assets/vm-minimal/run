@@ -46,6 +46,9 @@ cpu_x86=qemu32-v1
 # qemu-system-aarch64 -cpu help
 cpu_arm64=cortex-a72
 #
+# qemu-system-arm -cpu help
+cpu_armv7a=cortex-a9
+#
 # qemu-system-riscv64 -cpu help
 cpu_rv64gc=sifive-u54
 #
@@ -81,6 +84,9 @@ machine_x86=pc
 # qemu-system-aarch64 -machine help
 machine_arm64=virt
 #
+# qemu-system-arm -machine help
+machine_armv7a=virt
+#
 # none, shakti_c, sifive_e (SiFive E), sifive_u (SiFive U), spike, virt
 machine_rv64gc=virt
 #
@@ -110,6 +116,7 @@ extra_machine_options=(
 qemu_cmd_x64=qemu-system-x86_64
 qemu_cmd_x86=qemu-system-i386
 qemu_cmd_arm64=qemu-system-aarch64
+qemu_cmd_armv7a=qemu-system-arm
 qemu_cmd_rv64gc=qemu-system-riscv64
 qemu_cmd_loong64=qemu-system-loongarch64
 qemu_cmd_mips64le=qemu-system-mips64el
