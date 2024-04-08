@@ -6,7 +6,7 @@ set -fexo pipefail
 # In case of time inaccuracy, `https` may not work properly, so use `http`.
 timeapi='http://worldtimeapi.org/api/timezone/Etc/GMT.txt'
 
-date --rfc-3339=seconds ||:
+date --rfc-3339=seconds >&2 ||:
 
 if ((UID != 0)) {
     print -P >&2 -- "%F{red}[ERROR]%f You need to run as root/admin (UID=0)."
@@ -24,6 +24,7 @@ for line ( ${"$(busybox wget -qO- $timeapi)"[(fr)unixtime: *]} ) {
 
     date -s @"$unix_stamp"
 
-    date --rfc-3339=seconds ||:
+    date --rfc-3339=seconds >&2 ||:
+
     break
 }

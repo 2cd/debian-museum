@@ -12,8 +12,15 @@ qemu_arch=x64
 #
 # KVM & MACHINE
 #
-# If "/dev/kvm" does not exist, or the current architecture is incompatible with the virtual machine architecture, then it will automatically disable KVM (i.e., kvm=false).
+# Whether to enable KVM acceleration
 kvm=true
+#
+# If "/dev/kvm" does not exist, or the current architecture is incompatible with the virtual machine architecture, then it will automatically disable KVM (i.e., kvm=false).
+#
+# When false, detection is skipped and KVM is forced. WARN: This may cause the VM to fail to boot.
+# Note: Not all architectures are automatically detected, such as mipsle, and some other architectures that are primarily used for embedded devices.
+#
+kvm_detection=true
 #
 # When KVM is not supported, it will automatically fallback.
 # kvm:xen:hvf:nvmm:whpx:tcg
@@ -241,6 +248,7 @@ float memory_percentage=90.0
 # Disable when 0
 # It is not necessary to manually add Unit (Megabytes (MB)).
 integer max_memory=0
+integer max_memory_mipsle=2048
 
 # Note: power8 cpu (arch: ppc64le) must have an integer multiple of 256M.
 auto_resize_mem_to_256_multiple=false
@@ -487,8 +495,9 @@ args+=(
 # ----------------------------
 # MEMORY
 calculate_memory() {
+    local max=$(get_the_real_value max_memory)
     if ((memory_percentage == 0.0)) {
-        print $max_memory
+        print $max
         return
     }
 
@@ -505,13 +514,13 @@ calculate_memory() {
     local mem int_mem
     mem=$((available_memory * memory_percentage/100))
 
-    if ((max_memory == 0 || mem < max_memory)) {
+    if ((max == 0 || mem < max)) {
         integer int_mem=$mem
         print $int_mem
         return
     }
 
-    print $max_memory
+    print $max
 }
 
 memory=$(calculate_memory)
@@ -635,16 +644,24 @@ add_virtio_fsd_args() {
     }
 }
 # ----------------------------
-check_kvm() {
+detect_kvm() {
     if {! $kvm} {
         return
     }
-    local disable_kvm=false
+
+    if {! $kvm_detection} {
+        return
+    }
+
     local host_arch=$(uname -m)
 
     local -A map=(
         x86_64              x64
         amd64               x64
+        i686                x86
+        i586                x86
+        i486                x86
+        i386                x86
         aarch64             arm64
         arm64               arm64
         loongarch64         loong64
@@ -663,15 +680,49 @@ check_kvm() {
         # armv7l            armv7a
     )
 
-    if [[ $map[$host_arch]  == $qemu_arch ]] {
+    if [[ $map[$host_arch] == $qemu_arch ]] {
         if [[ ! -e /dev/kvm ]] {
-            disable_kvm=true
+            warn DISABLE KVM
+            kvm=false
+            return
         }
-    } else {
-        disable_kvm=true
+        return
     }
 
-    if {$disable_kvm} {
+    local enable_kvm=false
+    # host: arm64,  guest: arm*        => enable-kvm
+    # host: x64,    guest: x86         => enable-kvm
+    #
+    # > armv7l may not have the `vfp3` (HARD FLOAT) feature, so this simple match is not accurate.
+    # > For host=armv7(SOFT FLOAT) you should specify `kvm=false` manually.
+    # host: armv7*, guest: armhf/armel => enable-kvm
+    #
+    case $host_arch {
+        (aarch64|arm64)
+            case $qemu_arch {
+                (arm*) enable_kvm=true ;;
+            };;
+        (armv7*)
+            case $qemu_arch {
+                (arm64) ;;
+                (arm*) enable_kvm=true ;;
+            };;
+        (armv6*|armv5*)
+            case $qemu_arch {
+                (arm64|armhf) ;;
+                (arm*) enable_kvm=true ;;
+            }
+        (x86_64|amd64)
+            case $qemu_arch {
+                (x86) enable_kvm=true ;;
+            }
+        (mips64*)
+            case $qemu_arch {
+                (mipsle) enable_kvm=true ;;
+            }
+    }
+
+    if {! $enable_kvm} {
         warn DISABLE KVM
         kvm=false
     }
@@ -689,7 +740,7 @@ set_qemu_cpu() {
 # ----------------------------
 check_and_run_virtio_fsd
 add_virtio_fsd_args
-check_kvm
+detect_kvm
 set_qemu_cpu
 cd $src_dir
 # ----------------------------
