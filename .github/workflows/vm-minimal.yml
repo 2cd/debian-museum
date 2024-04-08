@@ -264,7 +264,7 @@ jobs:
         if: fromJSON(env.is_loong)
         timeout-minutes: 30
         env:
-          url: "https://github.com/2cd/debian-museum/releases/download/unstable/vm-dev_x64.tar.zst"
+          url: "https://github.com/2cd/debian-museum/releases/download/unstable/vm-dev_sid_x64.tar.zst"
         run: |
           ${{env.FETCH}} -o a.tzst $url
           mkdir -pv dev

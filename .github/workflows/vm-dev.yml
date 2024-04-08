@@ -24,7 +24,7 @@ on:
 jobs:
   build:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - arch: arm64
@@ -118,7 +118,7 @@ jobs:
             ssh/vm.sshconf
           run: |
             cmt="# "
-            if { ${{env.enable_efi}} {
+            if { ${{env.enable_efi}} } {
               cmt=""
             }
 
