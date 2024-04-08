@@ -52,8 +52,35 @@ jobs:
         shell: sh -e {0}
         run: ${{ vars.INSTALL_ZSH }}
 
-      - uses: actions/checkout@v4
+      - name: set network & serial name
+        id: set_serial_name
+        run: |
+          tty_serial=ttyS0
+          case ${{matrix.arch}} {
+            (arm)
+              tty_serial=ttyAMA0
+              network_iface=enp0s1
+            ;;
+            (s390x)
+              tty_serial=ttysclp0
+              # altname enP1p0s0
+              network_iface=eno1
+            ;;
+            (ppc64le)
+              tty_serial=hev0
+              network_iface=enp0s0
+            ;;
+            (mips64le) network_iface=enp0s3 ;;
+            (rv64gc)   network_iface=eth0   ;;
+            (*)        network_iface=enp0s2 ;;
+          }
+          outputs=(
+            "network=$network_iface"
+            "tty=$tty_serial"
+          )
+          printf "%s\n" $outputs >> $GITHUB_OUTPUT
 
+      - uses: actions/checkout@v4
       - name: export rootfs
         id: export_rootfs
         env:
@@ -199,33 +226,6 @@ jobs:
           while {! ${{env.SSH_VM}} exit} {
             sleep 1
           }
-      - name: set network & serial name
-        id: set_serial_name
-        run: |
-          tty_serial=ttyS0
-          case ${{matrix.arch}} {
-            (arm)
-              tty_serial=ttyAMA0
-              network_iface=enp0s1
-            ;;
-            (s390x)
-              tty_serial=ttysclp0
-              # altname enP1p0s0
-              network_iface=eno1
-            ;;
-            (ppc64le)
-              tty_serial=hev0
-              network_iface=enp0s0
-            ;;
-            (mips64le) network_iface=enp0s3 ;;
-            (rv64gc)   network_iface=eth0   ;;
-            (*)        network_iface=enp0s2 ;;
-          }
-          outputs=(
-            "network=$network_iface"
-            "tty=$tty_serial"
-          )
-          printf "%s\n" $outputs >> $GITHUB_OUTPUT
 
       - name: setup dhcp-network & serial
         uses: 2moe/local-ssh-action@v0
