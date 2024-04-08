@@ -217,9 +217,9 @@ jobs:
               tty_serial=hev0
               network_iface=enp0s0
             ;;
-            (mips64le)network_iface=enp0s3 ;;
-            (rv64gc)  network_iface=eth0   ;;
-            (*)       network_iface=enp0s2 ;;
+            (mips64le) network_iface=enp0s3 ;;
+            (rv64gc)   network_iface=eth0   ;;
+            (*)        network_iface=enp0s2 ;;
           }
           outputs=(
             "network=$network_iface"
