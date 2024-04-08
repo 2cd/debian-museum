@@ -31,61 +31,61 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # sid:
-          - arch: rv64gc
-            deb_arch: riscv64
-            qemu_pkg_arch: misc
-            tty: ttyS0
-            net: eth0
-
-          # - arch: loong64
-          #   deb_arch: loong64
+          # SID:
+          # - arch: rv64gc
+          #   deb_arch: riscv64
           #   qemu_pkg_arch: misc
           #   tty: ttyS0
-          #   net: enp0s1
-          # # ------------------
-          - arch: arm64
-            deb_arch: arm64
-            qemu_pkg_arch: arm
-            tty: ttyAMA0
-            net: enp0s1
+          #   net: eth0
 
-          - arch: armv7a
-            deb_arch: armhf
-            qemu_pkg_arch: arm
-            tty: ttyAMA0
-            net: enp0s1
-
-          - arch: x64
-            deb_arch: amd64
-            qemu_pkg_arch: x86
-            tty: ttyS0
-            net: enp0s2
-
-          - arch: x86
-            deb_arch: i386
-            qemu_pkg_arch: x86
-            tty: ttyS0
-            net: ens3
-
-          - arch: ppc64le
-            deb_arch: ppc64el
-            qemu_pkg_arch: ppc
-            tty: hev0
-            net: enp0s0
-
-          - arch: s390x
-            deb_arch: s390x
+          - arch: loong64
+            deb_arch: loong64
             qemu_pkg_arch: misc
-            tty: ttysclp0
-            # enP1p0s0
-            net: eno1
-
-          - arch: mips64le
-            deb_arch: mips64el
-            qemu_pkg_arch: mips
             tty: ttyS0
-            net: enp0s3
+            net: enp0s1
+          # # ------------------
+          # - arch: arm64
+          #   deb_arch: arm64
+          #   qemu_pkg_arch: arm
+          #   tty: ttyAMA0
+          #   net: enp0s1
+
+          # - arch: armv7a
+          #   deb_arch: armhf
+          #   qemu_pkg_arch: arm
+          #   tty: ttyAMA0
+          #   net: enp0s1
+
+          # - arch: x64
+          #   deb_arch: amd64
+          #   qemu_pkg_arch: x86
+          #   tty: ttyS0
+          #   net: enp0s2
+
+          # - arch: x86
+          #   deb_arch: i386
+          #   qemu_pkg_arch: x86
+          #   tty: ttyS0
+          #   net: ens3
+
+          # - arch: ppc64le
+          #   deb_arch: ppc64el
+          #   qemu_pkg_arch: ppc
+          #   tty: hev0
+          #   net: enp0s0
+
+          # - arch: s390x
+          #   deb_arch: s390x
+          #   qemu_pkg_arch: misc
+          #   tty: ttysclp0
+          #   # enP1p0s0
+          #   net: eno1
+
+          # - arch: mips64le
+          #   deb_arch: mips64el
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s3
           # ------------------------
           # BOOKWORM
           # - arch: mipsle
