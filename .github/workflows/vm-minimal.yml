@@ -230,6 +230,7 @@ jobs:
           case ${{matrix.arch}} {
             (arm64|x64)   kernel=cloud-${{matrix.deb_arch}} ;;
             (ppc64le)     kernel=powerpc64le                ;;
+            (x86)         kernel=686                        ;;
             #
             # loongson-3, mips64r2el, octeon
             (mips64le)    kernel=loongson-3                 ;;
@@ -375,8 +376,8 @@ jobs:
             case ${{matrix.arch}} {
               (mips64le) systemctl enable force-sync-time.service ;;
             }
-            timedatectl set-ntp yes ||:
-            timedatectl show ||:
+            timeout 2 timedatectl set-ntp yes ||:
+            timeout 3 timedatectl show ||:
             apt-get autopurge -y
             apt-get clean
             ls -lh /var/cache/apt
