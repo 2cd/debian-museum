@@ -38,6 +38,9 @@ kvm_cpu=host
 # qemu-system-x86_64 -cpu help
 cpu_x64=qemu64-v1
 #
+# qemu-system-i386 -cpu help
+cpu_x86=qemu32-v1
+#
 # qemu-system-aarch64 -cpu help
 cpu_arm64=cortex-a72
 #
@@ -67,6 +70,8 @@ integer max_cores=0
 # microvm, isapc, none, x-remote
 machine_x64=q35
 #
+machine_x86=pc
+#
 # qemu-system-aarch64 -machine help
 machine_arm64=virt
 #
@@ -94,6 +99,7 @@ extra_machine_options=(
 # CMD
 #
 qemu_cmd_x64=qemu-system-x86_64
+qemu_cmd_x86=qemu-system-i386
 qemu_cmd_arm64=qemu-system-aarch64
 qemu_cmd_rv64gc=qemu-system-riscv64
 qemu_cmd_loong64=qemu-system-loongarch64
