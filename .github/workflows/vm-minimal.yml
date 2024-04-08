@@ -17,10 +17,17 @@ env:
   # CODENAME: "bookworm"
   # ROOTFS_REPO: "debian:bookworm-"
   #
+  # #
+  # RELEASE_TAG: 11
+  # CODENAME: "bullseye"
+  # ROOTFS_REPO: "debian:bullseye-"
   #
-  RELEASE_TAG: 11
-  CODENAME: "bullseye"
-  ROOTFS_REPO: "debian:bullseye-"
+  #
+  RELEASE_TAG: 10
+  CODENAME: "buster"
+  ROOTFS_REPO: "debian:buster-"
+  #
+  #
   #
   FETCH: "aria2c -s5 -x5 -k1m --no-conf"
   new_task: "tmux new-session -d"
