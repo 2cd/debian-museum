@@ -141,7 +141,7 @@ jobs:
         if: fromJson(env.enable_efi)
         timeout-minutes: 5
         run: |
-          reboot
+          ${{env.SSH_VM}} reboot
           cat run | head -n10
           sleep 7
           while {! ${{env.SSH_VM}} exit} {

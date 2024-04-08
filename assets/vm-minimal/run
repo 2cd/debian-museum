@@ -766,6 +766,7 @@ set_qemu_cpu() {
             return
         }
         args+=( -cpu  $kvm_cpu )
+        return
     }
 
     local cpu_value=$(get_the_real_value cpu allow-empty)
