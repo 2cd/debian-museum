@@ -6,6 +6,11 @@ set -fexo pipefail
 # Value range: 1024 ~ 65535
 integer ssh_port=9022
 
+# Value range: 1 ~ 65535
+# This is an internal port of the virtual machine that cannot be accessed directly by the local machine if it is not exposed (mapped).
+# See also: hostfwd_map
+integer guest_ssh_port=9022
+
 name=debian-vm-minimal
 qemu_arch=x64
 # -------------------------
@@ -210,7 +215,7 @@ local -A hostfwd_map=(
     # 8443/udp                    443
     # 8022/tcp                    22
     #
-    127.0.0.1:${ssh_port}/tcp     9022
+    127.0.0.1:${ssh_port}/tcp     ${guest_ssh_port}
 )
 # --------------
 #

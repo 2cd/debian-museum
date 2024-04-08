@@ -41,6 +41,10 @@ jobs:
           #   deb_arch: mips64el
           #   qemu_pkg_arch: mips
 
+          # - arch: mipsle
+          #   deb_arch: mipsel
+          #   qemu_pkg_arch: mips
+
           # - arch: ppc64le
           #   deb_arch: ppc64el
           #   qemu_pkg_arch: ppc

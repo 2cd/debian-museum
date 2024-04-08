@@ -91,14 +91,12 @@ jobs:
 
       - name: install kernel
         uses: 2moe/local-ssh-action@v0
-        # continue-on-error: true
         with:
           host: vm
           args: |
             -F
             ssh/vm.sshconf
           run: |
-            sed -E 's@^(Port)\s.*@\1 9023@' -i /etc/ssh/sshd_config.d/vm.conf
             NOT_X86=${{env.NOT_X86}}
             cmt="# "
             if { $NOT_X86 } {
@@ -120,13 +118,12 @@ jobs:
               (*)           kernel=${{matrix.deb_arch}}       ;;
             }
             apt-install linux-image-${kernel}
-            reboot
 
       - name: reboot vm
         if: fromJson(env.NOT_X86)
         timeout-minutes: 5
         run: |
-          sed -E '/^integer / s@(guest_ssh_port)=.*@\1=9023@' -i run
+          reboot
           cat run | head -n10
           sleep 7
           while {! ${{env.SSH_VM}} exit} {
@@ -168,6 +165,7 @@ jobs:
             GRUB_SERIAL_COMMAND="serial --speed=4000000"
             APPEND_GRUB_CFG
             update-grub
+            sed -E 's@^(Port)\s.*@\1 9023@' -i /etc/ssh/sshd_config.d/vm.conf
 
       - name: change the config
         timeout-minutes: 7
@@ -180,6 +178,7 @@ jobs:
             -E
             -e '/debian-vm-minimal/ s@(name)=.*@\1=debian-vm-dev@'
             -e 's@^(external_kernel)=.*@\1=false@'
+            '/^integer / s@(guest_ssh_port)=.*@\1=9023@'
             -i run
           )
           sed $sed_args
