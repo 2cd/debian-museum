@@ -315,7 +315,8 @@ get_the_real_value() {
 }
 # ----------------------------
 hostfwd_rules=""
-# anonymous function
+#
+# update_host_forwarding_rules
 () {
     for k v (${(kv)hostfwd_map}) {
         # k.split('/').last()
@@ -354,16 +355,22 @@ hostfwd_rules=""
     }
 }
 # ----------------------------
-machine_name=$(get_the_real_value machine)
+args=(-name  $name)
 
-unset machine_opts
-for i ($extra_machine_options) {
-    machine_opts+=$(printf "%s" ",$i")
+# set_qemu_machine
+() {
+    local machine_opts machine_name
+    machine_name=$(get_the_real_value machine)
+
+    unset machine_opts
+    # convert the elements of the machine_opts array to ",ele1,ele2,..." , equivalent to `format!(",{}", machine_opts.join(","))`
+    for i ($extra_machine_options) {
+        machine_opts+=$(printf "%s" ",$i")
+    }
+    args+=(
+        -machine ${machine_name},accel=${qemu_accel}${machine_opts}
+    )
 }
-args=(
-    -machine ${machine_name},accel=${qemu_accel}${machine_opts}
-    -name $name
-)
 
 () {
     enable_smp=$(get_the_real_value smp)
@@ -414,7 +421,7 @@ args+=(
     -serial  mon:stdio
 )
 
-# setup_qemu_network
+# setup_network
 () {
     if {$enable_nat_network} {
         unset nic_opts
@@ -692,8 +699,8 @@ detect_kvm() {
     # host: x64,    guest: x86         => enable-kvm
     #
     # > armv7l may not have the `vfp3` (HARD FLOAT) feature, so this simple match is not accurate.
-    # > For host=armv7(SOFT FLOAT) you should specify `kvm=false` manually.
-    # host: armv7*, guest: armhf/armel => enable-kvm
+    # > For host=armv7 (SOFT FLOAT), you should specify `kvm=false` manually.
+    # host: armv7*, guest: armv7a/armv6/armv5te/armv4t/armv3 => enable-kvm
     #
     case $host_arch {
         (aarch64|arm64)
@@ -720,7 +727,6 @@ detect_kvm() {
                 (mipsle) enable_kvm=true ;;
             }
     }
-
 
     if {! $enable_kvm} {
         warn DISABLE KVM

@@ -21,12 +21,12 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - arch: arm64
-            deb_arch: arm64
-            qemu_pkg_arch: arm
-          # - arch: x64
-          #   deb_arch: amd64
-          #   qemu_pkg_arch: x86
+          # - arch: arm64
+          #   deb_arch: arm64
+          #   qemu_pkg_arch: arm
+          - arch: x64
+            deb_arch: amd64
+            qemu_pkg_arch: x86
     runs-on: ubuntu-latest
     env:
       NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
@@ -91,12 +91,14 @@ jobs:
 
       - name: install kernel
         uses: 2moe/local-ssh-action@v0
+        # continue-on-error: true
         with:
           host: vm
           args: |
             -F
             ssh/vm.sshconf
           run: |
+            sed -E 's@^(Port)\s.*@\1 9023@' -i /etc/ssh/sshd_config.d/vm.conf
             NOT_X86=${{env.NOT_X86}}
             cmt="# "
             if { $NOT_X86 } {
@@ -118,12 +120,14 @@ jobs:
               (*)           kernel=${{matrix.deb_arch}}       ;;
             }
             apt-install linux-image-${kernel}
+            reboot
 
       - name: reboot vm
         if: fromJson(env.NOT_X86)
         timeout-minutes: 5
         run: |
-          ${{env.SSH_VM}} reboot ||:
+          sed -E '/^integer / s@(guest_ssh_port)=.*@\1=9023@' -i run
+          cat run | head -n10
           sleep 7
           while {! ${{env.SSH_VM}} exit} {
             sleep 1

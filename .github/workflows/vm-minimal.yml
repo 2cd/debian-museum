@@ -2,11 +2,13 @@ name: minimal virtual machine
 # auto-task.start-build-time = ?
 
 env:
+  # DEBIAN_FRONTEND: noninteractive
+  DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
   DEV_DIR: assets/vm-minimal
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
-  DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
-  # GET_TIME: "date --rfc-3339=seconds --utc"
-  #   DEBIAN_FRONTEND: noninteractive
+  RELEASE_TAG: unstable
+  ROOTFS_REPO: "debian-sid:"
+  # ROOTFS_REPO: "debian:bookworm-"
 on:
   push:
     # branches: ["build"]
@@ -19,24 +21,30 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - arch: x64
+            deb_arch: amd64
+            qemu_pkg_arch: x86
+
           # - arch: arm64
           #   deb_arch: arm64
           #   qemu_pkg_arch: arm
-          # - arch: x64
-          #   deb_arch: amd64
-          #   qemu_pkg_arch: x86
+
           # - arch: rv64gc
           #   deb_arch: riscv64
           #   qemu_pkg_arch: misc
+
           # - arch: loong64
           #   deb_arch: loong64
           #   qemu_pkg_arch: misc
-          - arch: mips64le
-            deb_arch: mips64el
-            qemu_pkg_arch: mips
+
+          # - arch: mips64le
+          #   deb_arch: mips64el
+          #   qemu_pkg_arch: mips
+
           # - arch: ppc64le
           #   deb_arch: ppc64el
           #   qemu_pkg_arch: ppc
+
           # - arch: s390x
           #   deb_arch: s390x
           #   qemu_pkg_arch: misc
@@ -91,7 +99,7 @@ jobs:
           apt-install systemd-container &
           task=$!
 
-          image=ghcr.io/2cd/debian-sid:${{matrix.arch}}
+          image=ghcr.io/2cd/${{env.ROOTFS_REPO}}${{matrix.arch}}
           docker pull $image
           name=$(docker create $image)
           docker export $name -o rootfs.tar
@@ -371,6 +379,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           fail_on_unmatched_files: true
-          tag_name: unstable
+          tag_name: ${{env.RELEASE_TAG}}
           files: |
             *.tar.zst
