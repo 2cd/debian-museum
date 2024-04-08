@@ -648,13 +648,16 @@ detect_kvm() {
     if {! $kvm} {
         return
     }
-
     if {! $kvm_detection} {
+        return
+    }
+    if [[ ! -e /dev/kvm ]] {
+        warn DISABLE KVM
+        kvm=false
         return
     }
 
     local host_arch=$(uname -m)
-
     local -A map=(
         x86_64              x64
         amd64               x64
@@ -681,11 +684,6 @@ detect_kvm() {
     )
 
     if [[ $map[$host_arch] == $qemu_arch ]] {
-        if [[ ! -e /dev/kvm ]] {
-            warn DISABLE KVM
-            kvm=false
-            return
-        }
         return
     }
 
@@ -722,6 +720,7 @@ detect_kvm() {
                 (mipsle) enable_kvm=true ;;
             }
     }
+
 
     if {! $enable_kvm} {
         warn DISABLE KVM
