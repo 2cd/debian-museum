@@ -24,7 +24,6 @@ kvm=true
 #
 # When false, detection is skipped and KVM is forced. WARN: This may cause the VM to fail to boot.
 # Note: Not all architectures are automatically detected, such as mipsle, and some other architectures that are primarily used for embedded devices.
-#
 kvm_detection=true
 #
 # When KVM is not supported, it will automatically fallback.
@@ -47,7 +46,8 @@ cpu_x86=qemu32-v1
 cpu_arm64=cortex-a72
 #
 # qemu-system-arm -cpu help
-cpu_armv7a=cortex-a9
+cpu_armv7a=cortex-a15
+cpu_armv5te=arm946
 #
 # qemu-system-riscv64 -cpu help
 cpu_rv64gc=sifive-u54
@@ -71,6 +71,8 @@ cpu_mipsle=4KEc
 smp=true
 smp_mips64le=false
 smp_mipsle=false
+smp_armv7a=false
+smp_armv5te=false
 #
 # If `smp=true`, and `max_cores=0`, then the number of cpu cores of the host is automatically detected.
 integer max_cores=0
@@ -86,6 +88,7 @@ machine_arm64=virt
 #
 # qemu-system-arm -machine help
 machine_armv7a=virt
+machine_armv5te=virt
 #
 # none, shakti_c, sifive_e (SiFive E), sifive_u (SiFive U), spike, virt
 machine_rv64gc=virt
@@ -117,6 +120,7 @@ qemu_cmd_x64=qemu-system-x86_64
 qemu_cmd_x86=qemu-system-i386
 qemu_cmd_arm64=qemu-system-aarch64
 qemu_cmd_armv7a=qemu-system-arm
+qemu_cmd_armv5te=qemu-system-arm
 qemu_cmd_rv64gc=qemu-system-riscv64
 qemu_cmd_loong64=qemu-system-loongarch64
 qemu_cmd_mips64le=qemu-system-mips64el
@@ -134,8 +138,9 @@ extra_qemu_args=(
 
 # NO GUI
 #
-# It is designed for NO GUI, if you want to use GUI, then you need to set `no_graphic=false`, and add the related arguments manually. e.g., for arm64, you may need to add the ramfb device: extra_qemu_args+=( -device ramfb )
-#
+# It is designed for NO GUI, if you want to use GUI, then you need to set `no_graphic=false`, and add the related arguments manually.
+# e.g., for arm64, you may need to add the ramfb device: extra_qemu_args+=( -device ramfb )
+# For armv7a, you also need to enable efi.
 no_graphic=true
 # --------------
 #
@@ -160,6 +165,7 @@ disk_arr=(
 # For arm64(aarch64) debian trixie (qemu 9.0-rc), efi/uboot must be enabled, otherwise the system will not boot.
 enable_efi=false
 enable_efi_arm64=true
+enable_efi_armv7a=true
 enable_efi_loong64=true
 
 efi_compatibility_mode=true
@@ -182,6 +188,8 @@ kernel_file=boot/vmlinuz
 initrd_file=boot/initrd.img
 kernel_command_line="root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
 kernel_command_line_arm64="root=/dev/vda1 rw console=tty0 console=ttyAMA0,4000000"
+kernel_command_line_armv7a="root=/dev/vda1 rw console=tty0 console=ttyAMA0 nokaslr"
+kernel_command_line_armv5te="$kernel_command_line_armv7a"
 kernel_command_line_ppc64le="root=/dev/vda1 rw console=tty0 console=hvc0"
 kernel_command_line_s390x="root=/dev/vda1 rw console=ttysclp0"
 kernel_command_line_mipsle="root=/dev/vda1 rw console=tty0 console=ttyS0 nokaslr"
@@ -280,6 +288,8 @@ float memory_percentage=90.0
 # It is not necessary to manually add Unit (Megabytes (MB)).
 integer max_memory=0
 integer max_memory_mipsle=2048
+integer max_memory_armv7a=2816
+integer max_memory_armv5te=2048
 
 # Note: power8 cpu (arch: ppc64le) must have an integer multiple of 256M.
 auto_resize_mem_to_256_multiple=false
@@ -714,8 +724,6 @@ detect_kvm() {
         i586                x86
         i486                x86
         i386                x86
-        aarch64             arm64
-        arm64               arm64
         loongarch64         loong64
         loong64             loong64
         riscv64             rv64gc
@@ -728,43 +736,27 @@ detect_kvm() {
         mips64              mips64le
         mips64le            mips64le
         mips64el            mips64le
-        # armhf             armv7a
-        # armv7l            armv7a
+        aarch64             arm64
+        arm64               arm64
+        #
+        # Linux Kernel 5.7+ no longer supports KVM for arm32.
+        # See also: https://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git/log/?h=kvm-arm/goodbye
     )
 
-    if [[ $map[$host_arch] == $qemu_arch ]] {
+    local tmm_arch=$map[$host_arch]
+
+    if [[ $tmm_arch == $qemu_arch ]] {
         return
     }
 
     local enable_kvm=false
-    # host: arm64,  guest: arm*        => enable-kvm
     # host: x64,    guest: x86         => enable-kvm
-    #
-    # > armv7l may not have the `vfp3` (HARD FLOAT) feature, so this simple match is not accurate.
-    # > For host=armv7 (SOFT FLOAT), you should specify `kvm=false` manually.
-    # host: armv7*, guest: armv7a/armv6/armv5te/armv4t/armv3 => enable-kvm
-    #
-    case $host_arch {
-        (aarch64|arm64)
+    case $tmm_arch {
+        (x64)
             case $qemu_arch {
-                (arm*) enable_kvm=true ;;
+                (x86) enable_kvm=true ;;
             };;
-        # armv8m is arm32
-        (armv8m|armv7*)
-            case $qemu_arch {
-                (arm64) ;;
-                (arm*) enable_kvm=true ;;
-            };;
-        (armv6*|armv5*)
-            case $qemu_arch {
-                (arm64|armhf) ;;
-                (arm*) enable_kvm=true ;;
-            };;
-        (x86_64|amd64)
-            case $qemu_arch {
-                (x86|i*86) enable_kvm=true ;;
-            };;
-        (mips64*)
+        (mips64le)
             case $qemu_arch {
                 (mipsle) enable_kvm=true ;;
             };;

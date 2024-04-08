@@ -37,6 +37,12 @@ jobs:
             tty: ttyAMA0
             net: enp0s1
 
+          - arch: armv5te
+            deb_arch: armel
+            qemu_pkg_arch: arm
+            tty: ttyAMA0
+            net: enp0s1
+
           # - arch: x64
           #   deb_arch: amd64
           #   qemu_pkg_arch: x86
@@ -246,6 +252,7 @@ jobs:
           case ${{matrix.arch}} {
             (arm64|x64)   kernel=cloud-${{matrix.deb_arch}} ;;
             (armv7a)      kernel=armmp-lpae                 ;;
+            (armv5te)     kernel=marvell                    ;;
             (ppc64le)     kernel=powerpc64le                ;;
             (x86)         kernel=686                        ;;
             #
