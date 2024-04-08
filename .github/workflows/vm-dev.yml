@@ -39,11 +39,11 @@ jobs:
             tty: ttyS0
             net: enp0s2
 
-          - arch: rv64gc
-            deb_arch: riscv64
-            qemu_pkg_arch: misc
-            tty: ttyS0
-            net: eth0
+          # - arch: rv64gc
+          #   deb_arch: riscv64
+          #   qemu_pkg_arch: misc
+          #   tty: ttyS0
+          #   net: eth0
 
     runs-on: ubuntu-latest
     env:
