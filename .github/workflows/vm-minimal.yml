@@ -6,11 +6,13 @@ env:
   DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
   DEV_DIR: assets/vm-minimal
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
-  # RELEASE_TAG: unstable
-  # ROOTFS_REPO: "debian-sid:"
+  RELEASE_TAG: unstable
+  CODENAME: sid
+  ROOTFS_REPO: "debian-sid:"
   #
-  RELEASE_TAG: 12
-  ROOTFS_REPO: "debian:bookworm-"
+  # RELEASE_TAG: 12
+  # CODENAME: "bookworm"
+  # ROOTFS_REPO: "debian:bookworm-"
   #
   FETCH: "aria2c -s5 -x5 -k1m --no-conf"
   new_task: "tmux new-session -d"
@@ -49,17 +51,17 @@ jobs:
             tty: ttyS0
             net: ens3
 
-          # - arch: rv64gc
-          #   deb_arch: riscv64
-          #   qemu_pkg_arch: misc
-          #   tty: ttyS0
-          #   net: eth0
+          - arch: rv64gc
+            deb_arch: riscv64
+            qemu_pkg_arch: misc
+            tty: ttyS0
+            net: eth0
 
-          # - arch: loong64
-          #   deb_arch: loong64
-          #   qemu_pkg_arch: misc
-          #   tty: ttyS0
-          #   net: enp0s1
+          - arch: loong64
+            deb_arch: loong64
+            qemu_pkg_arch: misc
+            tty: ttyS0
+            net: enp0s1
 
           - arch: ppc64le
             deb_arch: ppc64el
@@ -81,11 +83,11 @@ jobs:
             net: enp0s3
 
           # BOOKWORM
-          - arch: mipsle
-            deb_arch: mipsel
-            qemu_pkg_arch: mips
-            tty: ttyS0
-            net: enp0s18
+          # - arch: mipsle
+          #   deb_arch: mipsel
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s18
 
     runs-on: ubuntu-latest
     env:
@@ -530,7 +532,7 @@ jobs:
           args=(
             --posix
             --use-compress-program='zstdmt --long -18v'
-            -cf vm-minimal_${{matrix.arch}}.tar.zst
+            -cf vm-minimal_${{env.CODENAME}}_${{matrix.arch}}.tar.zst
             $files
           )
           tar $args

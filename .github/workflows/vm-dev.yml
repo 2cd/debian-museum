@@ -7,13 +7,15 @@ env:
   VM_MIN_DIR: assets/vm-minimal
   VM_SHUTDOWN: "ssh -F ssh/vm.sshconf vm poweroff ||:"
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
+  RELEASE_TAG: unstable
+  ROOTFS_REPO: "debian-sid:"
 
-on:
-  # schedule:
-  #   - cron: "0 11 28 */2 *"
-  push:
-    paths:
-      - .github/workflows/vm-dev.yml
+# on:
+#   # schedule:
+#   #   - cron: "0 11 28 */2 *"
+#   push:
+#     paths:
+#       - .github/workflows/vm-dev.yml
 
 jobs:
   build:
@@ -21,12 +23,24 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          # - arch: arm64
-          #   deb_arch: arm64
-          #   qemu_pkg_arch: arm
+          - arch: arm64
+            deb_arch: arm64
+            qemu_pkg_arch: arm
+            tty: ttyAMA0
+            net: enp0s1
+
           - arch: x64
             deb_arch: amd64
             qemu_pkg_arch: x86
+            tty: ttyS0
+            net: enp0s2
+
+          - arch: rv64gc
+            deb_arch: riscv64
+            qemu_pkg_arch: misc
+            tty: ttyS0
+            net: eth0
+
     runs-on: ubuntu-latest
     env:
       NOT_X86: ${{ !contains(fromJson('["x64", "x86"]'), matrix.arch) }}
@@ -43,7 +57,7 @@ jobs:
 
       - name: download qemu image
         env:
-          url: "https://github.com/2cd/debian-museum/releases/download/unstable/vm-minimal_${{matrix.arch}}.tar.zst"
+          url: "https://github.com/2cd/debian-museum/releases/download/${{env.RELEASE_TAG}}/vm-minimal_${{matrix.arch}}.tar.zst"
         run: |
           sudo cp -pv ${VM_MIN_DIR}/scripts/* /usr/local/bin
           apt-install aria2
@@ -153,9 +167,8 @@ jobs:
             }
 
             case ${{matrix.arch}} {
-              (x64|x86) grub_cmd_linux="console=tty0 console=ttyS0"   ;;
-              (rv64gc)  grub_cmd_linux="console=ttyS0"                ;;
-              (*)       grub_cmd_linux="console=tty0 console=ttyAMA0" ;;
+              (x64|x86|rv64gc) grub_cmd_linux="console=tty0 console=ttyS0"   ;;
+              (*)              grub_cmd_linux="console=tty0 console=ttyAMA0" ;;
             }
             >> /etc/default/grub <<APPEND_GRUB_CFG
             GRUB_TIMEOUT=1
