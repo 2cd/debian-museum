@@ -47,7 +47,7 @@ cpu_arm64=cortex-a72
 #
 # qemu-system-arm -cpu help
 cpu_armv7a=cortex-a15
-cpu_armv5te=arm946
+cpu_armv5te=$cpu_armv7a
 #
 # qemu-system-riscv64 -cpu help
 cpu_rv64gc=sifive-u54
@@ -71,8 +71,6 @@ cpu_mipsle=4KEc
 smp=true
 smp_mips64le=false
 smp_mipsle=false
-smp_armv7a=false
-smp_armv5te=false
 #
 # If `smp=true`, and `max_cores=0`, then the number of cpu cores of the host is automatically detected.
 integer max_cores=0
@@ -165,7 +163,6 @@ disk_arr=(
 # For arm64(aarch64) debian trixie (qemu 9.0-rc), efi/uboot must be enabled, otherwise the system will not boot.
 enable_efi=false
 enable_efi_arm64=true
-enable_efi_armv7a=true
 enable_efi_loong64=true
 
 efi_compatibility_mode=true
