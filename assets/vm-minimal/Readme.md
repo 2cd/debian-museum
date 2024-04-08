@@ -32,10 +32,10 @@ ArchLinux
 
 ```sh
 # If the VM is x64 arch:
-pkg i qemu-system-x86
+paru -Sy qemu-system-x86
 
 # If the VM is arm64 arch:
-pkg i qemu-system-aarch64
+paru -S qemu-system-aarch64
 ```
 
 Debian, Ubuntu, Kali, Mint, ...
