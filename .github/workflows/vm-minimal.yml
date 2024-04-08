@@ -8,14 +8,15 @@ env:
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
   #
   #
+  RELEASE_TAG: unstable
+  CODENAME: sid
+  ROOTFS_REPO: "debian-sid:"
   #
-  # RELEASE_TAG: unstable
-  # CODENAME: sid
-  # ROOTFS_REPO: "debian-sid:"
   #
-  RELEASE_TAG: 12
-  CODENAME: "bookworm"
-  ROOTFS_REPO: "debian:bookworm-"
+  # RELEASE_TAG: 12
+  # CODENAME: "bookworm"
+  # ROOTFS_REPO: "debian:bookworm-"
+  #
   #
   FETCH: "aria2c -s5 -x5 -k1m --no-conf"
   new_task: "tmux new-session -d"
@@ -31,11 +32,11 @@ jobs:
       matrix:
         include:
           # sid:
-          # - arch: rv64gc
-          #   deb_arch: riscv64
-          #   qemu_pkg_arch: misc
-          #   tty: ttyS0
-          #   net: eth0
+          - arch: rv64gc
+            deb_arch: riscv64
+            qemu_pkg_arch: misc
+            tty: ttyS0
+            net: eth0
 
           # - arch: loong64
           #   deb_arch: loong64
@@ -87,11 +88,11 @@ jobs:
             net: enp0s3
           # ------------------------
           # BOOKWORM
-          - arch: mipsle
-            deb_arch: mipsel
-            qemu_pkg_arch: mips
-            tty: ttyS0
-            net: enp0s18
+          # - arch: mipsle
+          #   deb_arch: mipsel
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s18
 
     runs-on: ubuntu-latest
     env:
