@@ -1,0 +1,29 @@
+#!/usr/bin/env zsh
+set -fexo pipefail
+# Depends: busybox, coreutils
+# Description：This script is only needed if NTP fails.
+# ----------------
+# In case of time inaccuracy, `https` may not work properly, so use `http`.
+timeapi='http://worldtimeapi.org/api/timezone/Etc/GMT.txt'
+
+date --rfc-3339=seconds ||:
+
+if ((UID != 0)) {
+    print -P >&2 -- "%F{red}[ERROR]%f You need to run as root/admin (UID=0)."
+    exit 1
+}
+
+before=$(date +%s)
+# for line in fetch(timeapi)?.filter(|x| x.contains("unixtime: "))
+for line ( ${"$(busybox wget -qO- $timeapi)"[(fr)unixtime: *]} ) {
+    local result=${line[(ws^ ^)-1]}
+    local -p result
+
+    now=$(date +%s)
+    unix_stamp=$((now - before + result))
+
+    date -s @"$unix_stamp"
+
+    date --rfc-3339=seconds ||:
+    break
+}

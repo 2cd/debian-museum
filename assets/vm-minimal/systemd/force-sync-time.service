@@ -1,0 +1,12 @@
+# /etc/systemd/system/force-sync-time.service
+[Unit]
+Description=Get time from the Internet and set
+After=network.target
+#
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/tmm/qemu/force-sync-time
+
+[Install]
+WantedBy=multi-user.target

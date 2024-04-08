@@ -47,6 +47,7 @@ cpu_s390x=max
 # Symmetric multiprocessing (Multiple CPU cores)
 smp=true
 smp_mips64le=false
+#
 # If `smp=true`, and `max_cores=0`, then the number of cpu cores of the host is automatically detected.
 integer max_cores=0
 

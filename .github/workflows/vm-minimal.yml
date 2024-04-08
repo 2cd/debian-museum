@@ -5,6 +5,7 @@ env:
   DEV_DIR: assets/vm-minimal
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
   DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
+  # GET_TIME: "date --rfc-3339=seconds --utc"
   #   DEBIAN_FRONTEND: noninteractive
 on:
   push:
@@ -154,7 +155,9 @@ jobs:
 
           sudo cp -v ${{env.DEV_DIR}}/systemd/* rootfs/etc/systemd/system/
 
-          sudo install -Dm700 ${{env.DEV_DIR}}/libexec/resize-partition rootfs/usr/libexec/tmm/qemu/resize-partition
+          for f (${{env.DEV_DIR}}/libexec/*) {
+            sudo install -Dm700 $f rootfs/usr/libexec/tmm/qemu/$f
+          }
           sudo cp -a rootfs kernel_r
           case ${{matrix.arch}} {
             (arm64|x64)   kernel=cloud-${{matrix.deb_arch}} ;;
@@ -214,6 +217,7 @@ jobs:
               tty_serial=hev0
               network_iface=enp0s0
             ;;
+            (mips64le)network_iface=enp0s3 ;;
             (rv64gc)  network_iface=eth0   ;;
             (*)       network_iface=enp0s2 ;;
           }
@@ -252,7 +256,11 @@ jobs:
             ) {
               systemctl enable $service
             }
-
+            case ${{matrix.arch}} {
+              (mips64le) systemctl enable force-sync-time.service ;;
+            }
+            timedatectl set-ntp yes ||:
+            timedatectl show ||:
             apt-get autopurge -y
             apt-get clean
             ls -lh /var/cache/apt
