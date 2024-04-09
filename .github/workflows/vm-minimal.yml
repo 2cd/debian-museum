@@ -33,7 +33,7 @@ env:
   RELEASE_TAG: 9
   CODENAME: "stretch"
   ROOTFS_REPO: "debian:stretch-"
-  #
+
 on:
   push:
     # branches: ["build"]
@@ -58,62 +58,62 @@ jobs:
           #   tty: ttyS0
           #   net: enp0s1
           # # ------------------
-          - arch: arm64
-            deb_arch: arm64
-            qemu_pkg_arch: arm
-            tty: ttyAMA0
-            net: enp0s1
+          # - arch: arm64
+          #   deb_arch: arm64
+          #   qemu_pkg_arch: arm
+          #   tty: ttyAMA0
+          #   net: enp0s1
 
-          - arch: armv7a
-            deb_arch: armhf
-            qemu_pkg_arch: arm
-            tty: ttyAMA0
-            net: enp0s1
+          # - arch: armv7a
+          #   deb_arch: armhf
+          #   qemu_pkg_arch: arm
+          #   tty: ttyAMA0
+          #   net: enp0s1
 
-          - arch: x64
-            deb_arch: amd64
-            qemu_pkg_arch: x86
-            tty: ttyS0
-            net: enp0s2
+          # - arch: x64
+          #   deb_arch: amd64
+          #   qemu_pkg_arch: x86
+          #   tty: ttyS0
+          #   net: enp0s2
 
-          - arch: x86
-            deb_arch: i386
-            qemu_pkg_arch: x86
-            tty: ttyS0
-            net: ens3
+          # - arch: x86
+          #   deb_arch: i386
+          #   qemu_pkg_arch: x86
+          #   tty: ttyS0
+          #   net: ens3
 
-          - arch: ppc64le
-            deb_arch: ppc64el
-            qemu_pkg_arch: ppc
-            tty: hev0
-            net: enp0s0
+          # - arch: ppc64le
+          #   deb_arch: ppc64el
+          #   qemu_pkg_arch: ppc
+          #   tty: hev0
+          #   net: enp0s0
 
           - arch: s390x
             deb_arch: s390x
             qemu_pkg_arch: misc
             tty: ttysclp0
-            #  net:bookworm+ => eno1
-            net: enP1p0s0
+            #  net:bookworm+ => eno1, bullseye => enP1p0s0, stretch => enp0s0
+            net: eno1
 
-          - arch: mips64le
-            deb_arch: mips64el
-            qemu_pkg_arch: mips
-            tty: ttyS0
-            net: enp0s3
-          # ------------------------
-          # BOOKWORM
-          - arch: mipsle
-            deb_arch: mipsel
-            qemu_pkg_arch: mips
-            tty: ttyS0
-            net: enp0s18
-          # ------------------------
-          # BUSTER
-          - arch: mipsbe
-            deb_arch: mips
-            qemu_pkg_arch: mips
-            tty: ttyS0
-            net: enp0s18
+          # - arch: mips64le
+          #   deb_arch: mips64el
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s3
+          # # ------------------------
+          # # BOOKWORM
+          # - arch: mipsle
+          #   deb_arch: mipsel
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s18
+          # # ------------------------
+          # # BUSTER
+          # - arch: mipsbe
+          #   deb_arch: mips
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s18
 
     runs-on: ubuntu-latest
     env:
@@ -429,6 +429,14 @@ jobs:
 
             apt-install qemu-guest-agent dosfstools ||:
             network_iface=${{matrix.net}}
+            case ${{matrix.arch}} {
+              (s390x)
+                case ${{env.CODENAME}} {
+                  (stretch|jessie|wheezy) network_iface=enp0s0   ;;
+                  (buster|bullseye)       network_iface=enP1p0s0 ;;
+                }
+              ;;
+            }
             tty_serial=${{matrix.tty}}
 
             iface_dir=/etc/network/interfaces.d
