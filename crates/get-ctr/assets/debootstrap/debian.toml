@@ -891,12 +891,22 @@ deb-arch = "mips64el"
 [[os.tag]]
 arch = "mipsbe"
 deb-arch = "mips"
+[os.tag.source]
+enabled = [
+    "debian/ buster",
+    "debian/ buster-backports",
+    "debian/ buster-backports-sloppy",
+    "debian/ buster-updates",
+]
+disabled = [
+    "debian-security/ buster/updates",
+    "debian/ buster-proposed-updates",
+    "debian-debug/ buster-debug",
+]
 
 [[os.tag]]
 arch = "mipsle"
 deb-arch = "mipsel"
-
-
 # ------------------
 [[os]]
 name = "Debian"
