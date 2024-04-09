@@ -8,14 +8,14 @@ env:
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
   #
   #
-  # RELEASE_TAG: unstable
-  # CODENAME: sid
-  # ROOTFS_REPO: "debian-sid:"
+  RELEASE_TAG: unstable
+  CODENAME: sid
+  ROOTFS_REPO: "debian-sid:"
 
   #
-  RELEASE_TAG: 12
-  CODENAME: "bookworm"
-  ROOTFS_REPO: "debian:bookworm-"
+  # RELEASE_TAG: 12
+  # CODENAME: "bookworm"
+  # ROOTFS_REPO: "debian:bookworm-"
   #
   # #
   # RELEASE_TAG: 11
