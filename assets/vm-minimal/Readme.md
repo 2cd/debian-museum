@@ -86,7 +86,7 @@ Install `qemu-utils`, then run `qemu-img`.
 qemu-img resize disk.img +2G
 ```
 
-If `unsafe-resize-partition.service` (systemd) works correctly, start the virtual machine "**twice**" (i.e., Start once, then reboot.) and it will automatically resize the partitions to utilize the unallocated space.
+If `unsafe-resize-disk.service` (systemd) works correctly, it will automatically resize the partitions to utilize the unallocated space.
 
 ## Step5: run
 

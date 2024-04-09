@@ -131,7 +131,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: export rootfs
-        id: export_rootfs
         env:
           scripts: "${{env.DEV_DIR}}/scripts/*"
         run: |
@@ -389,7 +388,7 @@ jobs:
             ssh/vm.sshconf
           run: |
             set -fexo pipefail
-            apt-install ifupdown udev fdisk
+            apt-install ifupdown udev fdisk parted
             apt-install qemu-guest-agent dosfstools ||:
             network_iface=${{matrix.net}}
             tty_serial=${{matrix.tty}}
@@ -398,15 +397,19 @@ jobs:
             cd $(mktemp -d)
             printf "%s\n" 'nameserver 10.0.2.3' 'nameserver 1.1.1.1' > resolv.conf
             install -m644 resolv.conf /etc/resolv.conf
-            # serial
-            cp /usr/lib/systemd/system/serial-getty@.service /etc/systemd/system/serial-getty@${tty_serial}.service
-            sed '/ExecStart=/ s@- $TERM@--autologin root --local-line - xterm@' -i /etc/systemd/system/serial-getty@${tty_serial}.service
+
+            # SERIAL
+            tty_tmpl=/usr/lib/systemd/system/serial-getty@.service
+            tty_service=/etc/systemd/system/serial-getty@${tty_serial}.service
+            cp $tty_tmpl $tty_service
+
+            sed -E '/ExecStart=/ s@(\%I|-) \$TERM$@--autologin root --local-line \1 xterm@' $tty_service
 
             systemctl disable systemd-networkd-wait-online.service
             systemctl set-default multi-user.target
             for service (
               add-cloudflare-dns.service
-              unsafe-resize-partition.service
+              unsafe-resize-disk.service
             ) {
               systemctl enable $service
             }

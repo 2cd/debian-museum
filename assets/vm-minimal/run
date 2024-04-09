@@ -338,18 +338,18 @@ get_the_real_value() {
 
     local var_name="${key}_${qemu_arch}"
     local value=${(P)var_name}
-    if ((#value)) {
+    if (($#value)) {
         print -R $value
         return
     }
 
     value=${(P)key}
-    if ((#value)) {
+    if (($#value)) {
         print -R $value
         return
     }
 
-    if ((#allow_empty)) {
+    if (($#allow_empty)) {
         return
     }
     panic "\$$key is empty"
