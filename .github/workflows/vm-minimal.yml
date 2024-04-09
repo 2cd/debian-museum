@@ -15,9 +15,9 @@ env:
   # ROOTFS_REPO: "debian-sid:"
   #
   # [bookworm]
-  RELEASE_TAG: 12
-  CODENAME: "bookworm"
-  ROOTFS_REPO: "debian:bookworm-"
+  # RELEASE_TAG: 12
+  # CODENAME: "bookworm"
+  # ROOTFS_REPO: "debian:bookworm-"
   #
   # [bullseye]
   # RELEASE_TAG: 11
@@ -25,9 +25,9 @@ env:
   # ROOTFS_REPO: "debian:bullseye-"
   #
   # [buster]
-  # RELEASE_TAG: 10
-  # CODENAME: "buster"
-  # ROOTFS_REPO: "debian:buster-"
+  RELEASE_TAG: 10
+  CODENAME: "buster"
+  ROOTFS_REPO: "debian:buster-"
   #
   # [stretch]
   # RELEASE_TAG: 9
@@ -82,11 +82,11 @@ jobs:
           #   tty: ttyAMA0
           #   net: enp0s1
 
-          - arch: x86
-            deb_arch: i386
-            qemu_pkg_arch: x86
-            tty: ttyS0
-            net: ens3
+          # - arch: x86
+          #   deb_arch: i386
+          #   qemu_pkg_arch: x86
+          #   tty: ttyS0
+          #   net: ens3
 
           # - arch: ppc64le
           #   deb_arch: ppc64el
@@ -94,12 +94,12 @@ jobs:
           #   tty: hev0
           #   net: enp0s0
 
-          # - arch: s390x
-          #   deb_arch: s390x
-          #   qemu_pkg_arch: misc
-          #   tty: ttysclp0
-          #   #  net:bookworm+ => eno1, bullseye => enP1p0s0, stretch => enp0s0
-          #   net: eno1
+          - arch: s390x
+            deb_arch: s390x
+            qemu_pkg_arch: misc
+            tty: ttysclp0
+            #  net:bookworm+ => eno1, bullseye => enP1p0s0, stretch => enp0s0
+            net: eno1
 
           # - arch: mips64le
           #   deb_arch: mips64el
