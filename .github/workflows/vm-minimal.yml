@@ -40,7 +40,6 @@ env:
   ROOTFS_REPO: "debian:jessie-"
   #
   #
-  #
 on:
   push:
     # branches: ["build"]
@@ -71,56 +70,56 @@ jobs:
             tty: ttyS0
             net: enp0s2
 
-          # - arch: arm64
-          #   deb_arch: arm64
-          #   qemu_pkg_arch: arm
-          #   tty: ttyAMA0
-          #   net: enp0s1
+          - arch: arm64
+            deb_arch: arm64
+            qemu_pkg_arch: arm
+            tty: ttyAMA0
+            net: enp0s1
 
-          # - arch: armv7a
-          #   deb_arch: armhf
-          #   qemu_pkg_arch: arm
-          #   tty: ttyAMA0
-          #   net: enp0s1
+          - arch: armv7a
+            deb_arch: armhf
+            qemu_pkg_arch: arm
+            tty: ttyAMA0
+            net: enp0s1
 
-          # - arch: x86
-          #   deb_arch: i386
-          #   qemu_pkg_arch: x86
-          #   tty: ttyS0
-          #   net: ens3
+          - arch: x86
+            deb_arch: i386
+            qemu_pkg_arch: x86
+            tty: ttyS0
+            net: ens3
 
-          # - arch: ppc64le
-          #   deb_arch: ppc64el
-          #   qemu_pkg_arch: ppc
-          #   tty: hev0
-          #   net: enp0s0
+          - arch: ppc64le
+            deb_arch: ppc64el
+            qemu_pkg_arch: ppc
+            tty: hev0
+            net: enp0s0
 
-          # - arch: s390x
-          #   deb_arch: s390x
-          #   qemu_pkg_arch: misc
-          #   tty: ttysclp0
-          #   #  net:bookworm+ => eno1, bullseye => enP1p0s0, stretch => enp0s0
-          #   net: eno1
+          - arch: s390x
+            deb_arch: s390x
+            qemu_pkg_arch: misc
+            tty: ttysclp0
+            #  net:bookworm+ => eno1, bullseye => enP1p0s0, stretch => enp0s0
+            net: eno1
 
-          # - arch: mips64le
-          #   deb_arch: mips64el
-          #   qemu_pkg_arch: mips
-          #   tty: ttyS0
-          #   net: enp0s3
-          # # ------------------------
-          # # BOOKWORM
-          # - arch: mipsle
-          #   deb_arch: mipsel
-          #   qemu_pkg_arch: mips
-          #   tty: ttyS0
-          #   net: enp0s18
-          # # ------------------------
-          # # BUSTER
-          # - arch: mipsbe
-          #   deb_arch: mips
-          #   qemu_pkg_arch: mips
-          #   tty: ttyS0
-          #   net: enp0s18
+          - arch: mips64le
+            deb_arch: mips64el
+            qemu_pkg_arch: mips
+            tty: ttyS0
+            net: enp0s3
+          # ------------------------
+          # BOOKWORM
+          - arch: mipsle
+            deb_arch: mipsel
+            qemu_pkg_arch: mips
+            tty: ttyS0
+            net: enp0s18
+          # ------------------------
+          # BUSTER
+          - arch: mipsbe
+            deb_arch: mips
+            qemu_pkg_arch: mips
+            tty: ttyS0
+            net: enp0s18
 
     runs-on: ubuntu-latest
     env:
@@ -196,7 +195,7 @@ jobs:
         run: docker run --rm -v $PWD/rootfs/bin/:/host $img cp zsh busybox /host
 
       - name: update mirror src
-        if: fromJSON(env.deb_main_supported)
+        if: fromJSON(env.deb_main_supported) && env.CODENAME == 'sid'
         env:
           mirror_src: "rootfs/etc/apt/sources.list.d/mirror.sources"
         run: |
@@ -282,7 +281,8 @@ jobs:
           }
           sshd_cfg=ssh/vm.sshd.conf
           case ${{env.CODENAME}} {
-            (buster|stretch|jessie|wheezy|squeeze|lenny|etch|sarge|woody|potato|slink|hamm)
+            # wheezy|squeeze|lenny|etch|sarge|woody|potato|slink|hamm
+            (buster|stretch|jessie)
               cat $sshd_cfg | sudo tee -a rootfs/etc/ssh/sshd_config ;;
             (*) sudo install -Dm600 $sshd_cfg rootfs/etc/ssh/sshd_config.d/vm.conf ;;
           }
@@ -307,7 +307,8 @@ jobs:
             (*)             kernel=${{matrix.deb_arch}}       ;;
           }
           case ${{env.CODENAME}} {
-            (stretch|jessie|wheezy|squeeze|lenny|etch|sarge|woody|potato|slink|hamm)
+            # wheezy|squeeze|lenny|etch|sarge|woody|potato|slink|hamm
+            (stretch|jessie)
             case ${{matrix.arch}} {
               (arm64|x64) kernel=${{matrix.deb_arch}} ;;
             }
@@ -392,27 +393,20 @@ jobs:
         timeout-minutes: 12
         run: |
           cp -a kernel_r/boot .
-          for f (vmlinuz 'initrd.img') {
-            k_file=kernel_r/$f
-            if [[ ! -e $k_file ]] {
-              # fix ppc64le
-              case $f {
-                (vmlinuz) k_file=kernel_r/vmlinux ;;
-                (*)       exit 2 ;;
-              }
-            }
+          ls -lh kernel_r kernel_r/boot
 
-            real_path=$(realpath $k_file)
-            real_fname=${real_path:t}
-            cp -v $real_path boot/$f
-            if [[ $f != $real_fname ]] {
-              ln -svf $f boot/$real_fname
+          for f (vmlinuz vmlinux 'initrd.img') {
+            k_link=$(readlink kernel_r/$f ||:)
+            if ((! $#k_link)) {
+              continue
+            }
+            k_fname=${k_link:t}
+            mv -vf boot/$k_fname boot/$f ||:
+            if [[ $f != $k_fname ]] {
+              ln -svf $f boot/$k_fname ||:
             }
           }
-
-          for f (config System) {
-            cp -v kernel_r/boot/${f}* boot/ ||:
-          }
+          ls -lh boot
 
           ${{env.new_task}} 'sudo systemd-nspawn -bD rootfs'
           sleep 2
@@ -431,15 +425,19 @@ jobs:
           run: |
             set -fexo pipefail
             # fix stretch, allow failure
-            apt-install fdisk ||:
             apt-install ifupdown udev parted
+            for pkg (fdisk qemu-guest-agent dosfstools) {
+              apt-install $pkg ||:
+            }
 
-            apt-install qemu-guest-agent dosfstools ||:
             network_iface=${{matrix.net}}
+            case ${{env.CODENAME}} {
+              (jessie)  network_iface=eth0 ;;
+            }
             case ${{matrix.arch}} {
               (s390x)
                 case ${{env.CODENAME}} {
-                  (stretch|jessie|wheezy) network_iface=enp0s0   ;;
+                  (stretch)               network_iface=enp0s0   ;;
                   (buster|bullseye)       network_iface=enP1p0s0 ;;
                 }
               ;;
@@ -447,6 +445,7 @@ jobs:
             tty_serial=${{matrix.tty}}
 
             iface_dir=/etc/network/interfaces.d
+            mkdir -p $iface_dir
             printf "%s\n" "auto lo" "iface lo inet loopback" > $iface_dir/loopback
             printf "%s\n" "auto $network_iface" "iface $network_iface inet dhcp" > $iface_dir/virtio-net
 
@@ -463,13 +462,13 @@ jobs:
               sed -E '/ExecStart=/ s@(%I|-) \$TERM$@--autologin root --local-line \1 xterm@' -i $tty_service
               cat $tty_service
             }
-            for service (
-              unsafe-resize-disk.service
-              add-cloudflare-dns.service
-            ) {
-              systemctl enable $service
+
+            case ${{env.CODENAME}} {
+              (jessie) ;;
+              (*) systemctl enable unsafe-resize-disk.service ;;
             }
 
+            systemctl enable add-cloudflare-dns.service
             systemctl disable systemd-networkd-wait-online.service ||:
             systemctl set-default multi-user.target
 
