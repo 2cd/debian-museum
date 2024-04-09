@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 set -fexo pipefail
-# Depends: e2fsprogs-extra | e2fsprogs, sfdisk | fdisk (>= 2.26.2), parted (>= 3.4), awk, coreutils, util-linux
+# Depends: e2fsprogs-extra | e2fsprogs, sfdisk | fdisk (>= 2.26.2) | libfdisk1, parted (>= 3.2), awk, coreutils, util-linux
 # Recommends: btrfs-progs, mount
 # ----------------
 sfdisk=/sbin/sfdisk
@@ -101,7 +101,8 @@ disk_node_arr=()
             parted --script --fix ${d} print
         }
         local dev_num=$(
-            parted --script ${d} print free | awk '/^[[:space:]]/{
+            # For compatibility with debian stretch `mawk`, do not use `^[[:space:]]`.
+            parted --script ${d} print free | awk '/^ /{
             last_num = num
             num=$1
             if ($0 ~/Free Space$/) {

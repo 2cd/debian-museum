@@ -235,6 +235,22 @@ jobs:
             apt-get upgrade -y
             apt-install openssh-server
             ssh-keygen -A ||:
+            apt-install systemd ||:
+
+            systemd_init=/lib/systemd/systemd
+
+            # fix stretch no-init
+            if [[ -e $systemd_init && ! -e /sbin/init ]] {
+              ln -svf ..${systemd_init} /sbin/init
+            }
+            if [[ -x /bin/systemctl ]] {
+              for bin (poweroff reboot halt) {
+                sysv=/sbin/$bin
+                if [[ ! -e $sysv ]] {
+                  ln -svf ../bin/systemctl $sysv
+                }
+              }
+            }
 
             # allow root to login without passwd in TTY
             sed -E '/^root:/ s@(root:)[^:]+(:)@\1\2@' -i /etc/shadow
@@ -426,25 +442,29 @@ jobs:
             # SERIAL
             tty_tmpl=/usr/lib/systemd/system/serial-getty@.service
             tty_service=/etc/systemd/system/serial-getty@${tty_serial}.service
-            cp $tty_tmpl $tty_service
 
-            sed -E '/ExecStart=/ s@(%I|-) \$TERM$@--autologin root --local-line \1 xterm@' -i $tty_service
-            cat $tty_service
-
-            systemctl disable systemd-networkd-wait-online.service
-            systemctl set-default multi-user.target
+            if [[ -e $tty_tmpl ]] {
+              cp $tty_tmpl $tty_service
+              sed -E '/ExecStart=/ s@(%I|-) \$TERM$@--autologin root --local-line \1 xterm@' -i $tty_service
+              cat $tty_service
+            }
             for service (
-              add-cloudflare-dns.service
               unsafe-resize-disk.service
+              add-cloudflare-dns.service
             ) {
               systemctl enable $service
             }
+
+            systemctl disable systemd-networkd-wait-online.service ||:
+            systemctl set-default multi-user.target
+
             case ${{matrix.arch}} {
               (mips64le) systemctl enable force-sync-time.service ;;
             }
             timeout 2 timedatectl set-ntp yes ||:
             timeout 3 timedatectl show ||:
-            apt-get autopurge -y
+            # apt-get autopurge -y
+            apt-get autoremove --purge ||:
             apt-get clean
             ls -lh /var/cache/apt
             rm -vf /var/lib/apt/lists/*.* ||:
