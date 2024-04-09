@@ -260,11 +260,8 @@ jobs:
           sshd_cfg=ssh/vm.sshd.conf
           case ${{env.CODENAME}} {
             (buster|stretch|jessie|wheezy|squeeze|lenny|etch|sarge|woody|potato|slink|hamm)
-              cat $sshd_cfg | sudo tee -a rootfs/etc/ssh/sshd_config
-            ;;
-            (*)
-              sudo install -Dm600 $sshd_cfg rootfs/etc/ssh/sshd_config.d/vm.conf
-            ;;
+              cat $sshd_cfg | sudo tee -a rootfs/etc/ssh/sshd_config ;;
+            (*) sudo install -Dm600 $sshd_cfg rootfs/etc/ssh/sshd_config.d/vm.conf ;;
           }
           unlink $sshd_cfg
 
@@ -285,6 +282,13 @@ jobs:
             (mips64le)      kernel=loongson-3                 ;;
             (mipsbe|mipsle) kernel=4kc-malta                  ;;
             (*)             kernel=${{matrix.deb_arch}}       ;;
+          }
+          case ${{env.CODENAME}} {
+            (stretch|jessie|wheezy|squeeze|lenny|etch|sarge|woody|potato|slink|hamm)
+            case ${{matrix.arch}} {
+              (arm64|x64) kernel=${{matrix.deb_arch}} ;;
+            }
+            ;;
           }
           sudo cp -a rootfs kernel_r
           sudo systemd-nspawn -D kernel_r sh -c "apt-install linux-image-${kernel}"
@@ -403,7 +407,10 @@ jobs:
             ssh/vm.sshconf
           run: |
             set -fexo pipefail
-            apt-install ifupdown udev fdisk parted
+            # fix stretch, allow failure
+            apt-install fdisk ||:
+            apt-install ifupdown udev parted
+
             apt-install qemu-guest-agent dosfstools ||:
             network_iface=${{matrix.net}}
             tty_serial=${{matrix.tty}}
