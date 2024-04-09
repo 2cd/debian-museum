@@ -9,12 +9,12 @@ env:
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
   new_task: "tmux new-session -d"
   #
-  # sid:
+  # SID:
   # RELEASE_TAG: unstable
   # CODENAME: sid
   # ROOTFS_REPO: "debian-sid:"
   #
-  # bookworm:
+  # BOOKWORM:
   RELEASE_TAG: 12
   CODENAME: "bookworm"
   ROOTFS_REPO: "debian:bookworm-"

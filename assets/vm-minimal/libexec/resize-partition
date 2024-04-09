@@ -146,7 +146,12 @@ partprobe
                 rmdir $tmp_mount_point
             ;;
             (*)
-                resize2fs $dev || print >&2 "%F{yellow}[WARN]%f Failed to resize the ext4/ext3 partition: $dev"
+                fsck -fy $dev || print >&2 "Failed to check $dev"
+                resize2fs $dev || {
+                    print -P >&2 -- "%F{yellow}[WARN]%f Failed to resize the ext4/ext3 partition: $dev"
+                    fsck -fcyv $dev ||:
+                    resize2fs $dev
+                }
             ;;
         }
     }
