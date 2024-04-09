@@ -10,14 +10,14 @@ env:
   new_task: "tmux new-session -d"
   #
   # sid:
-  RELEASE_TAG: unstable
-  CODENAME: sid
-  ROOTFS_REPO: "debian-sid:"
+  # RELEASE_TAG: unstable
+  # CODENAME: sid
+  # ROOTFS_REPO: "debian-sid:"
   #
   # bookworm:
-  # RELEASE_TAG: 12
-  # CODENAME: "bookworm"
-  # ROOTFS_REPO: "debian:bookworm-"
+  RELEASE_TAG: 12
+  CODENAME: "bookworm"
+  ROOTFS_REPO: "debian:bookworm-"
 on:
   # schedule:
   #   - cron: "0 11 28 */2 *"
@@ -43,16 +43,10 @@ jobs:
             tty: ttyS0
             net: enp0s2
 
-          # - arch: rv64gc
-          #   deb_arch: riscv64
-          #   qemu_pkg_arch: misc
-          #   tty: ttyS0
-          #   net: eth0
-
     runs-on: ubuntu-latest
     env:
       # non_x86: ${{ !contains(fromJSON('["x64", "x86"]'), matrix.arch) }}
-      enable_efi: ${{ contains(fromJSON('["arm64", "loong64"]'), matrix.arch) }}
+      enable_efi: ${{ contains(fromJSON('["arm64", "loong64", "rv64gc"]'), matrix.arch) }}
 
     defaults:
       run:
