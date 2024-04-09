@@ -20,14 +20,14 @@ env:
   # ROOTFS_REPO: "debian:bookworm-"
   #
   # [bullseye]
-  # RELEASE_TAG: 11
-  # CODENAME: "bullseye"
-  # ROOTFS_REPO: "debian:bullseye-"
+  RELEASE_TAG: 11
+  CODENAME: "bullseye"
+  ROOTFS_REPO: "debian:bullseye-"
   #
   # [buster]
-  RELEASE_TAG: 10
-  CODENAME: "buster"
-  ROOTFS_REPO: "debian:buster-"
+  # RELEASE_TAG: 10
+  # CODENAME: "buster"
+  # ROOTFS_REPO: "debian:buster-"
   #
   #
 on:
@@ -84,12 +84,12 @@ jobs:
           #   tty: hev0
           #   net: enp0s0
 
-          # - arch: s390x
-          #   deb_arch: s390x
-          #   qemu_pkg_arch: misc
-          #   tty: ttysclp0
-          #   # enP1p0s0
-          #   net: eno1
+          - arch: s390x
+            deb_arch: s390x
+            qemu_pkg_arch: misc
+            tty: ttysclp0
+            #  net:bookworm+ => eno1
+            net: enP1p0s0
 
           # - arch: mips64le
           #   deb_arch: mips64el
@@ -105,11 +105,11 @@ jobs:
           #   net: enp0s18
           # # ------------------------
           # BUSTER
-          - arch: mipsbe
-            deb_arch: mips
-            qemu_pkg_arch: mips
-            tty: ttyS0
-            net: enp0s18
+          # - arch: mipsbe
+          #   deb_arch: mips
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s18
 
     runs-on: ubuntu-latest
     env:
@@ -405,7 +405,7 @@ jobs:
 
             iface_dir=/etc/network/interfaces.d
             printf "%s\n" "auto lo" "iface lo inet loopback" > $iface_dir/loopback
-            printf "%s\n" "auto $network_iface" "iface $network_iface inet dhcp" > $iface_dir/qemu-nat
+            printf "%s\n" "auto $network_iface" "iface $network_iface inet dhcp" > $iface_dir/virtio-net
 
             cd $(mktemp -d)
             printf "%s\n" 'nameserver 10.0.2.3' 'nameserver 1.1.1.1' > resolv.conf

@@ -88,6 +88,8 @@ qemu-img resize disk.img +2G
 
 If `unsafe-resize-disk.service` (systemd) works correctly, it will automatically resize the partitions to utilize the unallocated space.
 
+> The disk partition table is automatically backed up to **/var/lib/tmm/bak/sfdisk/** before resizing.
+
 ## Step5: run
 
 ```sh
