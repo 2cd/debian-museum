@@ -30,14 +30,14 @@ env:
   # ROOTFS_REPO: "debian:buster-"
   #
   # [stretch]
-  # RELEASE_TAG: 9
-  # CODENAME: "stretch"
-  # ROOTFS_REPO: "debian:stretch-"
+  RELEASE_TAG: 9
+  CODENAME: "stretch"
+  ROOTFS_REPO: "debian:stretch-"
   #
   # [jessie]
-  RELEASE_TAG: 8
-  CODENAME: "jessie"
-  ROOTFS_REPO: "debian:jessie-"
+  # RELEASE_TAG: 8
+  # CODENAME: "jessie"
+  # ROOTFS_REPO: "debian:jessie-"
   #
   #
 on:
@@ -301,12 +301,7 @@ jobs:
             (arm64|x64)     kernel=cloud-${{matrix.deb_arch}} ;;
             (armv7a)        kernel=armmp-lpae                 ;;
             (ppc64le)       kernel=powerpc64le                ;;
-            (x86)
-              kernel=686
-              if [[ ${{env.CODENAME}} == jessie ]] {
-                kernel=686-pae
-              }
-            ;;
+            (x86)           kernel=686-pae                    ;;
             (mips64le)      kernel=loongson-3                 ;;
             (mipsbe|mipsle) kernel=4kc-malta                  ;;
             (*)             kernel=${{matrix.deb_arch}}       ;;
