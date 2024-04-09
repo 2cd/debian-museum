@@ -10,14 +10,14 @@ env:
   new_task: "tmux new-session -d"
   #
   # SID:
-  RELEASE_TAG: unstable
-  CODENAME: sid
-  ROOTFS_REPO: "debian-sid:"
+  # RELEASE_TAG: unstable
+  # CODENAME: sid
+  # ROOTFS_REPO: "debian-sid:"
   #
   # BOOKWORM:
-  # RELEASE_TAG: 12
-  # CODENAME: "bookworm"
-  # ROOTFS_REPO: "debian:bookworm-"
+  RELEASE_TAG: 12
+  CODENAME: "bookworm"
+  ROOTFS_REPO: "debian:bookworm-"
 on:
   # schedule:
   #   - cron: "0 11 28 */2 *"
@@ -273,6 +273,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           fail_on_unmatched_files: true
-          tag_name: unstable
+          tag_name: ${{env.RELEASE_TAG}}
           files: |
             *.tar.zst
