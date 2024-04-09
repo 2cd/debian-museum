@@ -15,14 +15,14 @@ env:
   # ROOTFS_REPO: "debian-sid:"
   #
   # [bookworm]
-  # RELEASE_TAG: 12
-  # CODENAME: "bookworm"
-  # ROOTFS_REPO: "debian:bookworm-"
+  RELEASE_TAG: 12
+  CODENAME: "bookworm"
+  ROOTFS_REPO: "debian:bookworm-"
   #
   # [bullseye]
-  RELEASE_TAG: 11
-  CODENAME: "bullseye"
-  ROOTFS_REPO: "debian:bullseye-"
+  # RELEASE_TAG: 11
+  # CODENAME: "bullseye"
+  # ROOTFS_REPO: "debian:bullseye-"
   #
   # [buster]
   # RELEASE_TAG: 10
