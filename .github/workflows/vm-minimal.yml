@@ -64,23 +64,23 @@ jobs:
           #   tty: ttyS0
           #   net: enp0s1
           # # ------------------
-          - arch: x64
-            deb_arch: amd64
-            qemu_pkg_arch: x86
-            tty: ttyS0
-            net: enp0s2
+          # - arch: x64
+          #   deb_arch: amd64
+          #   qemu_pkg_arch: x86
+          #   tty: ttyS0
+          #   net: enp0s2
 
-          - arch: arm64
-            deb_arch: arm64
-            qemu_pkg_arch: arm
-            tty: ttyAMA0
-            net: enp0s1
+          # - arch: arm64
+          #   deb_arch: arm64
+          #   qemu_pkg_arch: arm
+          #   tty: ttyAMA0
+          #   net: enp0s1
 
-          - arch: armv7a
-            deb_arch: armhf
-            qemu_pkg_arch: arm
-            tty: ttyAMA0
-            net: enp0s1
+          # - arch: armv7a
+          #   deb_arch: armhf
+          #   qemu_pkg_arch: arm
+          #   tty: ttyAMA0
+          #   net: enp0s1
 
           - arch: x86
             deb_arch: i386
@@ -88,38 +88,38 @@ jobs:
             tty: ttyS0
             net: ens3
 
-          - arch: ppc64le
-            deb_arch: ppc64el
-            qemu_pkg_arch: ppc
-            tty: hev0
-            net: enp0s0
+          # - arch: ppc64le
+          #   deb_arch: ppc64el
+          #   qemu_pkg_arch: ppc
+          #   tty: hev0
+          #   net: enp0s0
 
-          - arch: s390x
-            deb_arch: s390x
-            qemu_pkg_arch: misc
-            tty: ttysclp0
-            #  net:bookworm+ => eno1, bullseye => enP1p0s0, stretch => enp0s0
-            net: eno1
+          # - arch: s390x
+          #   deb_arch: s390x
+          #   qemu_pkg_arch: misc
+          #   tty: ttysclp0
+          #   #  net:bookworm+ => eno1, bullseye => enP1p0s0, stretch => enp0s0
+          #   net: eno1
 
-          - arch: mips64le
-            deb_arch: mips64el
-            qemu_pkg_arch: mips
-            tty: ttyS0
-            net: enp0s3
-          # ------------------------
-          # BOOKWORM
-          - arch: mipsle
-            deb_arch: mipsel
-            qemu_pkg_arch: mips
-            tty: ttyS0
-            net: enp0s18
-          # ------------------------
-          # BUSTER
-          - arch: mipsbe
-            deb_arch: mips
-            qemu_pkg_arch: mips
-            tty: ttyS0
-            net: enp0s18
+          # - arch: mips64le
+          #   deb_arch: mips64el
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s3
+          # # ------------------------
+          # # BOOKWORM
+          # - arch: mipsle
+          #   deb_arch: mipsel
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s18
+          # # ------------------------
+          # # BUSTER
+          # - arch: mipsbe
+          #   deb_arch: mips
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s18
 
     runs-on: ubuntu-latest
     env:
@@ -301,7 +301,12 @@ jobs:
             (arm64|x64)     kernel=cloud-${{matrix.deb_arch}} ;;
             (armv7a)        kernel=armmp-lpae                 ;;
             (ppc64le)       kernel=powerpc64le                ;;
-            (x86)           kernel=686                        ;;
+            (x86)
+              kernel=686
+              if [[ ${{env.CODENAME}} == jessie ]] {
+                kernel=686-pae
+              }
+            ;;
             (mips64le)      kernel=loongson-3                 ;;
             (mipsbe|mipsle) kernel=4kc-malta                  ;;
             (*)             kernel=${{matrix.deb_arch}}       ;;
