@@ -25,9 +25,9 @@ env:
   # ROOTFS_REPO: "debian:bullseye-"
   #
   # [buster]
-  RELEASE_TAG: 10
-  CODENAME: "buster"
-  ROOTFS_REPO: "debian:buster-"
+  # RELEASE_TAG: 10
+  # CODENAME: "buster"
+  # ROOTFS_REPO: "debian:buster-"
   #
   # [stretch]
   # RELEASE_TAG: 9
@@ -35,9 +35,9 @@ env:
   # ROOTFS_REPO: "debian:stretch-"
   #
   # [jessie]
-  # RELEASE_TAG: 8
-  # CODENAME: "jessie"
-  # ROOTFS_REPO: "debian:jessie-"
+  RELEASE_TAG: 8
+  CODENAME: "jessie"
+  ROOTFS_REPO: "debian:jessie-"
   #
   #
 on:
@@ -70,11 +70,11 @@ jobs:
           #   tty: ttyS0
           #   net: enp0s2
 
-          # - arch: arm64
-          #   deb_arch: arm64
-          #   qemu_pkg_arch: arm
-          #   tty: ttyAMA0
-          #   net: enp0s1
+          - arch: arm64
+            deb_arch: arm64
+            qemu_pkg_arch: arm
+            tty: ttyAMA0
+            net: enp0s1
 
           # - arch: armv7a
           #   deb_arch: armhf
