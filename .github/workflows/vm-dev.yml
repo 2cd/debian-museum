@@ -9,15 +9,15 @@ env:
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
   new_task: "tmux new-session -d"
   #
-  # SID:
-  # RELEASE_TAG: unstable
-  # CODENAME: sid
-  # ROOTFS_REPO: "debian-sid:"
+  # [sid]
+  RELEASE_TAG: unstable
+  CODENAME: sid
+  ROOTFS_REPO: "debian-sid:"
   #
-  # BOOKWORM:
-  RELEASE_TAG: 12
-  CODENAME: "bookworm"
-  ROOTFS_REPO: "debian:bookworm-"
+  # [bookworm]
+  # RELEASE_TAG: 12
+  # CODENAME: "bookworm"
+  # ROOTFS_REPO: "debian:bookworm-"
 on:
   # schedule:
   #   - cron: "0 11 28 */2 *"

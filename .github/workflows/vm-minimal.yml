@@ -6,31 +6,30 @@ env:
   DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
   DEV_DIR: assets/vm-minimal
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
+  FETCH: "aria2c -s5 -x5 -k1m --no-conf"
+  new_task: "tmux new-session -d"
   #
+  # [sid]
+  # RELEASE_TAG: unstable
+  # CODENAME: sid
+  # ROOTFS_REPO: "debian-sid:"
   #
-  RELEASE_TAG: unstable
-  CODENAME: sid
-  ROOTFS_REPO: "debian-sid:"
-
-  #
+  # [bookworm]
   # RELEASE_TAG: 12
   # CODENAME: "bookworm"
   # ROOTFS_REPO: "debian:bookworm-"
   #
-  # #
+  # [bullseye]
   # RELEASE_TAG: 11
   # CODENAME: "bullseye"
   # ROOTFS_REPO: "debian:bullseye-"
   #
+  # [buster]
+  RELEASE_TAG: 10
+  CODENAME: "buster"
+  ROOTFS_REPO: "debian:buster-"
   #
-  # RELEASE_TAG: 10
-  # CODENAME: "buster"
-  # ROOTFS_REPO: "debian:buster-"
   #
-  #
-  #
-  FETCH: "aria2c -s5 -x5 -k1m --no-conf"
-  new_task: "tmux new-session -d"
 on:
   push:
     # branches: ["build"]
@@ -43,17 +42,17 @@ jobs:
       matrix:
         include:
           # SID:
-          - arch: rv64gc
-            deb_arch: riscv64
-            qemu_pkg_arch: misc
-            tty: ttyS0
-            net: eth0
+          # - arch: rv64gc
+          #   deb_arch: riscv64
+          #   qemu_pkg_arch: misc
+          #   tty: ttyS0
+          #   net: eth0
 
-          - arch: loong64
-            deb_arch: loong64
-            qemu_pkg_arch: misc
-            tty: ttyS0
-            net: enp0s1
+          # - arch: loong64
+          #   deb_arch: loong64
+          #   qemu_pkg_arch: misc
+          #   tty: ttyS0
+          #   net: enp0s1
           # # ------------------
           - arch: arm64
             deb_arch: arm64
@@ -99,11 +98,18 @@ jobs:
             net: enp0s3
           # ------------------------
           # BOOKWORM
-          # - arch: mipsle
-          #   deb_arch: mipsel
-          #   qemu_pkg_arch: mips
-          #   tty: ttyS0
-          #   net: enp0s18
+          - arch: mipsle
+            deb_arch: mipsel
+            qemu_pkg_arch: mips
+            tty: ttyS0
+            net: enp0s18
+          # ------------------------
+          # BUSTER
+          - arch: mipsbe
+            deb_arch: mips
+            qemu_pkg_arch: mips
+            tty: ttyS0
+            net: enp0s18
 
     runs-on: ubuntu-latest
     env:
@@ -248,7 +254,14 @@ jobs:
             sudo chmod 700 -v $i
           }
           sshd_cfg=ssh/vm.sshd.conf
-          sudo install -Dm600 $sshd_cfg rootfs/etc/ssh/sshd_config.d/vm.conf
+          case ${{env.CODENAME}} {
+            (buster|stretch|jessie|wheezy|squeeze|lenny|etch|sarge|woody|potato|slink|hamm)
+              cat $sshd_cfg | sudo tee -a rootfs/etc/ssh/sshd_config
+            ;;
+            (*)
+              sudo install -Dm600 $sshd_cfg rootfs/etc/ssh/sshd_config.d/vm.conf
+            ;;
+          }
           unlink $sshd_cfg
 
           sudo cp -v ${{env.DEV_DIR}}/systemd/* rootfs/etc/systemd/system/
@@ -393,7 +406,10 @@ jobs:
             network_iface=${{matrix.net}}
             tty_serial=${{matrix.tty}}
 
-            printf "%s\n" "auto $network_iface" "iface $network_iface inet dhcp" >/etc/network/interfaces.d/qemu-nat.conf
+            iface_dir=/etc/network/interfaces.d
+            printf "%s\n" "auto lo" "iface lo inet loopback" > $iface_dir/loopback
+            printf "%s\n" "auto $network_iface" "iface $network_iface inet dhcp" > $iface_dir/qemu-nat
+
             cd $(mktemp -d)
             printf "%s\n" 'nameserver 10.0.2.3' 'nameserver 1.1.1.1' > resolv.conf
             install -m644 resolv.conf /etc/resolv.conf

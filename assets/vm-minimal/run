@@ -11,8 +11,41 @@ integer ssh_port=9022
 # See also: hostfwd_map
 integer guest_ssh_port=9022
 
+extra_qemu_args=(
+    # -vnc  127.0.0.1:1
+    #
+    # -device  ramfb
+    #
+    # -cdrom  cloud-image.iso
+    #
+    $*
+)
+
 name=debian-vm-minimal
 qemu_arch=x64
+
+# NO GUI
+#
+# It is designed for NO GUI, if you want to use GUI, then you need to set `no_graphic=false`, and add the related arguments manually.
+# e.g., for arm64, you may need to add the ramfb device: extra_qemu_args+=( -device ramfb )
+# For armv7a, you also need to enable efi.
+no_graphic=true
+# -------------------------
+#
+# DISK
+#
+# For virtio-blk: The 1st disk is vda, the 2nd is vdb, and the 3rd is vdc.
+#
+# For RAW format images, use the `.img` or `.raw` extension.
+disk_arr=(
+    disk.img
+    #
+    # var.img
+    # 128GB-EXT4.img
+    # 1TB-BTRFS.raw
+    # 1PB-data.qcow2
+    # win-data-NTFS.vhdx
+)
 # -------------------------
 #
 # KVM & MACHINE
@@ -65,6 +98,8 @@ cpu_mips64le=Loongson-3A1000
 # qemu-system-mipsel -cpu help
 # 4KEc, 24Kc, 74Kf
 cpu_mipsle=4KEc
+#
+cpu_mipsbe=""
 
 # Symmetric multiprocessing (Multiple CPU cores)
 smp=true
@@ -103,57 +138,13 @@ machine_mips64le=loongson3-virt
 #
 # qemu-system-mipsel -machine help
 machine_mipsle=malta
+machine_mipsbe=malta
 
 extra_machine_options=(
     # virtualization=on
     #
 )
 # ----------------------
-#
-# CMD
-#
-qemu_cmd_x64=qemu-system-x86_64
-qemu_cmd_x86=qemu-system-i386
-qemu_cmd_arm64=qemu-system-aarch64
-qemu_cmd_armv7a=qemu-system-arm
-qemu_cmd_rv64gc=qemu-system-riscv64
-qemu_cmd_loong64=qemu-system-loongarch64
-qemu_cmd_mips64le=qemu-system-mips64el
-qemu_cmd_mipsle=qemu-system-mipsel
-qemu_cmd_ppc64le=qemu-system-ppc64
-qemu_cmd_s390x=qemu-system-s390x
-
-extra_qemu_args=(
-    # -vnc  127.0.0.1:1
-    #
-    # -device  ramfb
-    #
-    $*
-)
-
-# NO GUI
-#
-# It is designed for NO GUI, if you want to use GUI, then you need to set `no_graphic=false`, and add the related arguments manually.
-# e.g., for arm64, you may need to add the ramfb device: extra_qemu_args+=( -device ramfb )
-# For armv7a, you also need to enable efi.
-no_graphic=true
-# --------------
-#
-# DISK
-#
-# For virtio-blk: The 1st disk is vda, the 2nd is vdb, and the 3rd is vdc.
-#
-# For RAW format images, use the `.img` or `.raw` extension.
-disk_arr=(
-    disk.img
-    #
-    # var.img
-    # 128GB-EXT4.img
-    # 1TB-BTRFS.raw
-    # 1PB-data.qcow2
-    # win-data-NTFS.vhdx
-)
-# --------------
 #
 # EFI
 #
@@ -186,6 +177,7 @@ kernel_command_line_armv7a="root=/dev/vda1 rw console=tty0 console=ttyAMA0 nokas
 kernel_command_line_ppc64le="root=/dev/vda1 rw console=tty0 console=hvc0"
 kernel_command_line_s390x="root=/dev/vda1 rw console=ttysclp0"
 kernel_command_line_mipsle="root=/dev/vda1 rw console=tty0 console=ttyS0 nokaslr"
+kernel_command_line_mipsbe=$kernel_command_line_mipsle
 # --------------
 #
 # NETWORK
@@ -281,11 +273,27 @@ float memory_percentage=90.0
 # It is not necessary to manually add Unit (Megabytes (MB)).
 integer max_memory=0
 integer max_memory_mipsle=2048
+integer max_memory_mipsbe=2048
 integer max_memory_armv7a=2816
 
 # Note: power8 cpu (arch: ppc64le) must have an integer multiple of 256M.
 auto_resize_mem_to_256_multiple=false
 auto_resize_mem_to_256_multiple_ppc64le=true
+# ----------------------
+#
+# CMD
+#
+qemu_cmd_x64=qemu-system-x86_64
+qemu_cmd_x86=qemu-system-i386
+qemu_cmd_arm64=qemu-system-aarch64
+qemu_cmd_armv7a=qemu-system-arm
+qemu_cmd_rv64gc=qemu-system-riscv64
+qemu_cmd_loong64=qemu-system-loongarch64
+qemu_cmd_mips64le=qemu-system-mips64el
+qemu_cmd_mipsle=qemu-system-mipsel
+qemu_cmd_mipsbe=qemu-system-mips
+qemu_cmd_ppc64le=qemu-system-ppc64
+qemu_cmd_s390x=qemu-system-s390x
 # --------------
 #
 # VIRTIO FSD
