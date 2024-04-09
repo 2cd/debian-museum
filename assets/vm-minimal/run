@@ -404,12 +404,13 @@ args=(-name  $name)
     machine_name=$(get_the_real_value machine)
 
     unset machine_opts
-    # convert the elements of the machine_opts array to ",ele1,ele2,..." , equivalent to `format!(",{}", machine_opts.join(","))`
+    # convert the elements of the extra_machine_options array to ",ele1,ele2,..." , equivalent to `format!(",{}", extra_machine_options.join(","))`
     for i ($extra_machine_options) {
         machine_opts+=$(printf "%s" ",$i")
     }
     args+=(
-        -machine ${machine_name},accel=${qemu_accel}${machine_opts}
+        -machine
+        "${machine_name},accel=${qemu_accel}${machine_opts}"
     )
 }
 
@@ -762,7 +763,7 @@ detect_kvm() {
 
 set_qemu_cpu() {
     if {$kvm} {
-        if ((! #kvm_cpu)) {
+        if ((! $#kvm_cpu)) {
             return
         }
         args+=( -cpu  $kvm_cpu )
@@ -770,7 +771,7 @@ set_qemu_cpu() {
     }
 
     local cpu_value=$(get_the_real_value cpu allow-empty)
-    if ((! #cpu_value)) {
+    if ((! $#cpu_value)) {
         return
     }
     args+=( -cpu  $cpu_value )
