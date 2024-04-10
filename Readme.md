@@ -85,9 +85,15 @@ Why not give it a try? You can experience virtual machines for **riscv64gc**, **
 
 ### Step0: download the vm image
 
+> These VM images are built automatically by [github actions](https://github.com/2cd/debian-museum/actions/workflows/vm-minimal.yml).
+
+Please feel free to send an issue to tell us which version you are using and which architecture.
+
+We're going to probably increase support for the version and the architecture.
+
 ![VM-Minimal](./assets/img/vm-minimal-sid.jpg)
 
-Go to the **Releases** section and download file that start with **vm-**.
+Go to the **Releases** and download file that start with **vm-**.
 
 > Files starting with version numbers are container images (e.g., **8_jessie_**), not virtual machine images.
 
@@ -106,6 +112,8 @@ tar -xvf ../vm-minimal_bookworm_x64.tar.zst
 ```
 
 ### Step1: install qemu
+
+Unlike other software, where older versions are installed to maintain stability, for **qemu**, it is recommended to install a newer version (such as 8.2+) instead of the old one.
 
 Alpine
 
