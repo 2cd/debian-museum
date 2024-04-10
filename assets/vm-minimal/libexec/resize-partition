@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 set -fexo pipefail
-# Depends: e2fsprogs-extra | e2fsprogs, sfdisk | fdisk (>= 2.26.2) | libfdisk1, parted (>= 3.2), awk, coreutils, util-linux
+# Depends: e2fsprogs-extra | e2fsprogs, sfdisk | fdisk (>= 2.26.2) | libfdisk1, parted (>= 3.2-17), awk, coreutils, util-linux
 # Recommends: btrfs-progs, mount
 # ----------------
 sfdisk=/sbin/sfdisk

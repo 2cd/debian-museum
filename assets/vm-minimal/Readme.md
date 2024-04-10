@@ -176,16 +176,19 @@ Run the following command in the virtual machine.
 apt update
 apt install docker.io
 
-# If the VM is x64 arch:
+# If the VM is ubuntu:
+apt install linux-image-virtual
+
+# If the VM is debian 10+ x64:
 apt install linux-image-cloud-amd64
 
-# If the VM is arm64 arch:
+# If the VM is debian 10+ arm64:
 apt install linux-image-cloud-arm64
 
-# If the VM is rv64gc arch:
+# If the VM is debian rv64gc:
 apt install linux-image-riscv64
 
-# If the VM is loong64 arch:
+# If the VM is debian loong64:
 apt install linux-image-loong64
 ```
 

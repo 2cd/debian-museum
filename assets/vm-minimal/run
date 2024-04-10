@@ -100,14 +100,18 @@ cpu_mipsle=4KEc
 #
 cpu_mipsbe=""
 
-# Symmetric multiprocessing (Multiple CPU cores)
-smp=true
-smp_mips64le=false
-smp_mipsbe=false
-smp_mipsle=false
+# Symmetric multiprocessing (Multiple CPUs)
+enable_smp=true
+enable_smp_mips64le=false
+enable_smp_mipsbe=false
+enable_smp_mipsle=false
 #
-# If `smp=true`, and `max_cores=0`, then the number of cpu cores of the host is automatically detected.
-integer max_cores=0
+smp_options=(
+    sockets=1
+    cores=$(nproc)
+    threads=1
+    # maxcpus=$(nproc)
+)
 
 # pc (Standard PC (i440FX + PIIX, 1996)), q35 (Standard PC (Q35 + ICH9, 2009)),
 # microvm, isapc, none, x-remote
@@ -425,19 +429,17 @@ args=(-name  $name)
     )
 }
 
-# SMP
+# Multiple CPUs
 () {
-    enable_smp=$(get_the_real_value smp)
-    if {! $enable_smp} {
+    local enable=$(get_the_real_value enable_smp)
+    if {! $enable} {
         return
     }
-    local core_num=$max_cores
-    if ((core_num == 0)) {
-        # Auto-detect the number of host cpu cores
-        core_num=$(nproc)
-    }
+
+    local opts=$(IFS=','; print "$smp_options")
+
     args+=(
-        -smp $core_num
+        -smp $opts
     )
 }
 
