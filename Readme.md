@@ -340,6 +340,9 @@ local -A oci_arch_map=(
     armhf        armv7
     # In fact, just relying on `uname -m` cannot determine `feature = "+vfp3"` (armhf).
     # armv7l       $armv7
+    #
+    # armv8m is arm32, not arm64
+    armv8m       armv7
 )
 
 # On alpine, if dpkg is installed, it will output musl-linux-[xxx] (e.g., musl-linux-riscv64), not [xxx] (e.g., riscv64).
@@ -348,7 +351,7 @@ local -A oci_arch_map=(
 get_dpkg_architecture() {
     local dpkg_arch=$(dpkg --print-architecture)
 
-    # arch_arr.split('-').last()
+    # dpkg_arch.split('-').last()
     local deb_arch=$dpkg_arch[(ws^-^)-1]
 
     case $deb_arch {
