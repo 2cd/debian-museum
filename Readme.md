@@ -71,7 +71,187 @@ To enable experimental source, run a sid container and then edit the **/etc/apt/
 > - [distro-info-data/debian.csv](https://debian.pages.debian.net/distro-info-data/debian.csv)
 > - [Wiki/DebianTesting](https://wiki.debian.org/DebianTesting)
 
-## docker
+## Virtual Machine
+
+Unlike containers, virtual machine images only support a few newer versions such as **jessie**, **buster**, **bullseye**, **bookworm**, and **sid**.
+
+The primary reason for this is that testing different architectures and versions of virtual machine images is quite exhausting!
+
+> Container images even support versions from the last century.
+
+Although this isn't the best virtual machine project, nor the most comprehensive, for me, it's the best **nogui** virtual machine project!
+
+Why not give it a try? You can experience virtual machines for **riscv64gc**, **loongarch64**, **mipsle**, **s390x**, and other architectures in just a few minutes.
+
+### Step0: download the vm image
+
+![VM-Minimal](./assets/img/vm-minimal-buster.jpg)
+
+Go to the **Releases** section and download file that start with **vm-**.
+
+> Files starting with version numbers are container images (e.g., **8_jessie_**), not virtual machine images.
+
+Now let's take **bookworm x64 (x86_64)** as an example.
+
+```sh
+mkdir -p vm/12/x64
+cd vm/12
+
+url='https://github.com/2cd/debian-museum/releases/download/12/vm-minimal_bookworm_x64.tar.zst'
+# If you don't have aria2 installed, then curl will be used.
+aria2c -s5 -x5 "$url" || curl -LO "$url"
+
+cd x64
+tar -xvf ../vm-minimal_bookworm_x64.tar.zst
+```
+
+### Step1: install qemu
+
+Alpine
+
+```sh
+# If the VM is x64 arch:
+apk add qemu-system-x86_64
+
+# If the VM is arm64 arch:
+apk add qemu-system-aarch64
+
+# If the VM is rv64 arch:
+apk add qemu-system-riscv64
+
+# If the VM is loong64 arch:
+apk add qemu-system-loongarch64
+```
+
+Android Termux
+
+```sh
+# If the VM is x64 arch:
+pkg i qemu-system-x86-64-headless
+
+# If the VM is arm64 arch:
+pkg i qemu-system-aarch64-headless
+```
+
+ArchLinux
+
+```sh
+# If the VM is x64 arch:
+paru -Sy qemu-system-x86
+
+# If the VM is arm64 arch:
+paru -S qemu-system-aarch64
+```
+
+Debian, Ubuntu, Kali, Mint, ...
+
+```sh
+# run apt as root (e.g., sudo-rs apt update)
+apt update
+apt install qemu-system
+```
+
+There are other distributions that we haven’t listed one by one. For example, on Fedora, the package name for x64 QEMU is qemu-system-x86. You can use the package manager that comes with your distribution to search for qemu-system and then install the corresponding architecture’s QEMU.
+
+Feel free to explore and set up QEMU based on your distribution!
+
+### Step2: fix KVM permissions (Optional)
+
+> Please note: Linux Kernel 5.7+ no longer supports arm32 KVM. If you’re using an armv7l device, you can skip this part.
+>
+> See also [phoronix/Linux-5.7-Kill-32-bit-ARM-KVM](https://www.phoronix.com/news/Linux-5.7-Kill-32-bit-ARM-KVM)
+
+Unfortunately, if your system kernel and CPU don’t support KVM, virtual machine performance will be quite slow. Some people humorously say that QEMU isn’t **Quick** at all; it’s more like **Slow EMU.** However, this is a misconception.
+
+For instance:
+
+On devices that support x64 KVM, using a Debian Sid x64 minimal virtual machine, the boot time is only around 4 seconds.
+But the same image on Android arm64 takes over a minute to boot.
+Nevertheless, this is already quite fast and comparable to Alpine Linux.
+
+> I’ve experienced running **Windows arm64** on a device **without** arm64 KVM support, and it is not an exaggeration to say that you need to wait for hours.
+
+---
+
+Add the current user to the kvm user group.
+
+```sh
+# run it as root (i.e., +sudo/+sudo-rs/+doas)
+usermod -aG kvm "$(id -un)"
+```
+
+If it does not work, change he permissions manually.
+
+```sh
+# run it as root
+chmod 666 -v /dev/shm
+```
+
+### Step3: install zsh
+
+On most distributions, the package name for zsh is `zsh`, and you can install it using your system's package manager.
+e.g., `apt install zsh`
+
+For Linux systems other than Android and embedded distributions, you can also download it from the [2moe/zsh-static-docker](https://github.com/2moe/zsh-static-docker/releases) repository. (Extract tar.zst and get `opt/bin/zsh`, finally move it to `${XDG_BIN_HOME:~/.local/bin}`)
+
+> It can also be another "**PATH**", not necessarily `XDG_BIN_HOME`.
+
+### Step4: expand virtual disk (Optional)
+
+Install `qemu-utils`, then run `qemu-img`.
+
+```sh
+qemu-img resize disk.img +2G
+```
+
+If `unsafe-resize-disk.service` (systemd) works correctly, it will automatically resize the partitions to utilize the unallocated space.
+
+> This service does not support jessie (2015), only stretch (2017) and newer. If you must use it on jessie, you need to manually replace `parted` and `sfdisk` with newer versions.
+>
+> The disk partition table is automatically backed up to **/var/lib/tmm/bak/sfdisk/** before resizing.
+
+### Step5: run
+
+This is a Zsh script that **doesn’t** require root permissions and **won’t** automatically create files outside of `$PWD` or `${0:a:h}` (i.e., `current_exe()?.parent()`) directories.
+
+> It’s a bit complex, and in the future, it might be combined with WASI (WebAssembly System Interface) to handle the core logic.
+
+```sh
+./run
+```
+
+> localhost login: root
+
+### Step6: other (Optional)
+
+install OpenSSH client
+
+> The ssh package name for debian/ubuntu is `ssh`, or `openssh` in some distributions.
+
+If you don't need sshd, install the ssh client separately.
+
+```sh
+# run apt as root (i.e., +sudo/+sudo-rs/+doas)
+apt install openssh-client
+```
+
+#### connect to ssh
+
+Open a new terminal session/window, then run:
+
+```sh
+./connect-to-ssh
+```
+
+## Docker
+
+The following content is prepared for Docker users.
+
+If you need to experience Docker on devices that do not support the Docker kernel, you can use **vm-dev_bookworm_x64.tar.zst** or **vm-dev_bookworm_arm64.tar.zst**.
+
+The Dev VM comes pre-installed with Docker, qemu-user-static, and systemd-nspawn.
+
+---
 
 - RUN IT ON zsh.
   - bash is NOT SUPPORTED, NOR is dash
@@ -102,7 +282,7 @@ dbg() {
     print >&2 -Pr "%F{blue}[DEBUG]%f $*"
 }
 # if ver.is_empty()
-if ((! #ver)) {
+if ((! $#ver)) {
     ver=sid
 }
 
@@ -154,7 +334,7 @@ get_dpkg_architecture() {
 }
 
 # if arch.is_empty()
-if ((! #arch)) {
+if ((! $#arch)) {
     # arch = if "dpkg".cmd_exists() { dpkg --print-architecture } else { uname -m }
     arch=$(
         if (($+commands[dpkg])) {
@@ -205,7 +385,7 @@ if (($+commands[timedatectl])) {
 platform=$oci_arch_map[$arch]
 
 # if platform.is_not_empty()
-if ((#platform)) {
+if (($#platform)) {
     args+=(
         # If you want to run containers from other architectures
         # (e.g., host: arm64, container: riscv64),
