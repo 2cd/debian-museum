@@ -7,53 +7,53 @@
 
 ## History
 
-| version     | release           |
-| ----------- | ----------------- |
-| 0.01 ~ 0.90 | 1993-08 ~ 1993-12 |
-| 0.91        | 1994-01           |
-| 0.93R5      | 1995-03           |
-| 0.93R6      | 1995-10-26        |
+| version                                                            | release           |
+| ------------------------------------------------------------------ | ----------------- |
+| 0.01 ~ 0.90                                                        | 1993-08 ~ 1993-12 |
+| [0.91](https://github.com/2cd/debian-museum/releases/tag/0.91)     | 1994-01           |
+| 0.93R5                                                             | 1995-03           |
+| [0.93R6](https://github.com/2cd/debian-museum/releases/tag/0.93R6) | 1995-10-26        |
 
 ---
 
-| version | codename | created    | release    | eol        |
-| ------- | -------- | ---------- | ---------- | ---------- |
-| 1.1     | Buzz     | 1993-08-16 | 1996-06-17 | 1997-06-05 |
-| 1.2     | Rex      | 1996-06-17 | 1996-12-12 | 1998-06-05 |
-| 1.3     | Bo       | 1996-12-12 | 1997-06-05 | 1999-03-09 |
-| 2.0     | Hamm     | 1997-06-05 | 1998-07-24 | 2000-03-09 |
-| 2.1     | Slink    | 1998-07-24 | 1999-03-09 | 2000-10-30 |
-| 2.2     | Potato   | 1999-03-09 | 2000-08-15 | 2003-06-30 |
-| 3.0     | Woody    | 2000-08-15 | 2002-07-19 | 2006-06-30 |
-| 3.1     | Sarge    | 2002-07-19 | 2005-06-06 | 2008-03-31 |
-| 4.0     | Etch     | 2005-06-06 | 2007-04-08 | 2010-02-15 |
-| 5.0     | Lenny    | 2007-04-08 | 2009-02-14 | 2012-02-06 |
+| version                                                      | codename | created    | release    | eol        |
+| ------------------------------------------------------------ | -------- | ---------- | ---------- | ---------- |
+| [1.1](https://github.com/2cd/debian-museum/releases/tag/1.1) | Buzz     | 1993-08-16 | 1996-06-17 | 1997-06-05 |
+| [1.2](https://github.com/2cd/debian-museum/releases/tag/1.2) | Rex      | 1996-06-17 | 1996-12-12 | 1998-06-05 |
+| [1.3](https://github.com/2cd/debian-museum/releases/tag/1.3) | Bo       | 1996-12-12 | 1997-06-05 | 1999-03-09 |
+| [2.0](https://github.com/2cd/debian-museum/releases/tag/2.0) | Hamm     | 1997-06-05 | 1998-07-24 | 2000-03-09 |
+| [2.1](https://github.com/2cd/debian-museum/releases/tag/2.1) | Slink    | 1998-07-24 | 1999-03-09 | 2000-10-30 |
+| [2.2](https://github.com/2cd/debian-museum/releases/tag/2.2) | Potato   | 1999-03-09 | 2000-08-15 | 2003-06-30 |
+| [3.0](https://github.com/2cd/debian-museum/releases/tag/3.0) | Woody    | 2000-08-15 | 2002-07-19 | 2006-06-30 |
+| [3.1](https://github.com/2cd/debian-museum/releases/tag/3.1) | Sarge    | 2002-07-19 | 2005-06-06 | 2008-03-31 |
+| [4.0](https://github.com/2cd/debian-museum/releases/tag/4.0) | Etch     | 2005-06-06 | 2007-04-08 | 2010-02-15 |
+| [5.0](https://github.com/2cd/debian-museum/releases/tag/5.0) | Lenny    | 2007-04-08 | 2009-02-14 | 2012-02-06 |
 
 ---
 
-| version | codename | created    | release    | eol        | eol-lts    | eol-elts   |
-| ------- | -------- | ---------- | ---------- | ---------- | ---------- | ---------- |
-| 6.0     | Squeeze  | 2009-02-14 | 2011-02-06 | 2014-05-31 | 2016-02-29 |            |
-| 7       | Wheezy   | 2011-02-06 | 2013-05-04 | 2016-04-25 | 2018-05-31 | 2020-06-30 |
-| 8       | Jessie   | 2013-05-04 | 2015-04-26 | 2018-06-17 | 2020-06-30 | 2025-06-30 |
-| 9       | Stretch  | 2015-04-26 | 2017-06-17 | 2020-07-18 | 2022-06-30 | 2027-06-30 |
-| 10      | Buster   | 2017-06-17 | 2019-07-06 | 2022-09-10 | 2024-06-30 | 2029-06-30 |
-| 11      | Bullseye | 2019-07-06 | 2021-08-14 | 2024-08-14 | 2026-08-31 | 2031-06-30 |
-| 12      | Bookworm | 2021-08-14 | 2023-06-10 | 2026-06-10 | 2028-06-30 | 2033-06-30 |
+| version                                                      | codename | created    | release    | eol        | eol-lts    | eol-elts   |
+| ------------------------------------------------------------ | -------- | ---------- | ---------- | ---------- | ---------- | ---------- |
+| [6.0](https://github.com/2cd/debian-museum/releases/tag/6.0) | Squeeze  | 2009-02-14 | 2011-02-06 | 2014-05-31 | 2016-02-29 |            |
+| [7](https://github.com/2cd/debian-museum/releases/tag/7)     | Wheezy   | 2011-02-06 | 2013-05-04 | 2016-04-25 | 2018-05-31 | 2020-06-30 |
+| [8](https://github.com/2cd/debian-museum/releases/tag/8)     | Jessie   | 2013-05-04 | 2015-04-26 | 2018-06-17 | 2020-06-30 | 2025-06-30 |
+| [9](https://github.com/2cd/debian-museum/releases/tag/9)     | Stretch  | 2015-04-26 | 2017-06-17 | 2020-07-18 | 2022-06-30 | 2027-06-30 |
+| [10](https://github.com/2cd/debian-museum/releases/tag/10)   | Buster   | 2017-06-17 | 2019-07-06 | 2022-09-10 | 2024-06-30 | 2029-06-30 |
+| [11](https://github.com/2cd/debian-museum/releases/tag/11)   | Bullseye | 2019-07-06 | 2021-08-14 | 2024-08-14 | 2026-08-31 | 2031-06-30 |
+| [12](https://github.com/2cd/debian-museum/releases/tag/12)   | Bookworm | 2021-08-14 | 2023-06-10 | 2026-06-10 | 2028-06-30 | 2033-06-30 |
 
 ---
 
-| version | codename | created    | release |
-| ------- | -------- | ---------- | ------- |
-| 13      | Trixie   | 2023-06-10 | 2025?   |
-| 14      | Forky    | 2025-08?   | 2027?   |
+| version                                                    | codename | created    | release |
+| ---------------------------------------------------------- | -------- | ---------- | ------- |
+| [13](https://github.com/2cd/debian-museum/releases/tag/13) | Trixie   | 2023-06-10 | 2025?   |
+| 14                                                         | Forky    | 2025-08?   | 2027?   |
 
 ---
 
-| version      | codename |
-| ------------ | -------- |
-| unstable     | Sid      |
-| experimental | RC-Buggy |
+| version                                                                | codename |
+| ---------------------------------------------------------------------- | -------- |
+| [unstable](https://github.com/2cd/debian-museum/releases/tag/unstable) | Sid      |
+| experimental                                                           | RC-Buggy |
 
 > Unlike the Debian Releases unstable and testing, [experimental](https://wiki.debian.org/DebianExperimental) isn't a complete distribution, it can work only as an extension of unstable.
 >
@@ -95,7 +95,7 @@ Why not give it a try? You can experience virtual machines for **riscv64gc**, **
 
 ![VM-Minimal](./assets/img/vm-minimal-sid.jpg)
 
-Go to the **Releases** section and download file that start with **vm-**.
+Go to the **Releases** page and download file that start with **vm-**.
 
 > Files starting with version numbers are container images (e.g., **8_jessie_**), not virtual machine images.
 
