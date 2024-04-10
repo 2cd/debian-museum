@@ -81,7 +81,7 @@ The primary reason for this is that testing different architectures and versions
 
 Please feel free to send an issue to tell us which version you are using and which architecture.
 
-> Don't use profanity or discriminatory language in issues.
+> DO NOT use PROFANITY or DISCRIMINATORY language in issues!
 
 We're going to probably increase support for the version and the architecture.
 
@@ -95,7 +95,7 @@ Why not give it a try? You can experience virtual machines for **riscv64gc**, **
 
 ![VM-Minimal](./assets/img/vm-minimal-sid.jpg)
 
-Go to the **Releases** and download file that start with **vm-**.
+Go to the **Releases** section and download file that start with **vm-**.
 
 > Files starting with version numbers are container images (e.g., **8_jessie_**), not virtual machine images.
 
@@ -171,7 +171,7 @@ Feel free to explore and set up QEMU based on your distribution!
 >
 > See also [phoronix/Linux-5.7-Kill-32-bit-ARM-KVM](https://www.phoronix.com/news/Linux-5.7-Kill-32-bit-ARM-KVM)
 
-Unfortunately, if your system kernel and CPU don’t support KVM, virtual machine performance will be quite slow. Some people humorously say that QEMU isn’t **Quick** at all; it’s more like **Slow EMU.** However, this is a misconception.
+Unfortunately, if your system kernel and CPU don’t support KVM or other acceleration schemes (e.g., xen), virtual machine performance will be quite slow. Some people humorously say that QEMU isn’t **Quick** at all; it’s more like **Slow EMU.** However, this is a misconception.
 
 For instance:
 
