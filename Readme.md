@@ -200,6 +200,8 @@ For Linux systems other than Android and embedded distributions, you can also do
 
 Install `qemu-utils`, then run `qemu-img`.
 
+> If you have enough disk space then `+2G` can be changed to `+10G`
+
 ```sh
 qemu-img resize disk.img +2G
 ```
@@ -222,7 +224,7 @@ This is a Zsh script that **doesn’t** require root permissions and **won’t**
 
 > localhost login: root
 
-### Step6: other (Optional)
+### Step6: SSH (Optional)
 
 install OpenSSH client
 
@@ -230,14 +232,26 @@ install OpenSSH client
 
 If you don't need sshd, install the ssh client separately.
 
+Open a new terminal session/window, then run:
+
 ```sh
 # run apt as root (i.e., +sudo/+sudo-rs/+doas)
 apt install openssh-client
 ```
 
-#### connect to ssh
+> Run it on your host, not VM.
 
-Open a new terminal session/window, then run:
+Then check the `./connect-to-ssh` script.
+
+SSH is a very important thing. Before running related scripts, you have to make sure there is no malicious code inside!
+
+No matter what, you need to be cautious about this.
+
+```sh
+cat connect-to-ssh
+```
+
+Finally, connect to SSH.
 
 ```sh
 ./connect-to-ssh
@@ -247,7 +261,7 @@ Open a new terminal session/window, then run:
 
 The following content is prepared for Docker users.
 
-If you need to experience Docker on devices that do not support the Docker kernel, you can use **vm-dev_bookworm_x64.tar.zst** or **vm-dev_bookworm_arm64.tar.zst**.
+If you want to experience Docker on devices that do not support the Docker kernel, you can use **vm-dev_bookworm_x64.tar.zst** or **vm-dev_bookworm_arm64.tar.zst**.
 
 The Dev VM comes pre-installed with Docker, qemu-user-static, and systemd-nspawn.
 
