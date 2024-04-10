@@ -73,7 +73,7 @@ To enable experimental source, run a sid container and then edit the **/etc/apt/
 
 ## Virtual Machine
 
-Unlike containers, virtual machine images only support a few newer versions such as **jessie**, **buster**, **bullseye**, **bookworm**, and **sid**.
+Unlike containers, virtual machine images only support a few newer versions such as **jessie**, **stretch**, **buster**, **bullseye**, **bookworm**, and **sid**.
 
 The primary reason for this is that testing different architectures and versions of virtual machine images is quite exhausting!
 
