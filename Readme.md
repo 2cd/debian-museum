@@ -85,7 +85,7 @@ Why not give it a try? You can experience virtual machines for **riscv64gc**, **
 
 ### Step0: download the vm image
 
-![VM-Minimal](./assets/img/vm-minimal-buster.jpg)
+![VM-Minimal](./assets/img/vm-minimal-sid.jpg)
 
 Go to the **Releases** section and download file that start with **vm-**.
 
