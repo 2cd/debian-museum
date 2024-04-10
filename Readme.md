@@ -79,6 +79,12 @@ The primary reason for this is that testing different architectures and versions
 
 > Container images even support versions from the last century.
 
+Please feel free to send an issue to tell us which version you are using and which architecture.
+
+> Don't use profanity or discriminatory language in issues.
+
+We're going to probably increase support for the version and the architecture.
+
 Although this isn't the best virtual machine project, nor the most comprehensive, for me, it's the best **nogui** virtual machine project!
 
 Why not give it a try? You can experience virtual machines for **riscv64gc**, **loongarch64**, **mipsle**, **s390x**, and other architectures in just a few minutes.
@@ -86,10 +92,6 @@ Why not give it a try? You can experience virtual machines for **riscv64gc**, **
 ### Step0: download the vm image
 
 > These VM images are built automatically by [github actions](https://github.com/2cd/debian-museum/actions/workflows/vm-minimal.yml).
-
-Please feel free to send an issue to tell us which version you are using and which architecture.
-
-We're going to probably increase support for the version and the architecture.
 
 ![VM-Minimal](./assets/img/vm-minimal-sid.jpg)
 
