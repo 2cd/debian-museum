@@ -1,0 +1,73 @@
+name: pack parted & sfdisk
+# auto-task.start-build-time = ?
+
+on:
+  # schedule:
+  #   - cron: '30 20 20 */2 *'
+  push:
+  #   branches: ["build"]
+    paths:
+      - .github/workflows/pack-parted.yml
+      - assets/parted/Dockerfile
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        builder: ["alpine:edge"]
+        arch: [ "x64", "x86", "s390x", "ppc64le", "armv7a", "arm64"]
+        include:
+          - arch: x64
+            oci_arch: amd64
+            # builder: ["alpine:edge"]
+          - arch: x86
+            oci_arch: 386
+          - arch: s390x
+            oci_arch: s390x
+          - arch: ppc64le
+            oci_arch: ppc64le
+          - arch: armv7a
+            oci_arch: arm/v7
+          - arch: arm64
+            oci_arch: arm64
+
+          - arch: mipsle
+            oci_arch: mipsle
+            builder: ["ghcr.io/2cd/debian:bookworm-mipsle"]
+          - arch: mipsbe
+            oci_arch: mips
+            builder: ["ghcr.io/2cd/debian:buster-mipsbe"]
+
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: zsh --pipefail -fex {0}
+    env:
+      DOCKER_DIR: assets/parted
+
+    steps:
+      - name: install zsh
+        shell: sh -e {0}
+        run: ${{ vars.INSTALL_ZSH }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: build
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{env.DOCKER_DIR}}
+          push: true
+          tags: ghcr.io/2cd/pkgs:parted-${{matrix.arch}}
+          build-args: |
+            TMM_ARCH=${{matrix.arch}}
+            BUILDER=${{matrix.builder}}
