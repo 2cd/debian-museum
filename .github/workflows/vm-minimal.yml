@@ -39,6 +39,8 @@ env:
   RELEASE_TAG: 8
   CODENAME: "jessie"
   ROOTFS_REPO: "debian:jessie-"
+
+  OS: debian
   #
   ##
   # print "
@@ -49,6 +51,8 @@ env:
   # 22.04 jammy,  22.10 kinetic, 23.04 lunar,   23.10 mantic
   # 24.04 noble" | awk -F', ' '{for(i=1;i<=NF;i++){split($i,a," "); print "["a[2]"]\nRELEASE_TAG: \""a[1]"\"\nCODENAME: \""a[2]"\"\nROOTFS_REPO: \"ubuntu:"a[2]"-\"\n"}}'
   #
+  # OS: ubuntu
+
   # [vivid]
   # RELEASE_TAG: "15.04"
   # CODENAME: "vivid"
@@ -296,6 +300,9 @@ jobs:
           print -R "name=$name" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v4
+        with:
+          repository: 2cd/debian-museum
+          ref: build
 
       - name: export rootfs
         env:
@@ -828,7 +835,7 @@ jobs:
         with:
           context: ${{env.DOCKER_DIR}}
           push: true
-          tags: ghcr.io/2cd/vm:${{env.CODENAME}}-minimal-${{matrix.arch}}
+          tags: ghcr.io/2cd/${{env.OS}}-vm:${{env.CODENAME}}-minimal-${{matrix.arch}}
           platforms: ${{steps.set_runner_arch.outputs.platform}}
           build-args: |
             RUNNER_ARCH=${{steps.set_runner_arch.outputs.runner_arch}}
