@@ -218,8 +218,6 @@ qemu-img resize disk.img +2G
 
 If `unsafe-resize-disk.service` (systemd) works correctly, it will automatically resize the partitions to utilize the unallocated space.
 
-> This service does not support jessie (2015), only stretch (2017) and newer. If you must use it on jessie, you need to manually replace `parted` and `sfdisk` with newer versions.
->
 > The disk partition table is automatically backed up to **/var/lib/tmm/bak/sfdisk/** before resizing.
 
 ### Step5: run
