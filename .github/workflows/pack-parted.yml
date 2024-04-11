@@ -36,10 +36,10 @@ jobs:
 
           - arch: mipsle
             oci_arch: mipsle
-            builder: ["ghcr.io/2cd/debian:bookworm-mipsle"]
+            builder: "ghcr.io/2cd/debian:bookworm-mipsle"
           - arch: mipsbe
             oci_arch: mips
-            builder: ["ghcr.io/2cd/debian:buster-mipsbe"]
+            builder: "ghcr.io/2cd/debian:buster-mipsbe"
 
     runs-on: ubuntu-latest
     defaults:
@@ -47,7 +47,6 @@ jobs:
         shell: zsh --pipefail -fex {0}
     env:
       DOCKER_DIR: assets/parted
-      is_mips: ${{ contains(fromJSON('["mipsle", "mipsbe"]'), matrix.arch) }}
       non_x86: ${{ !contains(fromJSON('["x64", "x86"]'), matrix.arch) }}
 
     steps:
@@ -73,7 +72,6 @@ jobs:
           ref: build
 
       - name: Build and push (non-mips)
-        if: (!fromJSON(env.is_mips))
         uses: docker/build-push-action@v5
         with:
           context: ${{env.DOCKER_DIR}}
@@ -83,20 +81,3 @@ jobs:
           build-args: |
             TMM_ARCH=${{matrix.arch}}
             BUILDER=${{matrix.builder}}
-
-      - name: Build and push (mips)
-        if: fromJSON(env.is_mips)
-        working-directory: ${{env.DOCKER_DIR}}
-        env:
-          tag: ghcr.io/2cd/pkgs:parted-${{matrix.arch}}
-        run: |
-          build_args=(
-            build
-            --tag        $tag
-            --platform   linux/${{matrix.oci_arch}}
-            --build-arg  TMM_ARCH=${{matrix.arch}}
-            --build-arg  BUILDER=${{matrix.builder}}
-            .
-          )
-          docker $build_args
-          docker push $tag
