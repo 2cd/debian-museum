@@ -56,7 +56,9 @@ jobs:
 
       - name: install qemu-user
         if: fromJson(env.non_x86)
-        run: apt-install qemu-user-static
+        run: |
+          sudo apt update
+          sudo apt install -y qemu-user-static
 
       - name: Login to GHCR
         uses: docker/login-action@v3
