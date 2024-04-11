@@ -15,10 +15,15 @@ env:
   # CODENAME: sid
   # ROOTFS_REPO: "debian-sid:"
   #
+  # [trixie]
+  # RELEASE_TAG: 13
+  # CODENAME: "trixie"
+  # ROOTFS_REPO: "debian:trixie-"
+  #
   # [bookworm]
-  RELEASE_TAG: 12
-  CODENAME: "bookworm"
-  ROOTFS_REPO: "debian:bookworm-"
+  # RELEASE_TAG: 12
+  # CODENAME: "bookworm"
+  # ROOTFS_REPO: "debian:bookworm-"
   #
   # [bullseye]
   # RELEASE_TAG: 11
