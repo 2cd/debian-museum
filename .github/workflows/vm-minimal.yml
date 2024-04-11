@@ -31,14 +31,14 @@ env:
   # ROOTFS_REPO: "debian:buster-"
   #
   # [stretch]
-  # RELEASE_TAG: 9
-  # CODENAME: "stretch"
-  # ROOTFS_REPO: "debian:stretch-"
+  RELEASE_TAG: 9
+  CODENAME: "stretch"
+  ROOTFS_REPO: "debian:stretch-"
   #
   # [jessie]
-  RELEASE_TAG: 8
-  CODENAME: "jessie"
-  ROOTFS_REPO: "debian:jessie-"
+  # RELEASE_TAG: 8
+  # CODENAME: "jessie"
+  # ROOTFS_REPO: "debian:jessie-"
 
   OS: debian
   #
