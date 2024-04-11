@@ -16,9 +16,9 @@ env:
   # ROOTFS_REPO: "debian-sid:"
   #
   # [trixie]
-  # RELEASE_TAG: 13
-  # CODENAME: "trixie"
-  # ROOTFS_REPO: "debian:trixie-"
+  RELEASE_TAG: 13
+  CODENAME: "trixie"
+  ROOTFS_REPO: "debian:trixie-"
   #
   # [bookworm]
   # RELEASE_TAG: 12
