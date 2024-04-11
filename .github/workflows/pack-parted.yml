@@ -16,7 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         builder: ["alpine:edge"]
-        arch: [ "x64", "x86", "s390x", "ppc64le", "armv7a", "arm64"]
+        arch: [
+          # "x64", "x86",
+          "s390x", "ppc64le", "armv7a", "arm64"]
         include:
           - arch: x64
             oci_arch: amd64
@@ -45,11 +47,16 @@ jobs:
         shell: zsh --pipefail -fex {0}
     env:
       DOCKER_DIR: assets/parted
+      non_x86: ${{ !contains(fromJSON('["x64", "x86"]'), matrix.arch) }}
 
     steps:
       - name: install zsh
         shell: sh -e {0}
         run: ${{ vars.INSTALL_ZSH }}
+
+      - name: install qemu-user
+        if: fromJson(env.non_x86)
+        run: apt-install qemu-user-static
 
       - name: Login to GHCR
         uses: docker/login-action@v3
