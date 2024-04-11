@@ -17,12 +17,12 @@ jobs:
       matrix:
         builder: ["alpine:edge"]
         arch: [
-          # "x64", "x86",
+          "x64", "x86",
           "s390x", "ppc64le", "armv7a", "arm64"]
+
         include:
           - arch: x64
             oci_arch: amd64
-            # builder: ["alpine:edge"]
           - arch: x86
             oci_arch: 386
           - arch: s390x
@@ -76,6 +76,7 @@ jobs:
         with:
           context: ${{env.DOCKER_DIR}}
           push: true
+          platforms: linux/${{matrix.oci_arch}}
           tags: ghcr.io/2cd/pkgs:parted-${{matrix.arch}}
           build-args: |
             TMM_ARCH=${{matrix.arch}}
