@@ -11,14 +11,14 @@ env:
   new_task: "tmux new-session -d"
   #
   # [sid]
-  # RELEASE_TAG: unstable
-  # CODENAME: sid
-  # ROOTFS_REPO: "debian-sid:"
+  RELEASE_TAG: unstable
+  CODENAME: sid
+  ROOTFS_REPO: "debian-sid:"
   #
   # [trixie]
-  RELEASE_TAG: 13
-  CODENAME: "trixie"
-  ROOTFS_REPO: "debian:trixie-"
+  # RELEASE_TAG: 13
+  # CODENAME: "trixie"
+  # ROOTFS_REPO: "debian:trixie-"
   #
   # [bookworm]
   # RELEASE_TAG: 12
