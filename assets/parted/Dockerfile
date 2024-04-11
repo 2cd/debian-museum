@@ -55,7 +55,8 @@ for i (parted partprobe sfdisk) {
             ln -svf ${dst:t} $lib_file
         }
     }
-    files=(../lib/ld-*-*.so.*)
+    ls -lh ../lib/
+    files=(../lib/ld*.so.*)
     print -R ${files[1]:t} > ../share/interpreter.txt
 }
 INSTALL_PARTED

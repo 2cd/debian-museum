@@ -15,24 +15,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        builder: ["alpine:edge"]
-        arch: [
-          "x64", "x86",
-          "s390x", "ppc64le", "armv7a", "arm64"]
+        # builder: ["alpine:edge"]
+        # arch: [
+        #   "x64", "x86",
+        #   "s390x", "ppc64le", "armv7a", "arm64"]
 
         include:
-          - arch: x64
-            oci_arch: amd64
-          - arch: x86
-            oci_arch: 386
-          - arch: s390x
-            oci_arch: s390x
-          - arch: ppc64le
-            oci_arch: ppc64le
-          - arch: armv7a
-            oci_arch: arm/v7
-          - arch: arm64
-            oci_arch: arm64
+          # - arch: x64
+          #   oci_arch: amd64
+          # - arch: x86
+          #   oci_arch: 386
+          # - arch: s390x
+          #   oci_arch: s390x
+          # - arch: ppc64le
+          #   oci_arch: ppc64le
+          # - arch: armv7a
+          #   oci_arch: arm/v7
+          # - arch: arm64
+          #   oci_arch: arm64
 
           - arch: mipsle
             oci_arch: mipsle
@@ -47,6 +47,7 @@ jobs:
         shell: zsh --pipefail -fex {0}
     env:
       DOCKER_DIR: assets/parted
+      is_mips: ${{ contains(fromJSON('["mipsle", "mipsbe"]'), matrix.arch) }}
       non_x86: ${{ !contains(fromJSON('["x64", "x86"]'), matrix.arch) }}
 
     steps:
@@ -71,7 +72,8 @@ jobs:
         with:
           ref: build
 
-      - name: Build and push
+      - name: Build and push (non-mips)
+        if: (!fromJSON(env.is_mips))
         uses: docker/build-push-action@v5
         with:
           context: ${{env.DOCKER_DIR}}
@@ -81,3 +83,20 @@ jobs:
           build-args: |
             TMM_ARCH=${{matrix.arch}}
             BUILDER=${{matrix.builder}}
+
+      - name: Build and push (mips)
+        if: fromJSON(env.is_mips)
+        working-directory: ${{env.DOCKER_DIR}}
+        env:
+          tag: ghcr.io/2cd/pkgs:parted-${{matrix.arch}}
+        run: |
+          build_args=(
+            build
+            --tag        $tag
+            --platform   linux/${{matrix.oci_arch}}
+            --build-arg  TMM_ARCH=${{matrix.arch}}
+            --build-arg  BUILDER=${{matrix.builder}}
+            .
+          )
+          docker $build_args
+          docker push $tag
