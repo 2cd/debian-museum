@@ -45,7 +45,7 @@ env:
   # CODENAME: "jessie"
   # ROOTFS_REPO: "debian:jessie-"
 
-  OS: debian
+  # OS: debian
   #
   ##
   # print "
@@ -165,30 +165,30 @@ jobs:
       matrix:
         include:
           # PORTS
-          - arch: loong64
-            deb_arch: loong64
-            qemu_pkg_arch: misc
-            tty: ttyS0
-            net: enp0s1
+          # - arch: loong64
+          #   deb_arch: loong64
+          #   qemu_pkg_arch: misc
+          #   tty: ttyS0
+          #   net: enp0s1
           # # ------------------
           # SID
-          - arch: rv64gc
-            deb_arch: riscv64
-            qemu_pkg_arch: misc
-            tty: ttyS0
-            net: eth0
-          # # ------------------
-          - arch: x64
-            deb_arch: amd64
-            qemu_pkg_arch: x86
-            tty: ttyS0
-            net: enp0s2
+        #   - arch: rv64gc
+        #     deb_arch: riscv64
+        #     qemu_pkg_arch: misc
+        #     tty: ttyS0
+        #     net: eth0
+        #   # # ------------------
+        #   - arch: x64
+        #     deb_arch: amd64
+        #     qemu_pkg_arch: x86
+        #     tty: ttyS0
+        #     net: enp0s2
 
-          - arch: arm64
-            deb_arch: arm64
-            qemu_pkg_arch: arm
-            tty: ttyAMA0
-            net: enp0s1
+        #   - arch: arm64
+        #     deb_arch: arm64
+        #     qemu_pkg_arch: arm
+        #     tty: ttyAMA0
+        #     net: enp0s1
 
           - arch: armv7a
             deb_arch: armhf
@@ -216,11 +216,11 @@ jobs:
             net: eno1
 
           # ------------------------
-          - arch: mips64le
-            deb_arch: mips64el
-            qemu_pkg_arch: mips
-            tty: ttyS0
-            net: enp0s3
+          # - arch: mips64le
+          #   deb_arch: mips64el
+          #   qemu_pkg_arch: mips
+          #   tty: ttyS0
+          #   net: enp0s3
           # ------------------------
           # BOOKWORM
           # - arch: mipsle
@@ -420,6 +420,7 @@ jobs:
             apt-install openssh-server
             ssh-keygen -A ||:
             apt-install systemd ||:
+            rm -fv /etc/resolv.conf
 
             systemd_init=/lib/systemd/systemd
 
@@ -490,15 +491,34 @@ jobs:
             (mipsbe|mipsle) kernel=4kc-malta                  ;;
             (*)             kernel=${{matrix.deb_arch}}       ;;
           }
-          case ${{steps.codename.outputs.name}} {
+          codename=${{steps.codename.outputs.name}}
+          case $codename {
             (stretch|jessie)
-            case ${{matrix.arch}} {
-              (arm64|x64) kernel=${{matrix.deb_arch}} ;;
-            }
+              case ${{matrix.arch}} {
+                (arm64|x64) kernel=${{matrix.deb_arch}} ;;
+              }
             ;;
           }
+
           case ${{env.ROOTFS_REPO}} {
-            (ubuntu:*) kernel=virtual ;;
+            (ubuntu:*)
+              case ${{matrix.arch}} {
+                  (x64|x86|ppc64le|s390x) kernel=virtual   ;;
+                  (armv7a) kernel=generic-lpae ;;
+                  (*)
+                      case $codename {
+                          (jessie) kernel=generic ;;
+                          (stretch)
+                              case ${{env.CODENAME}} {
+                                  (xenial) kernel=virtual-hwe-16.04 ;;
+                                  (*)      kernel=virtual ;;
+                              }
+                          ;;
+                          (*) kernel=virtual ;;
+                      }
+                  ;;
+              }
+              ;;
           }
           sudo cp -a rootfs kernel_r
           sudo systemd-nspawn -D kernel_r sh -c "apt-install linux-image-${kernel}||:"
@@ -561,6 +581,7 @@ jobs:
             systemd-nspawn -E "${{env.DEB_ENV}}" -D rootfs zsh -fex /install-sshd.zsh
             systemd-nspawn -D rootfs unlink /install-sshd.zsh
             cp -a rootfs no-kernel
+
             systemd-nspawn -D rootfs sh -c "apt-install linux-image-${{matrix.deb_arch}}"
             cd rootfs
             ls -lh . boot
@@ -581,26 +602,16 @@ jobs:
           sudo chown -R $UID:$GID kernel_r/boot
           cp -a kernel_r/boot .
           ls -lh kernel_r kernel_r/boot
-
-          for f (vmlinuz vmlinux 'initrd.img') {
-            k_link=$(readlink kernel_r/$f ||:)
-            if ((! $#k_link)) {
-              continue
-            }
-            k_fname=${k_link:t}
-            if [[ $f == vmlinux ]] {
-              f=vmlinuz
-            }
-            mv -vf boot/$k_fname boot/$f ||:
-            if [[ $f != $k_fname ]] {
-              ln -svf $f boot/$k_fname ||:
-            }
-          }
-          ls -lh boot
-
+          cd boot
+          rm *.old ||:
+          vmlinuz=(vmlinu*-*-*)
+          mv -vf $vmlinuz[1] vmlinuz
+          initrd=(initrd.img-*-*)
+          mv -vf $initrd[1] initrd.img
+          ls -lh
+          cd ..
           ${{env.new_task}} 'sudo systemd-nspawn -bD rootfs'
           sleep 2
-          # sudo rm -rf kernel_r
           while {! ${{env.SSH_VM}} exit} {
             sleep 1
           }
