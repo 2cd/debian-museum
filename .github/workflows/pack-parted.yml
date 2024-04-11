@@ -34,12 +34,12 @@ jobs:
           # - arch: arm64
           #   oci_arch: arm64
 
-          - arch: mipsle
-            oci_arch: mipsle
-            builder: "ghcr.io/2cd/debian:bookworm-mipsle"
-          - arch: mipsbe
-            oci_arch: mips
-            builder: "ghcr.io/2cd/debian:buster-mipsbe"
+          # - arch: mipsle
+          #   oci_arch: mipsle
+          #   builder: "ghcr.io/2cd/debian:bookworm-mipsle"
+          # - arch: mipsbe
+          #   oci_arch: mips
+          #   builder: "ghcr.io/2cd/debian:buster-mipsbe"
 
     runs-on: ubuntu-latest
     defaults:
@@ -71,7 +71,7 @@ jobs:
         with:
           ref: build
 
-      - name: Build and push (non-mips)
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: ${{env.DOCKER_DIR}}

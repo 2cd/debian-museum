@@ -3,6 +3,7 @@ name: minimal virtual machine
 
 env:
   # DEBIAN_FRONTEND: noninteractive
+  DOCKER_DIR: assets/pack-vm-to-docker
   DEB_ENV: "DEBIAN_FRONTEND=noninteractive"
   DEV_DIR: assets/vm-minimal
   SSH_VM: "ssh -F ssh/vm.sshconf vm"
@@ -10,9 +11,9 @@ env:
   new_task: "tmux new-session -d"
   #
   # [sid]
-  RELEASE_TAG: unstable
-  CODENAME: sid
-  ROOTFS_REPO: "debian-sid:"
+  # RELEASE_TAG: unstable
+  # CODENAME: sid
+  # ROOTFS_REPO: "debian-sid:"
   #
   # [bookworm]
   # RELEASE_TAG: 12
@@ -35,11 +36,114 @@ env:
   # ROOTFS_REPO: "debian:stretch-"
   #
   # [jessie]
-  # RELEASE_TAG: 8
-  # CODENAME: "jessie"
-  # ROOTFS_REPO: "debian:jessie-"
+  RELEASE_TAG: 8
+  CODENAME: "jessie"
+  ROOTFS_REPO: "debian:jessie-"
   #
+  ##
+  # print "
+  # 14.04 trusty, 14.10 utopic,  15.04 vivid,   15.10 wily
+  # 16.04 xenial, 16.10 yakkety, 17.04 zesty,   17.10 artful
+  # 18.04 bionic, 18.10 cosmic,  19.04 disco,   19.10 eoan
+  # 20.04 focal,  20.10 groovy,  21.04 hirsute, 21.10 impish
+  # 22.04 jammy,  22.10 kinetic, 23.04 lunar,   23.10 mantic
+  # 24.04 noble" | awk -F', ' '{for(i=1;i<=NF;i++){split($i,a," "); print "["a[2]"]\nRELEASE_TAG: \""a[1]"\"\nCODENAME: \""a[2]"\"\nROOTFS_REPO: \"ubuntu:"a[2]"-\"\n"}}'
   #
+  # [vivid]
+  # RELEASE_TAG: "15.04"
+  # CODENAME: "vivid"
+  # ROOTFS_REPO: "ubuntu:vivid-"
+  #
+  # [wily]
+  # RELEASE_TAG: "15.10"
+  # CODENAME: "wily"
+  # ROOTFS_REPO: "ubuntu:wily-"
+  #
+  # [xenial]
+  # RELEASE_TAG: "16.04"
+  # CODENAME: "xenial"
+  # ROOTFS_REPO: "ubuntu:xenial-"
+  #
+  # [yakkety]
+  # RELEASE_TAG: "16.10"
+  # CODENAME: "yakkety"
+  # ROOTFS_REPO: "ubuntu:yakkety-"
+  #
+  # [zesty]
+  # RELEASE_TAG: "17.04"
+  # CODENAME: "zesty"
+  # ROOTFS_REPO: "ubuntu:zesty-"
+  #
+  # [artful]
+  # RELEASE_TAG: "17.10"
+  # CODENAME: "artful"
+  # ROOTFS_REPO: "ubuntu:artful-"
+  #
+  # [bionic]
+  # RELEASE_TAG: "18.04"
+  # CODENAME: "bionic"
+  # ROOTFS_REPO: "ubuntu:bionic-"
+  #
+  # [cosmic]
+  # RELEASE_TAG: "18.10"
+  # CODENAME: "cosmic"
+  # ROOTFS_REPO: "ubuntu:cosmic-"
+  #
+  # [disco]
+  # RELEASE_TAG: "19.04"
+  # CODENAME: "disco"
+  # ROOTFS_REPO: "ubuntu:disco-"
+  #
+  # [eoan]
+  # RELEASE_TAG: "19.10"
+  # CODENAME: "eoan"
+  # ROOTFS_REPO: "ubuntu:eoan-"
+  #
+  # [focal]
+  # RELEASE_TAG: "20.04"
+  # CODENAME: "focal"
+  # ROOTFS_REPO: "ubuntu:focal-"
+  #
+  # [groovy]
+  # RELEASE_TAG: "20.10"
+  # CODENAME: "groovy"
+  # ROOTFS_REPO: "ubuntu:groovy-"
+  #
+  # [hirsute]
+  # RELEASE_TAG: "21.04"
+  # CODENAME: "hirsute"
+  # ROOTFS_REPO: "ubuntu:hirsute-"
+  #
+  # [impish]
+  # RELEASE_TAG: "21.10"
+  # CODENAME: "impish"
+  # ROOTFS_REPO: "ubuntu:impish-"
+  #
+  # [jammy]
+  # RELEASE_TAG: "22.04"
+  # CODENAME: "jammy"
+  # ROOTFS_REPO: "ubuntu:jammy-"
+  #
+  # [kinetic]
+  # RELEASE_TAG: "22.10"
+  # CODENAME: "kinetic"
+  # ROOTFS_REPO: "ubuntu:kinetic-"
+  #
+  # [lunar]
+  # RELEASE_TAG: "23.04"
+  # CODENAME: "lunar"
+  # ROOTFS_REPO: "ubuntu:lunar-"
+  #
+  # [mantic]
+  # RELEASE_TAG: "23.10"
+  # CODENAME: "mantic"
+  # ROOTFS_REPO: "ubuntu:mantic-"
+  #
+  # [noble]
+  # RELEASE_TAG: "24.04"
+  # CODENAME: "noble"
+  # ROOTFS_REPO: "ubuntu:noble-"
+
 on:
   push:
     # branches: ["build"]
@@ -51,36 +155,37 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # SID:
-          # - arch: rv64gc
-          #   deb_arch: riscv64
-          #   qemu_pkg_arch: misc
-          #   tty: ttyS0
-          #   net: eth0
-
+          # PORTS
           # - arch: loong64
           #   deb_arch: loong64
           #   qemu_pkg_arch: misc
           #   tty: ttyS0
           #   net: enp0s1
           # # ------------------
-          # - arch: x64
-          #   deb_arch: amd64
-          #   qemu_pkg_arch: x86
+          # SID
+          # - arch: rv64gc
+          #   deb_arch: riscv64
+          #   qemu_pkg_arch: misc
           #   tty: ttyS0
-          #   net: enp0s2
+          #   net: eth0
+          # # ------------------
+          - arch: x64
+            deb_arch: amd64
+            qemu_pkg_arch: x86
+            tty: ttyS0
+            net: enp0s2
 
-          # - arch: arm64
-          #   deb_arch: arm64
-          #   qemu_pkg_arch: arm
-          #   tty: ttyAMA0
-          #   net: enp0s1
+          - arch: arm64
+            deb_arch: arm64
+            qemu_pkg_arch: arm
+            tty: ttyAMA0
+            net: enp0s1
 
-          # - arch: armv7a
-          #   deb_arch: armhf
-          #   qemu_pkg_arch: arm
-          #   tty: ttyAMA0
-          #   net: enp0s1
+          - arch: armv7a
+            deb_arch: armhf
+            qemu_pkg_arch: arm
+            tty: ttyAMA0
+            net: enp0s1
 
           - arch: x86
             deb_arch: i386
@@ -88,38 +193,39 @@ jobs:
             tty: ttyS0
             net: ens3
 
-          # - arch: ppc64le
-          #   deb_arch: ppc64el
-          #   qemu_pkg_arch: ppc
-          #   tty: hev0
-          #   net: enp0s0
+          - arch: ppc64le
+            deb_arch: ppc64el
+            qemu_pkg_arch: ppc
+            tty: hev0
+            net: enp0s0
 
-          # - arch: s390x
-          #   deb_arch: s390x
-          #   qemu_pkg_arch: misc
-          #   tty: ttysclp0
-          #   #  net:bookworm+ => eno1, bullseye => enP1p0s0, stretch => enp0s0
-          #   net: eno1
+          - arch: s390x
+            deb_arch: s390x
+            qemu_pkg_arch: misc
+            tty: ttysclp0
+            #  net:bookworm+ => eno1, bullseye => enP1p0s0, stretch => enp0s0
+            net: eno1
 
-          # - arch: mips64le
-          #   deb_arch: mips64el
-          #   qemu_pkg_arch: mips
-          #   tty: ttyS0
-          #   net: enp0s3
-          # # ------------------------
-          # # BOOKWORM
-          # - arch: mipsle
-          #   deb_arch: mipsel
-          #   qemu_pkg_arch: mips
-          #   tty: ttyS0
-          #   net: enp0s18
-          # # ------------------------
-          # # BUSTER
-          # - arch: mipsbe
-          #   deb_arch: mips
-          #   qemu_pkg_arch: mips
-          #   tty: ttyS0
-          #   net: enp0s18
+          # ------------------------
+          - arch: mips64le
+            deb_arch: mips64el
+            qemu_pkg_arch: mips
+            tty: ttyS0
+            net: enp0s3
+          # ------------------------
+          # BOOKWORM
+          - arch: mipsle
+            deb_arch: mipsel
+            qemu_pkg_arch: mips
+            tty: ttyS0
+            net: enp0s18
+          # ------------------------
+          # BUSTER
+          - arch: mipsbe
+            deb_arch: mips
+            qemu_pkg_arch: mips
+            tty: ttyS0
+            net: enp0s18
 
     runs-on: ubuntu-latest
     env:
@@ -128,6 +234,7 @@ jobs:
       non_loong: ${{ matrix.arch != 'loong64' }}
       is_loong: ${{ matrix.arch == 'loong64' }}
       deb_main_supported: ${{ contains(fromJSON('["x64", "x86", "arm64", "armv7a", "rv64gc", "ppc64le", "s390x", "mips64le"]'), matrix.arch) }}
+
       DEBUG_MODE: false
       #
       # debug:
@@ -143,6 +250,50 @@ jobs:
         if: runner.arch == 'X64'
         shell: sh -e {0}
         run: ${{ vars.INSTALL_ZSH }}
+
+      - name: set deb codename map
+        id: codename
+        run: |
+          local -A map=(
+            # jessie  jessie
+            trusty  jessie
+            utopic  jessie
+            vivid   jessie
+            wily    jessie
+
+            # stretch stretch
+            xenial  stretch
+            yakkety stretch
+            stretch stretch
+            artful  stretch
+
+            # buster  buster
+            bionic  buster
+            cosmic  buster
+            disco   buster
+            eoan    buster
+
+            # bullseye bullseye
+            focal    bullseye
+            groovy   bullseye
+            hirsute  bullseye
+            impish   bullseye
+
+            # bookworm bookworm
+            jammy    bookworm
+            kinetic  bookworm
+            lunar    bookworm
+            mantic   bookworm
+
+            # trixie   trixie
+            noble    trixie
+          )
+          code=${{env.CODENAME}}
+          name=$map[$code]
+          if ((! #name)) {
+            name=$code
+          }
+          print -R "name=$name" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v4
 
@@ -224,6 +375,18 @@ jobs:
           sudo cp -vf $mirror_src ${mirror_src}.bak
           awk $awk_args | sudo tee ${mirror_src}
 
+      - name: copy newer GNU-parted to old-old system
+        run: |
+            # Note: outputs.name = stretch => ubuntu 16.04 ~ 17.10
+            case ${{steps.codename.outputs.name}} {
+              (jessie|stretch)
+                case ${{env.CODENAME}} {
+                  (stretch|zesty|artful) exit 0;;
+                } ;;
+              (*) exit 0;;
+            }
+            docker run --rm -v $PWD/rootfs/var/lib/:/host ghcr.io/2cd/pkgs:parted-${{matrix.arch}} cp -a /var/lib/tmm /host
+
       - name: setup ssh server
         run: |
           sudo rm -vf rootfs/etc/resolv.conf ||:
@@ -236,8 +399,11 @@ jobs:
             for i (zsh busybox) {
               ln -vf /bin/$i /bin/${i}-static
             }
-
-            apt-install
+            makedev_src=/var/lib/dpkg/info/makedev.postinst
+            if [[ -e $makedev_src && ${{steps.codename.outputs.name}} == jessie ]] {
+              sed '1a exit 0' -i $makedev_src
+            }
+            apt-install ||:
             apt-get upgrade -y
             apt-install openssh-server
             ssh-keygen -A ||:
@@ -280,8 +446,14 @@ jobs:
             sudo chmod 700 -v $i
           }
           sshd_cfg=ssh/vm.sshd.conf
-          case ${{env.CODENAME}} {
+          case ${{steps.codename.outputs.name}} {
             # wheezy|squeeze|lenny|etch|sarge|woody|potato|slink|hamm
+            # trusty|utopic|vivid|wily|xenial|yakkety|zesty|artful|bionic|cosmic|disco|eoan
+            #
+            # 14.04 (trusty) ~ 15.10 => jessie
+            # 16.04 (xenial) ~ 17.10 => stretch
+            # 18.04 (bionic) ~ 19.10 => buster
+            #
             (buster|stretch|jessie)
               cat $sshd_cfg | sudo tee -a rootfs/etc/ssh/sshd_config ;;
             (*) sudo install -Dm600 $sshd_cfg rootfs/etc/ssh/sshd_config.d/vm.conf ;;
@@ -306,16 +478,18 @@ jobs:
             (mipsbe|mipsle) kernel=4kc-malta                  ;;
             (*)             kernel=${{matrix.deb_arch}}       ;;
           }
-          case ${{env.CODENAME}} {
-            # wheezy|squeeze|lenny|etch|sarge|woody|potato|slink|hamm
+          case ${{steps.codename.outputs.name}} {
             (stretch|jessie)
             case ${{matrix.arch}} {
               (arm64|x64) kernel=${{matrix.deb_arch}} ;;
             }
             ;;
           }
+          case ${{env.ROOTFS_REPO}} {
+            (ubuntu:*) kernel=virtual ;;
+          }
           sudo cp -a rootfs kernel_r
-          sudo systemd-nspawn -D kernel_r sh -c "apt-install linux-image-${kernel}"
+          sudo systemd-nspawn -D kernel_r sh -c "apt-install linux-image-${kernel}||:"
 
       - name: setup loongarch environment
         if: fromJSON(env.is_loong)
@@ -392,6 +566,7 @@ jobs:
       - name: copy kernel
         timeout-minutes: 12
         run: |
+          sudo chown -R $UID:$GID kernel_r/boot
           cp -a kernel_r/boot .
           ls -lh kernel_r kernel_r/boot
 
@@ -401,6 +576,9 @@ jobs:
               continue
             }
             k_fname=${k_link:t}
+            if [[ $f == vmlinux ]] {
+              f=vmlinuz
+            }
             mv -vf boot/$k_fname boot/$f ||:
             if [[ $f != $k_fname ]] {
               ln -svf $f boot/$k_fname ||:
@@ -431,12 +609,13 @@ jobs:
             }
 
             network_iface=${{matrix.net}}
-            case ${{env.CODENAME}} {
+            codename=${{steps.codename.outputs.name}}
+            case $codename {
               (jessie)  network_iface=eth0 ;;
             }
             case ${{matrix.arch}} {
               (s390x)
-                case ${{env.CODENAME}} {
+                case $codename {
                   (stretch)               network_iface=enp0s0   ;;
                   (buster|bullseye)       network_iface=enP1p0s0 ;;
                 }
@@ -463,12 +642,13 @@ jobs:
               cat $tty_service
             }
 
-            case ${{env.CODENAME}} {
-              (jessie) ;;
-              (*) systemctl enable unsafe-resize-disk.service ;;
+            for service (
+              unsafe-resize-disk.service
+              add-cloudflare-dns.service
+            ) {
+              systemctl enable $service
             }
 
-            systemctl enable add-cloudflare-dns.service
             systemctl disable systemd-networkd-wait-online.service ||:
             systemctl set-default multi-user.target
 
@@ -601,20 +781,32 @@ jobs:
             get-file-from-vm
             send-file-to-vm
           )
+          rm -rf boot/grub ||:
           for f ($files ssh/* boot/*) {
-            b3sum $f >> blake3.txt
+              b3sum $f >> blake3.txt
           }
           for f (ssh boot blake3.txt) {
             files+=$f
           }
 
+          tzst_file=vm-minimal_${{env.CODENAME}}_${{matrix.arch}}.tar.zst
           args=(
             --posix
             --use-compress-program='zstdmt --long -18v'
-            -cf vm-minimal_${{env.CODENAME}}_${{matrix.arch}}.tar.zst
+            -cf $tzst_file
             $files
           )
           tar $args
+          ln -vf $tzst_file ${{env.DOCKER_DIR}}
+
+      - name: set_runner_arch
+        id: set_runner_arch
+        run: |
+          case ${{matrix.arch}} {
+            (arm64) outputs=(runner_arch=arm64  platform=linux/arm64 ) ;;
+            (*) outputs=( runner_arch=x64  platform=linux/amd64 )      ;;
+          }
+          printf "%s\n" $outputs >> $GITHUB_OUTPUT
 
       - name: release
         uses: softprops/action-gh-release@v2
@@ -623,3 +815,21 @@ jobs:
           tag_name: ${{env.RELEASE_TAG}}
           files: |
             *.tar.zst
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{env.DOCKER_DIR}}
+          push: true
+          tags: ghcr.io/2cd/vm:${{env.CODENAME}}-minimal-${{matrix.arch}}
+          platforms: ${{steps.set_runner_arch.outputs.platform}}
+          build-args: |
+            RUNNER_ARCH=${{steps.set_runner_arch.outputs.runner_arch}}
+

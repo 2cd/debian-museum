@@ -6,6 +6,7 @@ set -fexo pipefail
 resize2fs=/usr/sbin/resize2fs
 sfdisk=/sbin/sfdisk
 parted=/usr/sbin/parted
+partprobe=/usr/sbin/partprobe
 vendored_bin_dir=/var/lib/tmm/vendor/xbin
 
 # fix ubuntu 15.04 ~ 16.10 & debian 8
@@ -13,20 +14,17 @@ vendored_bin_dir=/var/lib/tmm/vendor/xbin
 # Use **VENDORED** binary as jessie's dependencies are too old.
 () {
     local pkg bin
-    for pkg (sfdisk parted) {
+    for pkg (sfdisk parted partprobe) {
         bin=${vendored_bin_dir}/$pkg
         if [[ -e $bin ]] {
             #
             case $pkg {
-                (sfdisk) sfdisk=$bin ;;
-                (parted)
-                parted=$bin
-                # skip_check_parted=true
-            ;;
+                (sfdisk)    sfdisk=$bin    ;;
+                (parted)    parted=$bin    ;;
+                (partprobe) partprobe=$bin ;;
             }
         }
     }
-
 }
 # ----------------
 # ----------------
@@ -39,7 +37,7 @@ error() {
 # check_deps
 () {
     local bin
-    for bin ($sfdisk $parted $resize2fs) {
+    for bin ($sfdisk $parted $partprobe $resize2fs) {
         if [[ ! -e $bin ]] {
             local name=${bin:t}
             local cmd=$commands[$name]
@@ -49,6 +47,7 @@ error() {
                     (sfdisk)    sfdisk=$cmd    ;;
                     (resize2fs) resize2fs=$cmd ;;
                     (parted)    parted=$cmd    ;;
+                    (partprobe) partprobe=$cmd ;;
                     (*)         exit 127       ;;
                 }
                 continue
@@ -67,7 +66,7 @@ local -A unpartitioned_disk_map
 () {
     unpartitioned_disk_map=(
         $(
-            sfdisk -F 2>&1 | awk -v true=1 -v false=0 'BEGIN {
+            $sfdisk -F 2>&1 | awk -v true=1 -v false=0 'BEGIN {
                 mismatch = false
             }
             /GPT PMBR size mismatch / {
@@ -110,7 +109,7 @@ now=$(date +%Y-%m-%d_%H-%M-%S)
     local dir=/var/lib/tmm/bak/sfdisk/
     mkdir -p $dir
     for d (${(k)unpartitioned_disk_map}) {
-        sfdisk -d $d > "$dir/${d:t}_${now}"
+        $sfdisk -d $d > "$dir/${d:t}_${now}"
     }
 }
 
@@ -120,11 +119,11 @@ disk_node_arr=()
     local d
     for d mismatch (${(kv)unpartitioned_disk_map}) {
         if ((mismatch)) {
-            parted --script --fix ${d} print
+            $parted --script --fix ${d} print
         }
         local dev_num=$(
             # For compatibility with debian stretch `mawk`, do not use `^[[:space:]]`.
-            parted --script ${d} print free | awk '/^ /{
+            $parted --script ${d} print free | awk '/^ /{
             last_num = num
             num=$1
             if ($0 ~/Free Space$/) {
@@ -137,7 +136,7 @@ disk_node_arr=()
         }'
         )
         if (($#dev_num)) {
-            print -R Yes | parted ---pretend-input-tty ${d} resizepart ${dev_num} 100%
+            print -R Yes | $parted ---pretend-input-tty ${d} resizepart ${dev_num} 100%
             local node
             case ${d:t} {
                 (nvme*) node=${d}p${dev_num} ;;
@@ -152,7 +151,7 @@ if ((! $#disk_node_arr)) {
     exit
 }
 
-partprobe || ${vendored_bin_dir}/partprobe
+$partprobe
 
 # resize_file_system
 () {
