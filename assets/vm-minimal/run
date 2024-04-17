@@ -27,7 +27,7 @@ qemu_arch=x64
 
 # Press Ctrl+a first, then release, and then press c, finally press Enter, you can switch between the QEMU monitor and the serial console.
 # Type: Array
-stdio=(
+stdio_arr=(
     monitor
     serial
 )
@@ -536,12 +536,12 @@ if {$no_graphic} {
 
 # set_qemu_stdio
 () {
-    if ((! $#stdio)) {
+    if ((! $#stdio_arr)) {
         return
     }
 
-    if (($#stdio == 1)) {
-        case $stdio {
+    if (($#stdio_arr == 1)) {
+        case $stdio_arr {
             ("monitor"|"mon") args+=(-monitor stdio) ;;
             ("serial")        args+=(-serial stdio)  ;;
         }
