@@ -282,34 +282,34 @@ auto_resize_mem_to_256_multiple_ppc64le=true
 external_kernel=true
 kernel_file=boot/vmlinuz
 initrd_file=boot/initrd.img
-cmdline=(
+_cli=(
     root=LABEL=rootfs
     rw
     console=tty0
 )
 kernel_cmdline=(
-    $cmdline
+    $_cli
     console=ttyS0,4000000
 )
 kernel_cmdline_arm64=(
-    $cmdline
+    $_cli
     console=ttyAMA0,4000000
 )
 kernel_cmdline_armv7a=(
-    $cmdline
+    $_cli
     console=ttyAMA0
     nokaslr
 )
 kernel_cmdline_ppc64le=(
-    $cmdline
+    $_cli
     console=hvc0
 )
 kernel_cmdline_s390x=(
-    $cmdline
+    $_cli
     console=ttysclp0
 )
 kernel_cmdline_mipsle=(
-    $cmdline
+    $_cli
     console=ttyS0
     nokaslr
 )
