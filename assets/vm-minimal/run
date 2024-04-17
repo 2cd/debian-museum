@@ -446,7 +446,7 @@ hostfwd_rules=""
     for k v (${(kv)hostfwd_map}) {
         # k.split('/').last()
         local p=${k[(ws^/^)-1]}
-        local protocol=""
+        local protocol
         case $p {
             (tcp|udp) protocol=$p
         }
@@ -457,7 +457,7 @@ hostfwd_rules=""
         # host.split(':').collect()
         local host_arr=( ${(s^:^)host} )
         #
-        local host_addr=""
+        local host_addr
         # if host_arr.len() == 2
         if (($#host_arr == 2)) {
             host_addr=$host_arr[1]
@@ -468,7 +468,7 @@ hostfwd_rules=""
         # v.split(":").collect()
         local guest_arr=( ${(s^:^)v} )
         #
-        local guest_addr=""
+        local guest_addr
         # if guest_arr.len() == 2
         if (($#guest_arr == 2)) {
             guest_addr=$guest_arr[1]
@@ -484,25 +484,25 @@ args=(-name  $name)
 
 # set_qemu_machine
 () {
-    local machine_opts machine_name
-    machine_name=$(get_the_real_value machine allow_empty)
+    local opts machine_name
+    machine_name=$(get_the_real_value machine allow-empty)
     if ((! $#machine_name)) {
         return
     }
 
     if (($#extra_machine_options)) {
         # convert the elements of the extra_machine_options array to ",ele1,ele2,..." , equivalent to `format!(",{}", extra_machine_options.join(","))`
-        machine_opts=,${(j^,^)extra_machine_options}
+        opts=,${(j^,^)extra_machine_options}
     }
 
-    local accel=kvm:tcg
+    local accel
     if (($#accelerator_arr)) {
-        accel=${(j^:^)accelerator_arr}
+        accel=",accel=${(j^:^)accelerator_arr}"
     }
 
     args+=(
         -machine
-        "${machine_name},accel=${accel}${machine_opts}"
+        "${machine_name}${accel}${opts}"
     )
 }
 
@@ -572,7 +572,7 @@ if {$no_graphic} {
         return
     }
 
-    local nic_opts=""
+    local nic_opts
     if (($#extra_nic_options)) {
         nic_opts=,${(j^,^)extra_nic_options}
     }
