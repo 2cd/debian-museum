@@ -24,6 +24,12 @@ extra_qemu_args=(
 name=debian-vm-minimal
 qemu_arch=x64
 
+# Press Ctrl+a first, then release, and then press c, finally press Enter, you can switch between the QEMU monitor and the serial console.
+stdio=(
+    monitor
+    serial
+)
+
 # NO GUI
 #
 # It is designed for NO GUI, if you want to use GUI, then you need to set `no_graphic=false`, and add the related arguments manually.
@@ -170,20 +176,6 @@ efi_vars_file=boot/VARS.qcow2
 auto_create_efi_vars_file=true
 # --------------
 #
-# KERNEL
-#
-external_kernel=true
-kernel_file=boot/vmlinuz
-initrd_file=boot/initrd.img
-kernel_command_line="root=/dev/vda1 rw console=tty0 console=ttyS0,4000000"
-kernel_command_line_arm64="root=/dev/vda1 rw console=tty0 console=ttyAMA0,4000000"
-kernel_command_line_armv7a="root=/dev/vda1 rw console=tty0 console=ttyAMA0 nokaslr"
-kernel_command_line_ppc64le="root=/dev/vda1 rw console=tty0 console=hvc0"
-kernel_command_line_s390x="root=/dev/vda1 rw console=ttysclp0"
-kernel_command_line_mipsle="root=/dev/vda1 rw console=tty0 console=ttyS0 nokaslr"
-kernel_command_line_mipsbe=$kernel_command_line_mipsle
-# --------------
-#
 # NETWORK
 #
 enable_nat_network=true
@@ -285,6 +277,45 @@ auto_resize_mem_to_256_multiple=false
 auto_resize_mem_to_256_multiple_ppc64le=true
 # ----------------------
 #
+# KERNEL
+#
+external_kernel=true
+kernel_file=boot/vmlinuz
+initrd_file=boot/initrd.img
+cmdline=(
+    root=LABEL=rootfs
+    rw
+    console=tty0
+)
+kernel_cmdline=(
+    $cmdline
+    console=ttyS0,4000000
+)
+kernel_cmdline_arm64=(
+    $cmdline
+    console=ttyAMA0,4000000
+)
+kernel_cmdline_armv7a=(
+    $cmdline
+    console=ttyAMA0
+    nokaslr
+)
+kernel_cmdline_ppc64le=(
+    $cmdline
+    console=hvc0
+)
+kernel_cmdline_s390x=(
+    $cmdline
+    console=ttysclp0
+)
+kernel_cmdline_mipsle=(
+    $cmdline
+    console=ttyS0
+    nokaslr
+)
+kernel_cmdline_mipsbe=$kernel_cmdline_mipsle
+# ----------------------
+#
 # CMD
 #
 qemu_cmd_x64=qemu-system-x86_64
@@ -298,7 +329,7 @@ qemu_cmd_mipsle=qemu-system-mipsel
 qemu_cmd_mipsbe=qemu-system-mips
 qemu_cmd_ppc64le=qemu-system-ppc64
 qemu_cmd_s390x=qemu-system-s390x
-# --------------
+# ----------------------
 #
 # VIRTIO FSD
 #
@@ -418,11 +449,11 @@ args=(-name  $name)
         return
     }
 
-    unset machine_opts
-    # convert the elements of the extra_machine_options array to ",ele1,ele2,..." , equivalent to `format!(",{}", extra_machine_options.join(","))`
-    for i ($extra_machine_options) {
-        machine_opts+=$(printf "%s" ",$i")
+    if (($#extra_machine_options)) {
+        # convert the elements of the extra_machine_options array to ",ele1,ele2,..." , equivalent to `format!(",{}", extra_machine_options.join(","))`
+        machine_opts=,${(j^,^)extra_machine_options}
     }
+
     args+=(
         -machine
         "${machine_name},accel=${qemu_accel}${machine_opts}"
@@ -436,7 +467,7 @@ args=(-name  $name)
         return
     }
 
-    local opts=$(IFS=','; print "$smp_options")
+    local opts=${(j^,^)smp_options}
 
     args+=(
         -smp $opts
@@ -464,30 +495,42 @@ if {$no_graphic} {
     }
 }
 
-args+=(
-    # TL;DR. Press Ctrl+A, and then Press C, finally Press Enter.
-    #
+# set_qemu_stdio
+() {
+    if ((! $#stdio)) {
+        return
+    }
+
+    if (($#stdio == 1)) {
+        case $stdio {
+            ("monitor"|"mon") args+=(-monitor stdio) ;;
+            ("serial")        args+=(-serial stdio)  ;;
+        }
+        return
+    }
+
     # The STDIO is multiplexed here.
-    # By default, this control sequence is Ctrl+a followed by c. (i.e., Press Ctrl+a first, then release, and then press c), you can switch between the QEMU monitor and the serial console.
     #
     # `-serial mon:stdio` is equivalent to:
     #       -chardev stdio,mux=on,id=char0
     #       -mon chardev=char0,mode=readline
     #       -serial chardev:char0
     #
-    -serial  mon:stdio
-)
+    args+=(-serial  mon:stdio)
+}
 
-# setup_network
+
+# set_qemu_network
 () {
     if {! $enable_nat_network} {
         return
     }
 
     local nic_opts=""
-    for i ($extra_nic_options) {
-        nic_opts+=$(printf "%s" ",$i")
+    if (($#extra_nic_options)) {
+        nic_opts=,${(j^,^)extra_nic_options}
     }
+
 
     local model=$(get_the_real_value nic_model)
     local compatibility_mode=$(get_the_real_value nic_compatibility_mode)
@@ -504,13 +547,13 @@ args+=(
     )
 }
 
-# setup external kernel
+# set_qemu_external_kernel
 () {
     if {! $external_kernel} {
         return
     }
 
-    local cli_value=$(get_the_real_value kernel_command_line)
+    local cli_value=$(get_the_real_value kernel_cmdline)
 
     args+=(
         -kernel  $kernel_file
@@ -519,7 +562,7 @@ args+=(
     )
 }
 
-# setup EFI
+# set_qemu_efi
 () {
     local enable_efi_bool=$(get_the_real_value enable_efi)
 
@@ -629,7 +672,12 @@ check_and_run_virtio_fsd() {
     }
 
     virtio_fsd=false
-    for vfsd_bin (${src_dir}/virtiofsd /usr/libexec/virtiofsd /usr/sbin/virtiofsd) {
+    for vfsd_bin (
+        ${src_dir}/virtiofsd
+        /usr/libexec/virtiofsd
+        /usr/sbin/virtiofsd
+        /usr/lib/qemu/virtiofsd
+    ) {
         if [[ -e $vfsd_bin ]] {
             virtio_fsd=true
             break
