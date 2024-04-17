@@ -3,14 +3,15 @@ set -fexo pipefail
 # Depends: qemu-system
 # Suggests: virtiofsd (>= 1), podman | lxc
 # -------------------------
-# Value range: 1024 ~ 65535
+# Value range: 1024 ~ 65535, Type: NonZeroU16
 integer ssh_port=9022
 
-# Value range: 1 ~ 65535
+# Value range: 1 ~ 65535, Type: NonZeroU16
 # This is an internal port of the virtual machine that cannot be accessed directly by the local machine if it is not exposed (mapped).
 # See also: hostfwd_map
 integer guest_ssh_port=9022
 
+# Type: Array
 extra_qemu_args=(
     # -vnc  127.0.0.1:1
     #
@@ -25,6 +26,7 @@ name=debian-vm-minimal
 qemu_arch=x64
 
 # Press Ctrl+a first, then release, and then press c, finally press Enter, you can switch between the QEMU monitor and the serial console.
+# Type: Array
 stdio=(
     monitor
     serial
@@ -35,6 +37,7 @@ stdio=(
 # It is designed for NO GUI, if you want to use GUI, then you need to set `no_graphic=false`, and add the related arguments manually.
 # e.g., for arm64, you may need to add the ramfb device: extra_qemu_args+=( -device ramfb )
 # For armv7a, you also need to enable efi.
+# Type: bool
 no_graphic=true
 # -------------------------
 #
@@ -43,6 +46,7 @@ no_graphic=true
 # For virtio-blk: The 1st disk is vda, the 2nd is vdb, and the 3rd is vdc.
 #
 # For RAW format images, use the `.img` or `.raw` extension.
+# Type: Array
 disk_arr=(
     disk.img
     #
@@ -57,22 +61,33 @@ disk_arr=(
 # KVM & MACHINE
 #
 # Whether to enable KVM acceleration
+# Type: bool
 kvm=true
 #
-# If "/dev/kvm" does not exist, or the current architecture is incompatible with the virtual machine architecture, then it will automatically disable KVM (i.e., kvm=false).
 #
-# When false, detection is skipped and KVM is forced. WARN: This may cause the VM to fail to boot.
+# When true, if "/dev/kvm" does not exist, or the current architecture is incompatible with the virtual machine architecture, then it will automatically disable KVM (i.e., kvm=false).
+#
+# When false, detection is skipped and KVM is forced.
+# WARN: If `kvm=true; kvm_detection=false`, then it may cause the VM to fail to boot.
+#
 # Note: Not all architectures are automatically detected, such as mipsle, and some other architectures that are primarily used for embedded devices.
+# Type: bool
 kvm_detection=true
 #
-# When KVM is not supported, it will automatically fallback.
-# kvm:xen:hvf:nvmm:whpx:tcg
-qemu_accel="kvm:tcg"
+# Type: Array
+accelerator_arr=(
+    # When KVM is not supported, it will automatically fallback to tcg.
+    kvm
+    tcg
+    #
+    # xen  hvf  nvmm  whpx
+)
+#
 #
 kvm_cpu=host
 #
 # CPU for Non-KVM:
-# Note: The CPU can be an empty string
+# Note: The CPU can be an empty string.
 #
 # qemu-system-x86_64 -cpu help
 cpu_x64=qemu64-v1
@@ -107,11 +122,13 @@ cpu_mipsle=4KEc
 cpu_mipsbe=""
 
 # Symmetric multiprocessing (Multiple CPUs)
+# Type: bool
 enable_smp=true
 enable_smp_mips64le=false
 enable_smp_mipsbe=false
 enable_smp_mipsle=false
 #
+# Type: Array
 smp_options=(
     sockets=1
     cores=$(nproc)
@@ -150,6 +167,7 @@ machine_mips64le=loongson3-virt
 machine_mipsle=malta
 machine_mipsbe=malta
 
+# Type: Array
 extra_machine_options=(
     # virtualization=on
     #
@@ -159,6 +177,7 @@ extra_machine_options=(
 # EFI
 #
 # For arm64(aarch64) debian trixie (qemu 9.0-rc), efi/uboot must be enabled, otherwise the system will not boot.
+# Type: bool
 enable_efi=false
 enable_efi_arm64=true
 enable_efi_loong64=true
@@ -178,6 +197,7 @@ auto_create_efi_vars_file=true
 #
 # NETWORK
 #
+# Type: bool
 enable_nat_network=true
 
 # qemu-system-x86_64 -nic model=help
@@ -189,10 +209,12 @@ enable_nat_network=true
 nic_model="virtio-net-pci"
 nic_model_rv64gc="virtio-net-device"
 
+# Type: bool
 nic_compatibility_mode=false
 nic_compatibility_mode_rv64gc=true
 nic_compatibility_mode_s390x=true
 
+# Type: Array
 extra_nic_options=(
     #
 )
@@ -223,6 +245,7 @@ extra_nic_options=(
 #     8080/udp  ==  0.0.0.0:8080/udp
 #     8080/tcp  ==  0.0.0.0:8080/tcp
 #
+# Type: Map
 local -A hostfwd_map=(
     # key                         # value
     # [host]                      # [guest] (Virtual Machine)
@@ -247,8 +270,10 @@ local -A hostfwd_map=(
 # 1T available RAM * 0.05% = 0.5G
 #
 # The data type of this variable is double (a.k.a., f64), f64 can take on very large values, but the actual range of values for this variable is 0.0 to 100.0
-# You can only use floating point (std: IEEE 754) or integer. Attention: String will be converted to 0.000000000e+00
-# Disable when 0.
+# You can only use floating point (std: IEEE 754) or integer.
+# Disable when:  NaN | Inf | -Inf | 0.
+# i.e., float memory_percentage=NaN => disable
+# Type: f64
 float memory_percentage=90.0
 
 # After applying `memory_percentage`, limit the maximum memory with `max_memory`.
@@ -267,26 +292,33 @@ float memory_percentage=90.0
 #
 # Disable when 0
 # It is not necessary to manually add Unit (Megabytes (MB)).
+# Type: usize
 integer max_memory=0
 integer max_memory_mipsle=2048
 integer max_memory_mipsbe=2048
 integer max_memory_armv7a=2816
 
 # Note: power8 cpu (arch: ppc64le) must have an integer multiple of 256M.
+# Type: bool
 auto_resize_mem_to_256_multiple=false
 auto_resize_mem_to_256_multiple_ppc64le=true
 # ----------------------
 #
 # KERNEL
 #
+# Type: bool
 external_kernel=true
+
 kernel_file=boot/vmlinuz
 initrd_file=boot/initrd.img
+# Type: Array
 _cli=(
     root=LABEL=rootfs
     rw
     console=tty0
 )
+
+# Type: Array
 kernel_cmdline=(
     $_cli
     console=ttyS0,4000000
@@ -347,7 +379,9 @@ qemu_cmd_s390x=qemu-system-s390x
 # Finally, access the "/media/sd" directory.
 #
 # Requires: Host Linux Kernel >= 5.4, QEMU >= 5.0
+# Type: bool
 virtio_fsd=false
+
 shared_dir=$PWD
 
 # To prevent virtiofsd from running as root, some isolation is required.
@@ -454,9 +488,14 @@ args=(-name  $name)
         machine_opts=,${(j^,^)extra_machine_options}
     }
 
+    local accel=kvm:tcg
+    if (($#accelerator_arr)) {
+        accel=${(j^:^)accelerator_arr}
+    }
+
     args+=(
         -machine
-        "${machine_name},accel=${qemu_accel}${machine_opts}"
+        "${machine_name},accel=${accel}${machine_opts}"
     )
 }
 
@@ -604,7 +643,17 @@ if {$no_graphic} {
 # MEMORY
 calculate_memory() {
     local max=$(get_the_real_value max_memory)
-    if ((memory_percentage == 0.0)) {
+    local disable=false
+
+    # Inf * 0 => NaN, NaN * 0 => NaN
+    # Since $((NaN != NaN)), so we need to convert f64 to string, and compare it to the "NaN" string
+    if [[ $((memory_percentage * 0)) == NaN ]] {
+        disable=true
+    }
+    if (( memory_percentage == 0.0)) {
+        disable=true
+    }
+    if {$disable} {
         print $max
         return
     }
