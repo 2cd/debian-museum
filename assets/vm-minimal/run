@@ -345,7 +345,7 @@ kernel_cmdline_mipsle=(
     console=ttyS0
     nokaslr
 )
-kernel_cmdline_mipsbe=$kernel_cmdline_mipsle
+kernel_cmdline_mipsbe=($kernel_cmdline_mipsle)
 # ----------------------
 #
 # CMD
