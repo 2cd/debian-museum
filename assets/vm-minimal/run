@@ -219,6 +219,9 @@ extra_nic_options=(
     #
 )
 
+# Type: bool
+enable_hostfwd=true
+
 # For NAT networks, if you need to access a virtual machine's port, you must expose it.
 #
 # If:
@@ -436,6 +439,10 @@ hostfwd_rules=""
 #
 # update_host_forwarding_rules
 () {
+    if {! $enable_hostfwd} {
+        return
+    }
+
     for k v (${(kv)hostfwd_map}) {
         # k.split('/').last()
         local p=${k[(ws^/^)-1]}
