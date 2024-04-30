@@ -1767,7 +1767,6 @@ deb-architectures = [
     "riscv64",
     "ppc64el",
     "i386",
-    "armhf",
     "arm64",
     "amd64",
 ]
@@ -1799,12 +1798,6 @@ deb-arch = "i386"
 src = "ubuntu"
 
 [[os.tag]]
-arch = "armv7a"
-deb-arch = "armhf"
-[os.tag.source]
-src = "ubuntu-ports"
-
-[[os.tag]]
 arch = "arm64"
 deb-arch = "arm64"
 [os.tag.source]
@@ -1822,57 +1815,3 @@ src = "ubuntu"
 # version = "unstable"
 # codename = "Development Branch"
 # series = "devel"
-# # date = ""
-# deb-architectures = [
-#     "s390x",
-#     "riscv64",
-#     "ppc64el",
-#     "i386",
-#     "armhf",
-#     "arm64",
-#     "amd64",
-# ]
-# no-minbase = false
-# deb822-format = true
-
-# [[os.tag]]
-# arch = "s390x"
-# deb-arch = "s390x"
-# [os.tag.source]
-# src = "ubuntu-ports"
-
-# [[os.tag]]
-# arch = "rv64gc"
-# deb-arch = "riscv64"
-# [os.tag.source]
-# src = "ubuntu-ports"
-
-# [[os.tag]]
-# arch = "ppc64le"
-# deb-arch = "ppc64el"
-# [os.tag.source]
-# src = "ubuntu-ports"
-
-# [[os.tag]]
-# arch = "x86"
-# deb-arch = "i386"
-# [os.tag.source]
-# src = "ubuntu"
-
-# [[os.tag]]
-# arch = "armv7a"
-# deb-arch = "armhf"
-# [os.tag.source]
-# src = "ubuntu-ports"
-
-# [[os.tag]]
-# arch = "arm64"
-# deb-arch = "arm64"
-# [os.tag.source]
-# src = "ubuntu-ports"
-
-# [[os.tag]]
-# arch = "x64"
-# deb-arch = "amd64"
-# [os.tag.source]
-# src = "ubuntu"
