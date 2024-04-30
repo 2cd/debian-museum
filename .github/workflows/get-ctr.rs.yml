@@ -26,10 +26,10 @@ jobs:
             target: aarch64-unknown-linux-musl
             platform: linux/arm64
             machine: ubuntu-latest
-          - arch: rv64gc
-            target: riscv64gc-unknown-linux-gnu
-            platform: linux/riscv64
-            machine: armbian
+          # - arch: rv64gc
+          #   target: riscv64gc-unknown-linux-gnu
+          #   platform: linux/riscv64
+          #   machine: armbian
     runs-on: ${{matrix.machine}}
 
     defaults:

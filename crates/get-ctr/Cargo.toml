@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 ahash = "0.8.11"
-anyhow = "1.0.81"
+anyhow = "1.0.82"
 # bincode = { version = "2.0.0-rc.3", features = ["serde"] }
 clap = { version = "4.5.4", features = ["derive"] }
 derive_more = { version = "1.0.0-beta.6", default-features = false, features = [
@@ -14,20 +14,20 @@ derive_more = { version = "1.0.0-beta.6", default-features = false, features = [
     "display",
 ] }
 getset = "0.1.2"
-libc = { version = "0.2.153", default-features = false }
+libc = { version = "0.2.154", default-features = false }
 log = "0.4.21"
 regex = { version = "1.10.4", default-features = false, features = [
     "std",
     "unicode-perl",
 ] }
 ron = "0.8.1"
-serde = { version = "1.0.197", features = ["derive"] }
-serde_with = "3.7.0"
+serde = { version = "1.0.199", features = ["derive"] }
+serde_with = "3.8.1"
 serde_yaml = "0.9.34+deprecated"
 threadpool = "1.8.1"
-time = { version = "0.3.34", features = ["serde", "serde-human-readable"] }
+time = { version = "0.3.36", features = ["serde", "serde-human-readable"] }
 tinyvec = { version = "1.6.0", features = ["serde", "alloc"] }
-typed-builder = "0.18.1"
+typed-builder = "0.18.2"
 url = { version = "2.5.0", features = ["serde"] }
 
 [dependencies.repack]
