@@ -17,6 +17,8 @@ jobs:
             runner: ubuntu-24.04
           - arch: arm64
             runner: circle-arm64
+          - arch: arm64
+            runner: circle-arm64
     runs-on: ${{matrix.runner}}
 
     # defaults:
@@ -35,5 +37,13 @@ jobs:
         if: (!fromJSON(env.circle_runner))
         run: ${{ secrets.LARGE_ARM64_RUNNER }}
 
+      - name: trigger arm64 runner
+        if: (!fromJSON(env.circle_runner))
+        run: ${{ secrets.MEDIUM_ARM64_RUNNER }}
+
       - name: test
-        run: uname -a
+        run: |
+          uname -a
+          cat /proc/cpuinfo
+          nproc
+          free -mh
