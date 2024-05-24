@@ -1,0 +1,39 @@
+name: arm64 runner
+# auto-task.start-build-time = ?
+
+on:
+  push:
+    branches: ["dev"]
+    paths:
+      - .github/workflows/test-arm64.yml
+
+jobs:
+  docker:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: circle-arm64
+    runs-on: ${{matrix.runner}}
+
+    defaults:
+      run:
+        shell: zsh --pipefail -fex {0}
+    env:
+      circle_runner: ${{ startsWith(matrix.runner, "circle") }}
+    steps:
+      # - name: install zsh
+      #   shell: sh -e {0}
+      #   run: ${{ vars.INSTALL_ZSH }}
+      # - uses: actions/checkout@v4
+      #   with:
+      #     ref: dev
+      - name: trigger arm64
+        if: (!fromJSON(env.circle_runner))
+        run: ${{ secrets.WEBHOOK_TRIGGER }}
+
+      - name: test
+        run: uname -a
