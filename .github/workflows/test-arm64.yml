@@ -23,7 +23,7 @@ jobs:
       run:
         shell: zsh --pipefail -fex {0}
     env:
-      circle_runner: ${{ startsWith(matrix.runner, "circle") }}
+      circle_runner: ${{ startsWith(matrix.runner, 'circle') }}
     steps:
       # - name: install zsh
       #   shell: sh -e {0}
