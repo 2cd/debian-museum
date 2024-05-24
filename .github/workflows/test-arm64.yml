@@ -15,8 +15,8 @@ jobs:
         include:
           - arch: x64
             runner: ubuntu-24.04
-          - arch: arm64
-            runner: circle-arm64
+          # - arch: arm64
+          #   runner: circle-arm64
           - arch: arm64
             runner: circle-arm64
     runs-on: ${{matrix.runner}}
@@ -26,6 +26,7 @@ jobs:
     #     shell: zsh --pipefail -fex {0}
     env:
       circle_runner: ${{ startsWith(matrix.runner, 'circle') }}
+      linux: ${{ runner.os == 'Linux' }}
     steps:
       # - name: install zsh
       #   shell: sh -e {0}
@@ -33,13 +34,17 @@ jobs:
       # - uses: actions/checkout@v4
       #   with:
       #     ref: dev
-      - name: trigger arm64 runner
-        if: (!fromJSON(env.circle_runner))
-        run: ${{ secrets.LARGE_ARM64_RUNNER }}
+      # - name: trigger arm64 runner
+      #   if: (!fromJSON(env.circle_runner))
+      #   run: ${{ secrets.LARGE_ARM64_RUNNER }}
 
       - name: trigger arm64 runner
         if: (!fromJSON(env.circle_runner))
         run: ${{ secrets.MEDIUM_ARM64_RUNNER }}
+
+      - name: init runner
+        if: fromJSON(env.linux)
+        run: sudo touch /run/runner_connected
 
       - name: test
         run: |
@@ -47,3 +52,7 @@ jobs:
           cat /proc/cpuinfo
           nproc
           free -mh
+
+      - name: disconnect
+        if: always() && fromJSON(env.linux)
+        run: sudo unlink /run/runner_connected
