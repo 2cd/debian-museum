@@ -19,9 +19,9 @@ jobs:
             runner: circle-arm64
     runs-on: ${{matrix.runner}}
 
-    defaults:
-      run:
-        shell: zsh --pipefail -fex {0}
+    # defaults:
+    #   run:
+    #     shell: zsh --pipefail -fex {0}
     env:
       circle_runner: ${{ startsWith(matrix.runner, 'circle') }}
     steps:
