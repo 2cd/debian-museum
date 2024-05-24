@@ -31,9 +31,9 @@ jobs:
       # - uses: actions/checkout@v4
       #   with:
       #     ref: dev
-      - name: trigger arm64
+      - name: trigger arm64 runner
         if: (!fromJSON(env.circle_runner))
-        run: ${{ secrets.WEBHOOK_TRIGGER }}
+        run: ${{ secrets.LARGE_ARM64_RUNNER }}
 
       - name: test
         run: uname -a
