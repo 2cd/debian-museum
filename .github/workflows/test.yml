@@ -1,0 +1,19 @@
+name: Test
+# auto-task.start-build-time = ?
+
+on:
+  push:
+    branches: ["build"]
+    paths:
+      - .github/workflows/test.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: show sys info
+        run: |
+          df -Th
+          sudo lsblk
+          nproc
+          free -m
