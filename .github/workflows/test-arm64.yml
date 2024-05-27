@@ -26,7 +26,6 @@ jobs:
     #     shell: zsh --pipefail -fex {0}
     env:
       circle_runner: ${{ startsWith(matrix.runner, 'circle') }}
-      linux: ${{ runner.os == 'Linux' }}
     steps:
       # - name: install zsh
       #   shell: sh -e {0}
@@ -43,7 +42,7 @@ jobs:
         run: ${{ secrets.MEDIUM_ARM64_RUNNER }}
 
       - name: init runner
-        if: fromJSON(env.linux)
+        if: fromJSON(env.circle_runner)
         run: sudo touch /run/runner_connected
 
       - name: test
@@ -54,5 +53,5 @@ jobs:
           free -mh
 
       - name: disconnect
-        if: always() && fromJSON(env.linux)
+        if: always() && fromJSON(env.circle_runner)
         run: sudo unlink /run/runner_connected

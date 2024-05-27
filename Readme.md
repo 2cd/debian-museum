@@ -5,6 +5,12 @@
 - [Releases](https://github.com/2cd/debian-museum/releases)
 - [Containers](https://github.com/2cd/debian-museum/pkgs/container/debian)
 
+Important: All container images will be migrated to the tar+zstd format.
+
+Older versions of docker do not support tar+zstd!
+
+`docker.io` installed with apt is still stuck at v20.10, you may need to install docker-ce manually.
+
 ## History
 
 | version                                                            | release           |
@@ -280,7 +286,7 @@ The Dev VM comes pre-installed with Docker, qemu-user-static, and systemd-nspawn
 - Just change the values of `ver` & `arch`
 - What follows may seem complicated, but it's actually quite simple to follow step-by-step.
 - Depends:
-  - `docker.io` | `docker-ce` | `docker-ee`
+  - `docker-ce` | `docker-ee`
   - `zsh` (>= 5)
 - Recommends:
   - [qemu-user-static](https://tracker.debian.org/pkg/qemu) | [qemu-user-static-binfmt](https://archlinux.org/packages/extra/x86_64/qemu-user-static-binfmt/)
