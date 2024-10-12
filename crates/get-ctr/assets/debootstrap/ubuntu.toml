@@ -1761,12 +1761,13 @@ name = "Ubuntu"
 version = "24.10"
 codename = "Oracular Oriole"
 series = "oracular"
-# date = "2024-10-10"
+date = "2024-10-10"
 deb-architectures = [
     "s390x",
     "riscv64",
     "ppc64el",
     "i386",
+    "armhf",
     "arm64",
     "amd64",
 ]
@@ -1796,6 +1797,12 @@ arch = "x86"
 deb-arch = "i386"
 [os.tag.source]
 src = "ubuntu"
+
+[[os.tag]]
+arch = "armv7a"
+deb-arch = "armhf"
+[os.tag.source]
+src = "ubuntu-ports"
 
 [[os.tag]]
 arch = "arm64"
