@@ -200,7 +200,7 @@ If it does not work, change he permissions manually.
 
 ```sh
 # run it as root
-chmod 666 -v /dev/shm
+chmod 666 -v /dev/kvm
 ```
 
 ### Step3: install zsh
