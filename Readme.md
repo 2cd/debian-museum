@@ -233,7 +233,7 @@ This is a Zsh script that **doesn’t** require root permissions and **won’t**
 > It’s a bit complex, and in the future, it might be combined with WASI (WebAssembly System Interface) to handle the core logic.
 
 ```sh
-./run
+./run || zsh run
 ```
 
 > localhost login: root
@@ -268,7 +268,7 @@ cat connect-to-ssh
 Finally, connect to SSH.
 
 ```sh
-./connect-to-ssh
+./connect-to-ssh || zsh connect-to-ssh
 ```
 
 ## Docker
