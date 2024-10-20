@@ -1823,7 +1823,7 @@ name = "Ubuntu"
 version = "25.04"
 codename = "Plucky Puffin"
 series = "plucky"
-date = "2025-04-17"
+# date = "2025-04-17"
 deb-architectures = [
     "s390x",
     "riscv64",
