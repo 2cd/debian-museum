@@ -1,5 +1,5 @@
 name: build (Unstable, Sid)
-# auto-task.start-build-time = 2025-09-05 01:00:32.701124545+00:00
+# auto-task.start-build-time = 2025-09-09 01:00:30.760760927+00:00
 on: { "push": { "paths": [".github/workflows/sid.yml"] } }
 
 env:
